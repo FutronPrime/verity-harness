@@ -86,6 +86,10 @@ def main(argv: list[str]) -> None:
         # GAIA/Seal-0-shaped GOAL benchmark: multi-step goals via the full agentic harness.
         from .eval_tasks import run as _tasks
         _tasks(harness_exec="--exec" in rest)
+    elif cmd == "swebench":
+        # SWE-Bench-style: test-scored bug fixing (the coding axis Fable 5 is ranked on).
+        from .eval_swebench import run as _swe
+        _swe()
     elif cmd == "swarm":
         # Multi-agent swarm: planner → researchers → executors → critic → synthesizer (gated).
         if not rest:
