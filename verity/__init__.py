@@ -7,6 +7,8 @@ that got Fable 5 suspended is the one thing we deliberately do NOT replicate.
 from .loop import run_goal
 from .router import ask, chat, Reply, AllTiersFailed
 from .config import TIERS, summary
+from .executors import DockerExecutor, run_with_openhands
 
-__all__ = ["run_goal", "ask", "chat", "Reply", "AllTiersFailed", "TIERS", "summary"]
+__all__ = ["run_goal", "ask", "chat", "Reply", "AllTiersFailed", "TIERS", "summary",
+           "DockerExecutor", "run_with_openhands"]
 __version__ = "0.1.0"
