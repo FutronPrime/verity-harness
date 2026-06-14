@@ -58,12 +58,27 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
 
 ## What it forces (the gates — none are skippable by the model)
 
+- **🔎 SEARCH-BEFORE-CONCLUDING (rule 6, the core)** — a NEGATIVE claim ("there's no X", "not
+  possible", "no free option", "only way is Y") is the most expensive assumption. The harness
+  forces a proactive search where solutions live (GitHub / Google / Reddit / X / YouTube / SO)
+  **before** any such claim stands. Someone has almost certainly open-sourced or documented it.
+  *Don't assume scarcity — go look.* (This is what turns "no free X API" into "twikit posts free".)
 - **Verify** every action (adversarial: did it REALLY work?)
 - **Evidence** — no "done" on a fact-question without verified evidence
 - **Calibration** — challenges every confident conclusion; tags VERIFIED vs GUESS
 - **Persistence** — refuses to quit; on stuck, **auto-researches the error** (GitHub/Reddit/HN/SO) and forces a different approach
 - **Reuse-first** — checks your own tools, then existing open-source, before building from scratch
 - **Sovereign failover** — cloud → local open weights you own
+
+## Prove it's actually being used (and that it helps)
+
+The gates write an auditable receipt — so "the harness helped" is a log, not a vibe:
+```bash
+python3 -m verity proof     # receipt: searches fired, assumptions caught + corrected, VERIFIED vs GUESS
+python3 -m verity eval      # A/B: naive vs harness on assumption-trap questions → the lift delta
+```
+`proof` reads the decision ledger (`~/.verity-harness/ledger/`); every search/verify/reuse/
+correction event is logged with its trigger and evidence. No events = the harness wasn't used.
 
 ## Use as the executor behind another agent
 
