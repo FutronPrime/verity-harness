@@ -97,14 +97,13 @@ def run(tiers=None, harness_exec=True, verbose=True) -> dict:
             open(f"{d}/test.py", "w").write(t["test"])
             try:
                 if harness_exec:
-                    cwd0 = os.getcwd(); os.chdir(d)
-                    try:
-                        run_verified(
-                            f"Fix the bug in sol.py so that `python3 test.py` prints PASS and exits 0. "
-                            f"You MUST run the test to verify before finishing.",
-                            executor=ShellExecutor(), max_steps=6, verbose=False, tiers=tiers)
-                    finally:
-                        os.chdir(cwd0)
+                    # Run the agent's shell IN the task dir via the executor's cwd — no global
+                    # os.chdir (that was fragile + not thread-safe). sol.py/test.py are right there.
+                    run_verified(
+                        "The files sol.py (buggy) and test.py are in your current directory. "
+                        "Fix the bug in sol.py so that `python3 test.py` prints PASS and exits 0. "
+                        "You MUST run `python3 test.py` yourself to verify before finishing.",
+                        executor=ShellExecutor(cwd=d), max_steps=6, verbose=False, tiers=tiers)
                 hpass = _run_test(d)
             except Exception:  # noqa: BLE001
                 hpass = False
