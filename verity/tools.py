@@ -237,6 +237,40 @@ def research(query: str) -> str:
     return "\n\n".join(f"=== {name} ===\n{body}" for name, body in blocks)
 
 
+def browse(url: str, screenshot: str | None = None, wait_ms: int = 4000,
+           max_chars: int = 12000) -> str:
+    """Render a JS-heavy page in a REAL headless browser and return its visible text
+    — for content static fetch() can't see (truncated threads, SPAs, infinite-scroll,
+    login-gated views). Optionally save a full-page screenshot to `screenshot`.
+
+    Uses Playwright. If absent, returns install guidance (the agent should then run
+    `pip install playwright && playwright install chromium` and retry). For richer
+    agentic browsing (clicking, scrolling, form-fill), install Browser Use
+    (github.com/browser-use/browser-use) and drive it from the shell."""
+    try:
+        from playwright.sync_api import sync_playwright  # type: ignore
+    except Exception:  # noqa: BLE001
+        return ("[playwright not installed — run: pip install playwright && "
+                "playwright install chromium, then retry browse(). For agentic web "
+                "tasks (scroll/click/scrape) use Browser Use: pip install browser-use]")
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
+    try:
+        with sync_playwright() as p:
+            b = p.chromium.launch(headless=True)
+            pg = b.new_page(user_agent=_UA)
+            pg.goto(url, wait_until="networkidle", timeout=30000)
+            pg.wait_for_timeout(wait_ms)
+            text = pg.inner_text("body")
+            if screenshot:
+                pg.screenshot(path=screenshot, full_page=True)
+            b.close()
+        out = _WS.sub("\n\n", text).strip()[:max_chars]
+        return out + (f"\n\n[screenshot saved → {screenshot}]" if screenshot else "")
+    except Exception as e:  # noqa: BLE001
+        return f"[browse error: {type(e).__name__}: {e}]"
+
+
 def capabilities_guide() -> str:
     return """\
 AGENT CAPABILITIES — you can go GET information, not just reason from memory.
@@ -259,9 +293,12 @@ You have a REAL SHELL (ShellExecutor). That means you can:
   • INSTALL any tool you need, then use it:
       pip install <pkg>      npm install -g <pkg>      brew install <tool>
       e.g. yt-dlp (video), jq (json), gh (github), pandoc, ripgrep, pdftotext
-  • BROWSER AUTOMATION (JS-heavy sites, logins, clicking):
-      pip install playwright && playwright install chromium
-      then drive it from a python3 script via the shell.
+  • BROWSE a JS-heavy/truncated page (renders in a real browser, returns full text,
+    optional screenshot — for SPAs, threads, infinite-scroll, anything fetch() can't see):
+      python3 -c "from verity.tools import browse; print(browse('URL', screenshot='out.png'))"
+      (run `pip install playwright && playwright install chromium` once if prompted)
+  • AGENTIC BROWSING (scroll/click/fill/scrape at scale):
+      pip install browser-use   # github.com/browser-use/browser-use (98k★) — drive via shell
   • COMPUTER USE / desktop automation:
       install a computer-use tool (e.g. pyautogui) and script it via the shell.
   • MCP servers (Model Context Protocol):
