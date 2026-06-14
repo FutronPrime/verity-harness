@@ -23,6 +23,29 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from concurrent.futures import ThreadPoolExecutor
 
+import re as _re
+
+# EVIDENCE-BASED gating (researched, not assumed — arxiv 2511.11306 iMAD + the 2026 MAD surveys):
+# multi-agent debate beats single-agent in ~19/21 settings (+7% avg) BUT triggering it for EVERY
+# query is wrong — it costs more AND can DEGRADE accuracy by overturning correct single answers.
+# iMAD-style selective triggering (swarm only when it's likely to help) gets ~92% token savings +
+# up to +13.5% accuracy. So: swarm COMPLEX/multi-part goals; use a single gated run for simple ones.
+_COMPLEX = _re.compile(
+    r"\b(compare|contrast|research|analyze|design|architect|plan|evaluate|investigate|"
+    r"trade[- ]?offs?|pros and cons|multiple|several|end[- ]to[- ]end|comprehensive|"
+    r"and then|as well as|build .* and|migrat|audit|survey)\b", _re.I)
+
+
+def should_swarm(goal: str) -> bool:
+    """iMAD-style selective trigger: True when a goal is complex/multi-part enough that the
+    multi-agent cost pays off. Simple/atomic goals should use a single gated run (`run_verified`)
+    — swarming them wastes tokens and can DEGRADE the answer (agents conform / overturn a correct
+    single answer). Evidence: arxiv 2511.11306 (iMAD) + 2026 multi-agent-debate surveys."""
+    g = goal.strip()
+    multi_clause = g.count(",") + g.count(" and ") + g.count(";") >= 2
+    return bool(_COMPLEX.search(g)) or multi_clause or len(g) > 160
+
+
 ROLE_SYS = {
     "planner": (
         "You are the PLANNER in a multi-agent swarm. Decompose the GOAL into 2-5 CONCRETE, "
@@ -65,6 +88,13 @@ def run_swarm(goal: str, executor=None, tiers=None, max_subtasks: int = 4,
     shell work; without it sub-tasks are researched reasoning. Self-contained — no external deps."""
     from . import ledger
     from .loop import parse_step_json
+
+    # iMAD selective-trigger transparency: warn (don't block) if this goal is simple enough that
+    # a single gated run would likely be cheaper AND at least as accurate (research: swarming
+    # simple tasks can DEGRADE the answer). The caller still gets the swarm if they asked for it.
+    if verbose and not should_swarm(goal):
+        print("[swarm] note: this goal looks simple — a single `run_verified` may be cheaper and "
+              "as accurate (multi-agent pays off on COMPLEX/multi-part goals). Proceeding anyway.")
 
     # 1. PLAN ---------------------------------------------------------------
     plan = parse_step_json(_agent("planner", f"GOAL: {goal}", tiers))
