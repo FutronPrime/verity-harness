@@ -85,6 +85,28 @@ frontier model better** by supplying current world-knowledge its weights can't h
 | 4B local (weak) | reasoning traps | 33% | **67%** | **+1** |
 | Opus 4.8 (frontier) | *current-info* traps (+ sovereign floor) | 25% | **100%** | **+3** |
 | Opus 4.8 (frontier) | facts it already knows | 100% | 100% | 0 *(expected)* |
+| Kimi-k2.7 / Opus 4.8 | *easy* coding bugs (`verity swebench`) | 100% | 67% / 100% | **−1 / 0** |
+
+## The coding axis — an honest negative (receipts include the failures)
+
+`verity swebench` (test-scored bug fixing, SWE-Bench shape) on capable models:
+
+| | naive | harness |
+|---|---:|---:|
+| Kimi-k2.7-code | 3/3 (100%) | 2/3 (67%) |
+| Opus 4.8 chain | 3/3 (100%) | 3/3 (100%) |
+
+**The harness showed NO lift here, and even regressed −1 on Kimi.** Two honest causes:
+1. **The seed bugs are too easy** — a capable model one-shots all three (naive 100%), leaving no
+   headroom. Real SWE-Bench Pro is hard *because* even Fable 5 only reaches 80.3%; these aren't.
+2. **The agentic loop adds overhead on trivial fixes** — Kimi regressed (naive ✓ → harness ✗ on
+   `median`): the multi-step shell edit→test→fix path has more failure surface than emitting the
+   fix in one shot, and that's wasted when the model already nails it cold.
+
+This **confirms** the thesis rather than breaking it: the harness lifts a model where it *needs*
+help (hard / current / multi-step), and is overhead where the model already aces the task one-shot
+(see "Honest limits"). To show coding lift you need **genuinely hard** bugs — extend
+`verity/eval_swebench.py` with real SWE-Bench-difficulty instances (the next build).
 
 The harness lifts **every** tier — weak models on reasoning it can't do alone, **frontier models on
 currency/tools/verification** they can't get from weights. The lift vanishes only when the model

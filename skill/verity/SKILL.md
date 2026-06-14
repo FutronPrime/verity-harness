@@ -100,7 +100,7 @@ python3 -m verity swebench   # SWE-Bench-style: test-scored bug fixing (the codi
 **If the user asks "does this help MY model? benchmark it" — follow [`BENCHMARKING.md`](BENCHMARKING.md):**
 a step-by-step runbook (written for you, the agent) to set up the tiers/keys, run the right
 benchmark for their use case, and report the naive-vs-harness table + honest interpretation.
-Verified on this repo: **Opus 4.8 went 25% → 100%** on current-info tasks with the harness.
+Verified on this repo: **Opus 4.8 went 25% → 100%** on current-info tasks (+3) and a 4B went 33%→67% on reasoning (+1). HONEST counter-result: on *easy* coding bugs capable models already score 100% naive, so the harness shows 0 lift and can even regress −1 (agentic overhead on trivial fixes). The harness helps where the model NEEDS help — not on tasks it aces one-shot.
 
 ## Use as the executor behind another agent
 
