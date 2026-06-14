@@ -18,8 +18,8 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Self-contained store under the user's home (override with SOVEREIGN_HOME).
-_HOME = Path(os.environ.get("SOVEREIGN_HOME", str(Path.home() / ".sovereign-harness")))
+# Self-contained store under the user's home (override with VERITY_HOME).
+_HOME = Path(os.environ.get("VERITY_HOME", str(Path.home() / ".verity-harness")))
 STORE = _HOME / "memory.jsonl"
 _WORD = re.compile(r"[a-z0-9]+")
 # Common words that cause false-positive recalls (caught in testing: "weather in

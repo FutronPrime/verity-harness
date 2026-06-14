@@ -5,7 +5,7 @@ Probes the three capabilities that determine whether the discipline layer can he
 (see REQUIREMENTS.md): structured output, valid tool use, and self-correction.
 A model that fails these will have its errors *caught* but cannot be *fixed*.
 
-  python3 -m sovereign_harness doctor
+  python3 -m verity doctor
 """
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ def _probe_self_correct() -> tuple[bool, str]:
 
 
 def run() -> int:
-    print("Sovereign Harness — model preflight\n")
+    print("VERITY — model preflight\n")
     checks = [
         ("structured output (JSON)", _probe_json),
         ("valid tool use (shell)", _probe_tool),

@@ -7,8 +7,8 @@ server instead of the vendor, and it transparently inherits: tiered failover
 per-call tier reporting. The client sees a normal /v1/chat/completions endpoint;
 the resilience just happens.
 
-  python3 -m sovereign_harness.server          # serve on :11500
-  PORT=8080 python3 -m sovereign_harness.server
+  python3 -m verity.server          # serve on :11500
+  PORT=8080 python3 -m verity.server
 
 Then: export OPENAI_BASE_URL=http://127.0.0.1:11500/v1  (or your client's setting)
 
@@ -24,7 +24,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from .router import chat, AllTiersFailed
 from .guardrail import classify, CAPABILITY_DIRECTIVE, SAFETY_DIRECTIVE
 
-_MODE = os.environ.get("SOVEREIGN_GUARDRAIL_MODE", "off").lower()
+_MODE = os.environ.get("VERITY_GUARDRAIL_MODE", "off").lower()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -41,7 +41,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path.rstrip("/") in ("/health", "/v1/health"):
-            self._send(200, {"ok": True, "service": "sovereign-harness-proxy",
+            self._send(200, {"ok": True, "service": "verity-harness-proxy",
                              "guardrail_mode": _MODE})
         else:
             self._send(404, {"error": "not found"})
@@ -92,7 +92,7 @@ def _as_openai(content: str, model: str, tier: str = "") -> dict:
 def serve(port: int | None = None):
     port = port or int(os.environ.get("PORT", "11500"))
     srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
-    print(f"sovereign-harness proxy on http://127.0.0.1:{port}/v1  "
+    print(f"verity-harness proxy on http://127.0.0.1:{port}/v1  "
           f"(guardrail={_MODE})")
     srv.serve_forever()
 

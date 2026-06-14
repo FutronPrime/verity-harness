@@ -2,7 +2,7 @@
 
 ## ⚠️ What this harness does — and does NOT — do
 
-**The Sovereign Harness adds RELIABILITY and RESILIENCE to a capable model. It does
+**The VERITY adds RELIABILITY and RESILIENCE to a capable model. It does
 NOT make a weak model capable.** It cannot manufacture intelligence a model lacks.
 
 The discipline layer (verify · evidence · calibration gates) *catches* errors — it
@@ -47,7 +47,7 @@ A model must be able to:
 Don't take our word for your model — test it:
 
 ```bash
-python3 -m sovereign_harness doctor      # probes the configured model against the bar
+python3 -m verity doctor      # probes the configured model against the bar
 ```
 
 It runs a quick JSON / tool-use / self-correction probe and tells you whether your

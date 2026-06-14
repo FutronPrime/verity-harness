@@ -17,9 +17,9 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from sovereign_harness.config import Tier
-from sovereign_harness.loop import ShellExecutor, run_goal
-from sovereign_harness.scaffold import run_verified
+from verity.config import Tier
+from verity.loop import ShellExecutor, run_goal
+from verity.scaffold import run_verified
 
 # Provider-configurable so the benchmark runs on any OpenAI-compatible endpoint.
 EVAL_URL = os.environ.get("EVAL_URL", "https://openrouter.ai/api/v1")

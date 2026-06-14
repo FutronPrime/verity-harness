@@ -18,9 +18,9 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from sovereign_harness.config import Tier
-from sovereign_harness.loop import ShellExecutor, run_goal
-from sovereign_harness.scaffold import run_verified
+from verity.config import Tier
+from verity.loop import ShellExecutor, run_goal
+from verity.scaffold import run_verified
 
 _KEY = os.environ.get("OPENROUTER_API_KEY", "")
 MODEL = os.environ.get("EVAL_MODEL", "moonshotai/kimi-k2")

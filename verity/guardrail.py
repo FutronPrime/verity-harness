@@ -82,9 +82,9 @@ def classify(prompt: str) -> GuardVerdict:
     for pat in _SENSITIVE_PATTERNS:
         if re.search(pat, low):
             return GuardVerdict("sensitive", "matched dual-use/sensitive pattern")
-    # Pluggable: set SOVEREIGN_CLASSIFIER_CMD to a command that reads the prompt on
+    # Pluggable: set VERITY_CLASSIFIER_CMD to a command that reads the prompt on
     # stdin and prints "sensitive"/"safe" for a deeper (e.g. model-based) check.
-    cmd = os.environ.get("SOVEREIGN_CLASSIFIER_CMD")
+    cmd = os.environ.get("VERITY_CLASSIFIER_CMD")
     if cmd:
         try:
             out = subprocess.run(cmd, shell=True, input=prompt,
@@ -105,9 +105,9 @@ def _guardrailed_tier() -> list[Tier]:
 
 # Policy modes. Default OFF for local/personal sovereignty: on your own hardware,
 # a router should not nanny your reasoning. Operators of shared/hosted deployments
-# opt into standard/strict. Override via env SOVEREIGN_GUARDRAIL_MODE.
+# opt into standard/strict. Override via env VERITY_GUARDRAIL_MODE.
 import os as _os
-_MODE = _os.environ.get("SOVEREIGN_GUARDRAIL_MODE", "off").lower()
+_MODE = _os.environ.get("VERITY_GUARDRAIL_MODE", "off").lower()
 
 
 def guarded_ask(prompt: str, audit: bool = True, mode: str | None = None, **kw) -> Reply:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sovereign Router — tiered LLM failover with ZERO external deps.
+"""Verity Router — tiered LLM failover with ZERO external deps.
 
 Sovereignty principle
 ---------------------
@@ -59,7 +59,7 @@ def _post_json(url: str, payload: dict, timeout: float, api_key: str = "") -> di
     # 403 on Groq, browser UA → OK. (Not a rate limit — measured, not assumed.)
     headers = {"Content-Type": "application/json",
                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                             "AppleWebKit/537.36 (KHTML, like Gecko) sovereign-harness"}
+                             "AppleWebKit/537.36 (KHTML, like Gecko) verity-harness"}
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
     data = json.dumps(payload).encode("utf-8")

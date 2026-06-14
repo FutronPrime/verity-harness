@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tier configuration for the Sovereign Router.
+"""Tier configuration for the Verity Router.
 
 The router tries tiers top→bottom and serves from the first that answers. Order
 encodes strategy: cloud first (cheap/fast while available), owned local weights
@@ -58,7 +58,7 @@ VERIFIER_TIERS: list[Tier] = (
 
 
 def summary() -> str:
-    lines = ["Sovereign Router — tier order (failover walks top→bottom):"]
+    lines = ["Verity Router — tier order (failover walks top→bottom):"]
     for i, t in enumerate(TIERS):
         floor = "  ← sovereign floor (un-revocable)" if t.protocol == "ollama" else ""
         key = "" if t.protocol == "ollama" else ("  [key set]" if t.api_key

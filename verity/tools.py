@@ -17,7 +17,7 @@ import re
 import urllib.parse
 import urllib.request
 
-_UA = "Mozilla/5.0 (sovereign-harness; +https://github.com/)"
+_UA = "Mozilla/5.0 (verity-harness; +https://github.com/)"
 _TAG = re.compile(r"<[^>]+>")
 _SCRIPT = re.compile(r"<(script|style)\b.*?</\1>", re.DOTALL | re.IGNORECASE)
 _WS = re.compile(r"[ \t]*\n\s*\n\s*")
@@ -140,7 +140,7 @@ def search_reddit(query: str, n: int = 6) -> str:
            f"&sort=relevance&limit={n}")
     try:
         req = urllib.request.Request(url, headers={
-            "User-Agent": "sovereign-harness/0.1 (autonomous research agent)"})
+            "User-Agent": "verity-harness/0.1 (autonomous research agent)"})
         with urllib.request.urlopen(req, timeout=20) as r:
             d = json.loads(r.read().decode("utf-8", "ignore"))
     except Exception as e:  # noqa: BLE001
@@ -244,12 +244,12 @@ AGENT CAPABILITIES — you can go GET information, not just reason from memory.
 You have a REAL SHELL (ShellExecutor). That means you can:
 
   • FETCH the web:
-      python3 -c "from sovereign_harness.tools import fetch; print(fetch('URL'))"
+      python3 -c "from verity.tools import fetch; print(fetch('URL'))"
       …or just: curl -sL URL
   • SEARCH the web (free, no key):
-      python3 -c "from sovereign_harness.tools import web_search; print(web_search('query'))"
+      python3 -c "from verity.tools import web_search; print(web_search('query'))"
   • MULTI-PLATFORM RESEARCH (find rare/inside knowledge + open-source tools):
-      python3 -c "from sovereign_harness.tools import research; print(research('your topic'))"
+      python3 -c "from verity.tools import research; print(research('your topic'))"
       sweeps GitHub (tools/forks) + Reddit + Hacker News + StackOverflow + web at once.
       Or target one: search_github / search_reddit / search_hackernews / search_stackoverflow.
       Use this to find uncommon/modified/open-source solutions others have shared.

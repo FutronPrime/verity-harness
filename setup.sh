@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sovereign Harness — one-command setup. Makes the harness run 100% standalone.
+# VERITY — one-command setup. Makes the harness run 100% standalone.
 #
 # The harness itself has ZERO pip dependencies (pure Python stdlib). The only
 # real runtime need is a model to talk to. This script sets up BOTH paths:
@@ -52,8 +52,8 @@ fi
 
 # ── 4. Done ──
 say "Setup complete. Verify the tiers:"
-echo "    python3 -m sovereign_harness tiers"
+echo "    python3 -m verity tiers"
 say "Prove vendor-suspension survival (cloud down → local floor answers):"
-echo "    python3 -m sovereign_harness failover-test"
+echo "    python3 -m verity failover-test"
 say "Run the always-on invisible proxy (point any OpenAI client at it):"
-echo "    python3 -m sovereign_harness.server   # → http://127.0.0.1:11500/v1"
+echo "    python3 -m verity.server   # → http://127.0.0.1:11500/v1"

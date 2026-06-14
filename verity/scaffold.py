@@ -27,9 +27,9 @@ _JSON_RE = re.compile(r"\{.*\}", re.DOTALL)
 
 def decompose(goal: str, timeout: float = 60) -> list[str]:
     """Break a goal into sub-goals. Default: no decomposition (single goal).
-    Plug a planner by setting SOVEREIGN_DECOMPOSE_CMD to a command that takes the
+    Plug a planner by setting VERITY_DECOMPOSE_CMD to a command that takes the
     goal as its last arg and prints a JSON list (or one sub-goal per line)."""
-    cmd = os.environ.get("SOVEREIGN_DECOMPOSE_CMD")
+    cmd = os.environ.get("VERITY_DECOMPOSE_CMD")
     if cmd:
         try:
             out = subprocess.run(f"{cmd} {json.dumps(goal)}", shell=True,
@@ -86,9 +86,9 @@ def verify(goal: str, action: str, observation: str, tiers=None) -> Verdict:
 
 
 def tripwire_check() -> str:
-    """Optional external validation hook. Set SOVEREIGN_TRIPWIRE_CMD to a command
+    """Optional external validation hook. Set VERITY_TRIPWIRE_CMD to a command
     that returns a short status string; returns "(no tripwire)" if unset."""
-    cmd = os.environ.get("SOVEREIGN_TRIPWIRE_CMD")
+    cmd = os.environ.get("VERITY_TRIPWIRE_CMD")
     if not cmd:
         return "(no tripwire)"
     try:
@@ -124,8 +124,8 @@ at a time. Respond ONLY JSON:
 {"thought":"<reasoning>","action":"<one shell command, empty if done>","done":<bool>,"summary":"<final answer when done>"}
 
 You can go GET information you lack — do NOT guess:
-  • fetch a web page:  python3 -c "from sovereign_harness.tools import fetch; print(fetch('URL'))"
-  • research deeply:   python3 -c "from sovereign_harness.tools import research; print(research('topic'))"
+  • fetch a web page:  python3 -c "from verity.tools import fetch; print(fetch('URL'))"
+  • research deeply:   python3 -c "from verity.tools import research; print(research('topic'))"
   • install any tool:  pip install <pkg> / npm i -g <pkg> / brew install <tool>, then use it
 
 DISCIPLINE (follow exactly):

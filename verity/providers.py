@@ -7,10 +7,10 @@ anyone else's billing. Each preset below is a provider with a genuine free tier.
 The user (or their LLM) gets their own key once; the harness does the rest.
 
 Usage:
-  python3 -m sovereign_harness providers          # print the setup guide
-  python3 -m sovereign_harness providers gemini    # how to set up Gemini free tier
+  python3 -m verity providers          # print the setup guide
+  python3 -m verity providers gemini    # how to set up Gemini free tier
 
-  from sovereign_harness.providers import tier_from_preset
+  from verity.providers import tier_from_preset
   tier = tier_from_preset("gemini")   # builds a Tier from $GEMINI_API_KEY
 """
 from __future__ import annotations
@@ -89,7 +89,7 @@ def setup_guide(which: str | None = None) -> str:
             f"    2. export {p['key_env']}=<your-key>",
             f"    3. Use it:  LLM_TIER1_URL={p['url']} \\",
             f"               LLM_TIER1_MODEL={p['model']} \\",
-            f"               LLM_TIER1_API_KEY=${p['key_env']} python3 -m sovereign_harness ask \"...\"",
+            f"               LLM_TIER1_API_KEY=${p['key_env']} python3 -m verity ask \"...\"",
             "",
         ]
     lines.append("Tip: set ONE of these as Tier 1 and keep Ollama as your local Tier 0 "

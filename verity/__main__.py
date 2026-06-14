@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""CLI for the Sovereign Router.
+"""CLI for the Verity Router.
 
-  python3 -m sovereign_harness tiers              # show routing order
-  python3 -m sovereign_harness ask "your prompt"  # route a prompt (verbose trail)
-  python3 -m sovereign_harness failover-test      # prove Tier1→Tier0 failover
-  python3 -m sovereign_harness providers [name]   # how to wire FREE LLM access
-  python3 -m sovereign_harness solve "<goal>"     # full discipline scaffold (real shell)
+  python3 -m verity tiers              # show routing order
+  python3 -m verity ask "your prompt"  # route a prompt (verbose trail)
+  python3 -m verity failover-test      # prove Tier1→Tier0 failover
+  python3 -m verity providers [name]   # how to wire FREE LLM access
+  python3 -m verity solve "<goal>"     # full discipline scaffold (real shell)
 """
 import sys
 

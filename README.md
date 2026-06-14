@@ -42,10 +42,10 @@ stop my agent from confidently shipping wrong answers?"
 - **Runs fully local** if you have no cloud key at all. That's the point.
 
 ```bash
-git clone https://github.com/<you>/sovereign-harness && cd sovereign-harness
+git clone https://github.com/<you>/verity-harness && cd verity-harness
 bash setup.sh                              # installs Ollama + a model; no pip needed
-python3 -m sovereign_harness tiers         # show routing order
-python3 -m sovereign_harness failover-test # PROVE: cloud down → local floor answers ✅
+python3 -m verity tiers         # show routing order
+python3 -m verity failover-test # PROVE: cloud down → local floor answers ✅
 ```
 
 Optional cloud tier (frontier-class while available): `export LLM_TIER1_API_KEY=<key>`
@@ -74,8 +74,8 @@ probabilistic, every behavior below fires on a *code condition* the harness
 controls — never the model's choice to remember.
 
 ```python
-from sovereign_harness.scaffold import run_verified
-from sovereign_harness.loop import ShellExecutor
+from verity.scaffold import run_verified
+from verity.loop import ShellExecutor
 
 r = run_verified("find and fix the off-by-one bug in utils.py",
                  executor=ShellExecutor())   # think→act→verify→recover→calibrate
@@ -88,7 +88,7 @@ r = run_verified("find and fix the off-by-one bug in utils.py",
 - **Calibration gate** — before accepting a confident conclusion, challenges it:
   *what unverified assumptions does this rest on, and what would make it wrong?*
   Routes the check to a cheap model (verification is discrimination, not generation).
-- **Memory** — remembers verified outcomes across runs (`~/.sovereign-harness/`),
+- **Memory** — remembers verified outcomes across runs (`~/.verity-harness/`),
   surfaces "you've done something like this before."
 
 ## Invisible, always-on (proxy daemon)
@@ -97,7 +97,7 @@ Point any OpenAI-compatible client (Claude Code, Cursor, an SDK) at the proxy an
 it inherits failover + guardrail transparently:
 
 ```bash
-python3 -m sovereign_harness.server                 # → http://127.0.0.1:11500/v1
+python3 -m verity.server                 # → http://127.0.0.1:11500/v1
 export OPENAI_BASE_URL=http://127.0.0.1:11500/v1     # your client now has a floor
 ```
 
@@ -107,8 +107,8 @@ On your own hardware, a router shouldn't nanny your reasoning — default mode i
 `off` (neutral passthrough). Operators of shared/hosted deployments opt in:
 
 ```bash
-export SOVEREIGN_GUARDRAIL_MODE=standard   # dual-use → safest tier; capability-forward on benign
-export SOVEREIGN_GUARDRAIL_MODE=strict     # + hard-refuse catastrophic categories
+export VERITY_GUARDRAIL_MODE=standard   # dual-use → safest tier; capability-forward on benign
+export VERITY_GUARDRAIL_MODE=strict     # + hard-refuse catastrophic categories
 ```
 
 The harness **never strips a model's own safety** in any mode — `off` just declines
@@ -129,7 +129,7 @@ Below ~13B, the gates catch errors but the model can't fix them. Full detail +
 disclaimer: **[REQUIREMENTS.md](REQUIREMENTS.md)**. Test YOUR model:
 
 ```bash
-python3 -m sovereign_harness doctor    # → READY / MARGINAL / BELOW THRESHOLD
+python3 -m verity doctor    # → READY / MARGINAL / BELOW THRESHOLD
 ```
 
 ## Honest status
@@ -148,9 +148,9 @@ real, not before. Receipts over hype.
 
 | Env var | What it plugs in |
 |---|---|
-| `SOVEREIGN_DECOMPOSE_CMD` | external planner for multi-step decomposition |
-| `SOVEREIGN_CLASSIFIER_CMD` | external (e.g. model-based) sensitivity classifier |
-| `SOVEREIGN_TRIPWIRE_CMD` | external validation hook |
+| `VERITY_DECOMPOSE_CMD` | external planner for multi-step decomposition |
+| `VERITY_CLASSIFIER_CMD` | external (e.g. model-based) sensitivity classifier |
+| `VERITY_TRIPWIRE_CMD` | external validation hook |
 | `LLM_VERIFIER_MODEL` | cheap model id for verify/calibration calls |
 
 ## License
