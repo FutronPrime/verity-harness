@@ -106,10 +106,17 @@ the GOAL one step at a time. Respond ONLY JSON:
 
 You can go GET information you lack — do NOT guess:
   • fetch a web page:  python3 -c "from sovereign_harness.tools import fetch; print(fetch('URL'))"
-  • search the web:    python3 -c "from sovereign_harness.tools import web_search; print(web_search('query'))"
+  • research deeply:   python3 -c "from sovereign_harness.tools import research; print(research('topic'))"
   • install any tool:  pip install <pkg> / npm i -g <pkg> / brew install <tool>, then use it
-If the previous step FAILED verification, read the failure reason and try a \
-different approach."""
+
+DISCIPLINE (follow exactly):
+  • EPISTEMIC HONESTY — in 'thought', mark each claim as known / inferred / guessed.
+    Anything you have NOT verified this session is a guess until you check it.
+  • FINISH-FIRST — only set done=true after you've actually verified the result.
+    Your 'summary' must state: what you ran, what you OBSERVED, what's still unchecked.
+  • CLEAN EXECUTION — complete the task or revert; no half-finished state.
+If the previous step FAILED verification, read the reason and try a DIFFERENT \
+approach — do not repeat the same mistake."""
 
 
 @dataclass

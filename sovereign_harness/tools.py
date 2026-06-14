@@ -178,6 +178,51 @@ def search_stackoverflow(query: str, n: int = 5) -> str:
         for i, x in enumerate(d.get("items", [])[:n])) or "[so: no results]"
 
 
+def fetch_tweet(url: str) -> str:
+    """Read an X/Twitter post WITHOUT an API key, via the public oembed endpoint
+    (same method futron-scrape uses). Works for public tweets."""
+    try:
+        u = "https://publish.twitter.com/oembed?omit_script=true&url=" + urllib.parse.quote(url)
+        d = _json(u)
+        return html.unescape(_TAG.sub(" ", d.get("html", ""))).strip() or "[no tweet text]"
+    except Exception as e:  # noqa: BLE001
+        return f"[x/twitter error: {type(e).__name__} — try fetch() on a nitter mirror]"
+
+
+def youtube_transcript(url_or_id: str, max_chars: int = 12000) -> str:
+    """Pull a YouTube transcript WITHOUT an API key. Prefers yt-dlp if installed
+    (most robust); the agent can `pip install yt-dlp` first. Returns the text."""
+    import shutil
+    import subprocess
+    if not shutil.which("yt-dlp"):
+        return ("[yt-dlp not installed — run: pip install yt-dlp   then retry. "
+                "yt-dlp --write-auto-sub --skip-download --sub-format vtt <url>]")
+    try:
+        import os
+        import tempfile
+        d = tempfile.mkdtemp()
+        subprocess.run(["yt-dlp", "--write-auto-sub", "--write-sub", "--sub-lang", "en",
+                        "--skip-download", "--sub-format", "vtt",
+                        "-o", os.path.join(d, "t.%(ext)s"), url_or_id],
+                       capture_output=True, text=True, timeout=90)
+        vtts = [f for f in os.listdir(d) if f.endswith(".vtt")]
+        if not vtts:
+            return "[no captions available for this video]"
+        raw = open(os.path.join(d, vtts[0]), encoding="utf-8", errors="ignore").read()
+        # strip VTT timestamps/markup → plain text
+        lines = [ln for ln in raw.splitlines()
+                 if ln.strip() and "-->" not in ln and not ln.strip().isdigit()
+                 and not ln.startswith(("WEBVTT", "Kind:", "Language:"))]
+        seen, out = set(), []
+        for ln in lines:
+            t = _TAG.sub("", ln).strip()
+            if t and t not in seen:
+                seen.add(t); out.append(t)
+        return " ".join(out)[:max_chars] or "[empty transcript]"
+    except Exception as e:  # noqa: BLE001
+        return f"[youtube error: {type(e).__name__}]"
+
+
 def research(query: str) -> str:
     """One-shot multi-platform sweep — tools (GitHub) + experience (Reddit/HN) +
     solutions (StackOverflow) + general web. For finding rare/effective answers
@@ -208,6 +253,9 @@ You have a REAL SHELL (ShellExecutor). That means you can:
       sweeps GitHub (tools/forks) + Reddit + Hacker News + StackOverflow + web at once.
       Or target one: search_github / search_reddit / search_hackernews / search_stackoverflow.
       Use this to find uncommon/modified/open-source solutions others have shared.
+  • READ X/TWITTER (no key):  fetch_tweet('https://x.com/user/status/ID')
+  • YOUTUBE TRANSCRIPT (no key, via yt-dlp):  youtube_transcript('https://youtu.be/ID')
+      (run `pip install yt-dlp` first if missing)
   • INSTALL any tool you need, then use it:
       pip install <pkg>      npm install -g <pkg>      brew install <tool>
       e.g. yt-dlp (video), jq (json), gh (github), pandoc, ripgrep, pdftotext

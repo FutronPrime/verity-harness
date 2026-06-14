@@ -26,6 +26,11 @@ from typing import Iterable
 from .config import TIERS, Tier
 
 
+import os as _os
+_RETRIES = int(_os.environ.get("LLM_RETRIES", "2"))   # per-tier retries on transient errors
+_BACKOFF = float(_os.environ.get("LLM_BACKOFF", "1.5"))  # seconds, linear
+
+
 class AllTiersFailed(RuntimeError):
     """Every tier was tried and none answered. True sovereignty failure."""
 
@@ -89,23 +94,32 @@ def chat(
     trail: list[str] = []
     for tier in tiers:
         t0 = time.monotonic()
-        try:
-            caller = _DISPATCH[tier.protocol]
-            text = caller(tier, messages, tier.timeout_s)
-            dt = time.monotonic() - t0
-            trail.append(f"{tier.name}: OK ({dt:.1f}s)")
-            if verbose:
-                print(f"[router] served by {tier.name} ({tier.model}) in {dt:.1f}s")
-            return Reply(text=text, tier=tier.name, model=tier.model,
-                         latency_s=dt, attempts=trail)
-        except (urllib.error.URLError, urllib.error.HTTPError, OSError,
-                KeyError, json.JSONDecodeError, TimeoutError) as e:
-            dt = time.monotonic() - t0
-            reason = type(e).__name__
-            trail.append(f"{tier.name}: FAIL [{reason}] ({dt:.1f}s) → failing over")
-            if verbose:
-                print(f"[router] {tier.name} unavailable [{reason}] → next tier")
-            continue
+        last = None
+        # Retry the SAME tier a few times on TRANSIENT errors (rate limits, 5xx,
+        # malformed/error bodies) before failing over — a momentary provider hiccup
+        # shouldn't drop you to a weaker tier or crash a single-tier run.
+        for attempt in range(_RETRIES + 1):
+            try:
+                caller = _DISPATCH[tier.protocol]
+                text = caller(tier, messages, tier.timeout_s)
+                dt = time.monotonic() - t0
+                trail.append(f"{tier.name}: OK ({dt:.1f}s)")
+                if verbose:
+                    print(f"[router] served by {tier.name} ({tier.model}) in {dt:.1f}s")
+                return Reply(text=text, tier=tier.name, model=tier.model,
+                             latency_s=dt, attempts=trail)
+            except (urllib.error.URLError, urllib.error.HTTPError, OSError,
+                    KeyError, json.JSONDecodeError, TimeoutError) as e:
+                last = e
+                if attempt < _RETRIES:
+                    time.sleep(_BACKOFF * (attempt + 1))
+        dt = time.monotonic() - t0
+        reason = type(last).__name__
+        trail.append(f"{tier.name}: FAIL [{reason}] after {_RETRIES+1} tries "
+                     f"({dt:.1f}s) → failing over")
+        if verbose:
+            print(f"[router] {tier.name} unavailable [{reason}] → next tier")
+        continue
 
     raise AllTiersFailed(
         "All tiers exhausted. Even local weights are unreachable — check Ollama.\n"
