@@ -301,8 +301,11 @@ You have a REAL SHELL (ShellExecutor). That means you can:
       pip install browser-use   # github.com/browser-use/browser-use (98k★) — drive via shell
   • COMPUTER USE / desktop automation:
       install a computer-use tool (e.g. pyautogui) and script it via the shell.
-  • MCP servers (Model Context Protocol):
-      run an MCP client/server via the shell and speak JSON-RPC over stdio.
+  • MCP servers (Model Context Protocol) — REUSE BEFORE BUILDING a tool:
+      before writing an integration, check if a ready MCP server already exists —
+      catalog: github.com/punkpeye/awesome-mcp-servers (GitHub, Slack, Linear,
+      Stripe, Postgres, Notion, and hundreds more). Install it and speak JSON-RPC
+      over stdio rather than coding the integration yourself.
 
 RULE: if you lack information to finish a task, DO NOT GUESS — go fetch/search/
 install the tool and get it. Verify what you find before relying on it.""" + _detected_tools()
