@@ -112,6 +112,10 @@ PRIME_DIRECTIVE = """PRIME DIRECTIVE — this OVERRIDES everything else:
    it. Do NOT theorize a cause and burn effort working around a guess.
 4. USE YOUR CAPABILITIES. Knowledge you don't act on is useless. If you lack info,
    GO GET IT (research/fetch/install). If a tool is missing, install it.
+5. REUSE BEFORE REINVENT. Before building something from scratch, SEARCH for an
+   existing open-source tool/library/skill that already does it (search_github,
+   research). Someone has likely solved this — find it, install it, use it. Don't
+   rebuild what exists; stand on it.
 """
 
 _STEP_SYS = PRIME_DIRECTIVE + """
@@ -161,13 +165,30 @@ def _research_obstacle(goal: str, reason: str, obs: str, verbose: bool = False) 
                 f"yourself and try a different method/tool]")
 
 
+def _discover_tools(goal: str, verbose: bool = False) -> str:
+    """Up-front: find EXISTING open-source tools/libraries that already do (part of)
+    the goal — so the model reuses instead of reinventing. GitHub-first."""
+    if verbose:
+        print(f"[discover] searching for existing tools for: {goal[:80]}")
+    try:
+        from .tools import search_github, search_stackoverflow
+        gh = search_github(goal, 5)
+        so = search_stackoverflow(goal, 3)
+    except Exception as e:  # noqa: BLE001
+        return ""
+    return ("EXISTING TOOLS/SOLUTIONS (reuse before reinventing — install & use one "
+            "if it fits):\n=== GitHub ===\n" + gh + "\n=== StackOverflow ===\n" + so)
+
+
 def run_verified(goal: str, executor: Executor | None = None,
                  max_steps: int = 10, max_consecutive_fail: int = 3,
                  calibrate: bool = True, tiers=None, use_memory: bool = True,
-                 persistence: int = 2, verbose: bool = True) -> ScaffoldResult:
+                 persistence: int = 2, discover: bool = False,
+                 verbose: bool = True) -> ScaffoldResult:
     """think → act → VERIFY → recover → CALIBRATE, with persistent MEMORY across
     runs. Verify catches failed commands; calibrate catches overconfident
-    conclusions; the PERSISTENCE gate refuses to quit until alternatives are tried."""
+    conclusions; the PERSISTENCE gate refuses to quit until alternatives are tried.
+    discover=True: up-front, search for an EXISTING tool/library before building."""
     import os
     ex = executor if executor is not None else PlanOnlyExecutor()
     res = ScaffoldResult(goal=goal, done=False, summary="")
@@ -177,8 +198,12 @@ def run_verified(goal: str, executor: Executor | None = None,
         prior = recall(goal)
         if prior and verbose:
             print(f"[memory] recalled {prior.count('- goal:')} relevant prior outcome(s)")
+    discovered = ""
+    if discover:
+        discovered = _discover_tools(goal, verbose=verbose)
     transcript = (f"WORKING DIRECTORY: {os.getcwd()}\n"
-                  + (prior + "\n" if prior else "") + f"GOAL: {goal}\n")
+                  + (prior + "\n" if prior else "")
+                  + (discovered + "\n" if discovered else "") + f"GOAL: {goal}\n")
     consecutive_fail = 0
     nudged = 0
     persisted = 0

@@ -75,9 +75,12 @@ def main(argv: list[str]) -> None:
         sys.exit(0 if run() == 3 else 1)
     elif cmd == "solve":
         if not rest:
-            print("usage: solve \"<goal>\"", file=sys.stderr); sys.exit(2)
+            print("usage: solve \"<goal>\" [--discover]   (--discover = find existing tools first)",
+                  file=sys.stderr); sys.exit(2)
+        disc = "--discover" in rest
+        goal = " ".join(x for x in rest if x != "--discover")
         from .scaffold import run_verified
-        r = run_verified(" ".join(rest), executor=ShellExecutor(), verbose=True)
+        r = run_verified(goal, executor=ShellExecutor(), discover=disc, verbose=True)
         print(f"\n=== result ===\ndone={r.done} verified={r.verified_steps} "
               f"failed={r.failed_steps}\n{r.summary}")
     elif cmd == "loop":
