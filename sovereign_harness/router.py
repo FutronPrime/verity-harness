@@ -112,7 +112,15 @@ def chat(
                     KeyError, json.JSONDecodeError, TimeoutError) as e:
                 last = e
                 if attempt < _RETRIES:
-                    time.sleep(_BACKOFF * (attempt + 1))
+                    wait = _BACKOFF * (attempt + 1)
+                    # Respect a 429/503 Retry-After header (free tiers rate-limit
+                    # agentic loops hard — honor their backoff window).
+                    if isinstance(e, urllib.error.HTTPError) and e.code in (429, 503):
+                        try:
+                            wait = max(wait, float(e.headers.get("Retry-After", wait)))
+                        except (TypeError, ValueError):
+                            pass
+                    time.sleep(min(wait, 30))
         dt = time.monotonic() - t0
         reason = type(last).__name__
         trail.append(f"{tier.name}: FAIL [{reason}] after {_RETRIES+1} tries "

@@ -21,9 +21,11 @@ from sovereign_harness.config import Tier
 from sovereign_harness.loop import ShellExecutor, run_goal
 from sovereign_harness.scaffold import run_verified
 
-_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+# Provider-configurable so the benchmark runs on any OpenAI-compatible endpoint.
+EVAL_URL = os.environ.get("EVAL_URL", "https://openrouter.ai/api/v1")
+_KEY = os.environ.get("EVAL_KEY", os.environ.get("OPENROUTER_API_KEY", ""))
 MODEL = os.environ.get("EVAL_MODEL", "moonshotai/kimi-k2")
-TIER = [Tier("open", "openai", "https://openrouter.ai/api/v1", MODEL, 120, _KEY)]
+TIER = [Tier("open", "openai", EVAL_URL, MODEL, 120, _KEY)]
 
 
 def _check(d: str, code: str) -> bool:
