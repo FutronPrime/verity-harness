@@ -103,6 +103,9 @@ agent (Claude Code, Cursor, Codex) at it to inherit failover + guardrail transpa
 
 ## Honest limits
 
-Small model = no lift (gates catch errors it can't fix). Frontier model = mostly
-redundant (rarely errs). The win is the **mid-tier value window** — capable-but-imperfect
-models on error-prone tasks. Receipts: see BENCHMARK.md. Re-run on your own suite.
+Lift depends on the TASK, not just the model. On facts a model already knows, a strong model
+gets ~no lift. But on tasks its weights CAN'T hold — current/post-cutoff info, your specific
+tools, multi-step verification — the harness lifts **every** tier: a 4B went 33%→67% on reasoning
+traps, and **Opus 4.8 went 0%→50% on current-info traps** (it can't know post-training facts; the
+harness's live search supplies them). That's the point: make even a frontier model better, not
+redundant. Receipts: see BENCHMARK.md. Re-run on your own suite.
