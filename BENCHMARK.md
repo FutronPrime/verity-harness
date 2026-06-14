@@ -28,6 +28,32 @@ task: median   (naive writes sorted[len//2] → WRONG for even-length lists)
   scaffold → PASS ✅   (verify/calibration push for the untested case → bug caught)
 ```
 
+## Metacognitive pre-flight — the assumption-trap eval (`verity eval`)
+
+A second eval tests the **proactive-search** thesis directly: "assumption-trap" questions whose
+lazy answer is a confident, *wrong negative* ("no, there's no free way…") that only flips correct
+if you actually **search**. Naive = bare model on priors; Harness = pre-flight search, answer from
+findings. Measured on a deliberately **weak local 4B model** (`qwen3.5-abliterated:4b`):
+
+| | naive | harness |
+|---|---:|---:|
+| free way to post to X? | ✗ *(hallucinates "video-tutorial platform")* | ✓ *(finds `twikit`)* |
+| decrypt Chrome cookies on macOS? | ✓ | ✓ |
+| attach image via browser when sandboxed? | ✗ | ✗ *(still slips — honest)* |
+| **score** | **1/3 (33%)** | **2/3 (67%)** |
+
+**A 4B model doubled its accuracy (33% → 67%), LIFT +1, purely from forced search.** This is the
+core thesis as a receipt: a weak model + live world-knowledge > the weak model's stale priors.
+
+> **Honest caveat that makes this real:** the *first* run of this eval scored the harness at
+> **0/3 (LIFT −1)** — because the search backend was returning error text (CAPTCHA/rate-limit),
+> and garbage-in made the weak model do *worse*. The eval **caught its own plumbing bug**; we
+> fixed the search (QC filter + a reliable backend) and re-ran. The harness is **only as good as
+> its search** — which is exactly why the search layer now has quality control. Receipts include
+> the failures.
+
+Reproduce: `python3 -m verity eval` (then `python3 -m verity proof` for the audit trail).
+
 ## Honest interpretation
 
 - The discipline layer **does not make a weak model capable** (8B: no lift) and is
