@@ -82,6 +82,10 @@ def main(argv: list[str]) -> None:
         # A/B: naive vs harness on assumption-trap questions. The delta = proof of difference.
         from .eval_assumptions import run as _eval
         _eval()
+    elif cmd == "tasks":
+        # GAIA/Seal-0-shaped GOAL benchmark: multi-step goals via the full agentic harness.
+        from .eval_tasks import run as _tasks
+        _tasks(harness_exec="--exec" in rest)
     elif cmd == "swarm":
         # Multi-agent swarm: planner → researchers → executors → critic → synthesizer (gated).
         if not rest:
