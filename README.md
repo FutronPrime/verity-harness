@@ -56,10 +56,18 @@ TIER 1   any OpenAI-compatible cloud API      ← fast, capable, REVOCABLE
 TIER 0   open weights via Ollama (localhost)  ← SOVEREIGN FLOOR, un-revocable
          llama3.2 / qwen2.5 / deepseek on YOUR disk
 
-        ── wrapped in the discipline layer ──
-   think → act → VERIFY → recover → CALIBRATE (challenge before concluding)
-   + persistent memory across runs   + configurable Fable-style guardrail
+        ── wrapped in the metacognitive discipline layer ──
+   PRE-FLIGHT (research current best approach) → think → act → VERIFY →
+   recover → CALIBRATE (challenge before concluding) → SEARCH-before-any-"can't"
+   + persistent memory across runs   + decision ledger (auditable receipt)
 ```
+
+> **The core idea:** it's not a smarter model — it *forces a mediocre-but-capable model
+> to behave like a great one.* Before acting, it makes the model admit what it doesn't know
+> and **go fetch the current best answer from the live world** (GitHub/Google/Reddit/X/YouTube).
+> Mythos/Fable felt like magic because they *reliably did the right thing*; this makes the
+> right thing **non-optional** (the gates fire on code, not the model's goodwill) and
+> **measurable** (`verity proof` + `verity eval`).
 
 ## The discipline layer (why it's different from "just route to an LLM")
 
@@ -77,6 +85,16 @@ r = run_verified("find and fix the off-by-one bug in utils.py",
                  executor=ShellExecutor())   # think→act→verify→recover→calibrate
 ```
 
+- **🧠 Metacognitive pre-flight gate** *(fires first)* — before executing a goal, the harness
+  live-searches the **current best/established approach** and injects it (*"may supersede your
+  training — prefer it"*). The model stops *recalling* from finite, stale weights and starts
+  *finding + applying* the current best answer. **This is the lever that lets a weaker model
+  punch up** — pinpoint live world-knowledge beats a stronger model's old priors. It turns the
+  whole internet into the model's knowledge base.
+- **🔎 Search-before-concluding gate** — a *negative* claim ("there's no X", "not possible",
+  "no free option") is the most expensive assumption. Before any such claim stands, the harness
+  forces a search where solutions live. *(Live example: "X has no free posting API" → forced
+  search → `twikit`, which posts free. The model had asserted the opposite from memory.)*
 - **Verify gate** — after each action, an adversarial check: *did this really work?*
   Catches failed commands an optimistic loop would rubber-stamp.
 - **Evidence gate** — refuses to declare "done" on a fact question with zero

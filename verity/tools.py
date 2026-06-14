@@ -60,12 +60,31 @@ def _tavily_search(query: str, n: int, key: str) -> str:
     return "\n".join(out) or "[tavily: no results]"
 
 
+def _brave_search(query: str, n: int, key: str) -> str:
+    import json
+    url = ("https://api.search.brave.com/res/v1/web/search?q="
+           + urllib.parse.quote(query) + f"&count={n}")
+    req = urllib.request.Request(url, headers={
+        "Accept": "application/json", "X-Subscription-Token": key})
+    with urllib.request.urlopen(req, timeout=25) as r:
+        data = json.loads(r.read())
+    results = (data.get("web", {}) or {}).get("results", [])[:n]
+    out = [f"{i+1}. {x.get('title','')[:120]}\n   {x.get('url','')}\n   {x.get('description','')[:200]}"
+           for i, x in enumerate(results)]
+    return "\n".join(out) or "[brave: no results]"
+
+
 def web_search(query: str, n: int = 5) -> str:
     """Web search. Prefers a FREE agent-search API if a key is set (most reliable):
        Tavily — free tier, get a key at https://tavily.com → export TAVILY_API_KEY.
     Falls back to DuckDuckGo HTML scraping (no key, but often bot-blocked). If all
     fail, the agent should fetch() a specific URL or use a search CLI via the shell."""
     import os
+    if (k := os.environ.get("BRAVE_API_KEY")):
+        try:
+            return _brave_search(query, n, k)
+        except Exception:  # noqa: BLE001 — fall through
+            pass
     if (k := os.environ.get("TAVILY_API_KEY")):
         try:
             return _tavily_search(query, n, k)
@@ -73,7 +92,13 @@ def web_search(query: str, n: int = 5) -> str:
             pass
     try:
         url = "https://html.duckduckgo.com/html/?q=" + urllib.parse.quote(query)
-        raw = _get(url)
+        # DDG CAPTCHA-blocks non-browser UAs (it flags "verity-harness"). Use a real
+        # browser UA here — verified to return results where the default UA gets a challenge.
+        _bua = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
+        req = urllib.request.Request(url, headers={"User-Agent": _bua})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            raw = r.read().decode("utf-8", "ignore")
     except Exception as e:  # noqa: BLE001
         return f"[search error: {type(e).__name__}: {e}]"
     out, seen = [], set()
@@ -223,17 +248,55 @@ def youtube_transcript(url_or_id: str, max_chars: int = 12000) -> str:
         return f"[youtube error: {type(e).__name__}]"
 
 
+def _is_garbage(block: str) -> bool:
+    """QC: True if a search block is an error/empty/blocked response, NOT real evidence.
+    The whole point — never feed the model a wall of '[no results]' / CAPTCHA text and call
+    it 'findings' (garbage-in makes a weak model do WORSE than its priors)."""
+    b = (block or "").lower()
+    bad = ("no results", "error:", "[github error", "[reddit error", "[hn", "[so",
+           "captcha", "complete the following challenge", "bots use", "unavailable",
+           "structured parse failed", "[research", "no result")
+    return len(block.strip()) < 30 or any(x in b for x in bad)
+
+
 def research(query: str) -> str:
-    """One-shot multi-platform sweep — tools (GitHub) + experience (Reddit/HN) +
-    solutions (StackOverflow) + general web. For finding rare/effective answers
-    that aren't in any single source."""
-    blocks = [
-        ("GITHUB (tools / open-source / forks)", search_github(query)),
-        ("REDDIT (real-world experience)", search_reddit(query)),
-        ("HACKER NEWS (engineering discussion)", search_hackernews(query)),
-        ("STACKOVERFLOW (solutions)", search_stackoverflow(query)),
-        ("WEB", web_search(query, 4)),
-    ]
+    """Multi-platform sweep with self-healing QC: prefer the highest-quality backend, DROP any
+    garbage (error/empty/CAPTCHA) block so the model never reasons over noise, reuse the
+    system's own scraping cascade if present, and return an HONEST failure signal when nothing
+    real comes back — so the caller's error-handling gate can react instead of hallucinating."""
+    import shutil
+    import subprocess
+    blocks = []
+    # Best general web first (Brave/Tavily if keyed — Google-quality), then GitHub for tools.
+    for name, body in (("WEB", web_search(query, 5)),
+                       ("GITHUB (tools / open-source)", search_github(query))):
+        if not _is_garbage(body):
+            blocks.append((name, body))
+    # Community sources — include ONLY if they returned real content.
+    for name, fn in (("REDDIT (real-world experience)", search_reddit),
+                     ("HACKER NEWS", search_hackernews),
+                     ("STACKOVERFLOW (solutions)", search_stackoverflow)):
+        try:
+            r = fn(query)
+            if not _is_garbage(r):
+                blocks.append((name, r))
+        except Exception:  # noqa: BLE001
+            pass
+    # REUSE-FIRST self-heal: if web came back thin and the system has its own scraping cascade
+    # (e.g. FUTRON's futron-scrape / crawl4ai), use the agent's own arsenal before giving up.
+    if not blocks:
+        for tool in ("futron-mcp-search", "futron-scrape"):
+            if shutil.which(tool):
+                try:
+                    r = subprocess.run([tool, query], capture_output=True, text=True, timeout=40)
+                    if r.stdout.strip() and not _is_garbage(r.stdout):
+                        blocks.append((f"SYSTEM CASCADE ({tool})", r.stdout[:2500])); break
+                except Exception:  # noqa: BLE001
+                    pass
+    if not blocks:
+        return (f"[research: NO real evidence for '{query[:60]}' — every backend was empty/blocked. "
+                "Try a narrower query, browse() a specific URL, or set a search key "
+                "(BRAVE_API_KEY / TAVILY_API_KEY). Do NOT answer from priors as if verified.]")
     return "\n\n".join(f"=== {name} ===\n{body}" for name, body in blocks)
 
 
