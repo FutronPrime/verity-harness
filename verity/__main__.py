@@ -73,6 +73,15 @@ def main(argv: list[str]) -> None:
     elif cmd == "doctor":
         from .doctor import run
         sys.exit(0 if run() == 3 else 1)
+    elif cmd == "proof":
+        # The receipt: did the harness's gates actually fire, and what did they catch?
+        from .ledger import proof
+        days = int(rest[0]) if rest and rest[0].isdigit() else 1
+        print(proof(days))
+    elif cmd == "eval":
+        # A/B: naive vs harness on assumption-trap questions. The delta = proof of difference.
+        from .eval_assumptions import run as _eval
+        _eval()
     elif cmd == "solve":
         if not rest:
             print("usage: solve \"<goal>\" [--discover]   (--discover = find existing tools first)",

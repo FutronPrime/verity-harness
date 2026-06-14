@@ -116,6 +116,14 @@ PRIME_DIRECTIVE = """PRIME DIRECTIVE — this OVERRIDES everything else:
    commands already installed on THIS system first; (b) then search external
    open-source (search_github/research); (c) build from scratch only as a last
    resort. Don't rebuild — and don't even fetch externally — what you already have.
+6. SEARCH BEFORE YOU CONCLUDE IT CAN'T BE DONE. A NEGATIVE claim — "there's no X",
+   "X doesn't exist", "not possible", "no free option", "the only way is Y" — is an
+   ASSUMPTION, and the most expensive kind. Before any such claim stands, you MUST
+   proactively search where solutions actually live: GitHub (existing libs/tools),
+   Google, Reddit, X, YouTube, Stack Overflow. Someone has almost certainly hit this
+   and open-sourced or documented a fix. One source saying "no" is NOT evidence of
+   absence — go look. (Real example: "X has no free posting API" was FALSE — a
+   30-second GitHub search finds `twikit`, which posts for free.) Cite what you found.
 """
 
 _STEP_SYS = PRIME_DIRECTIVE + """
@@ -157,10 +165,16 @@ def _research_obstacle(goal: str, reason: str, obs: str, verbose: bool = False) 
     query = " ".join(query.split())[:160] or goal[:120]
     if verbose:
         print(f"[research] stuck → searching for: {query[:90]}")
+    from . import ledger
     try:
         from .tools import research
-        return research(query)[:3000]
+        found = research(query)[:3000]
+        # RECEIPT: log that rule-6 search fired and what it surfaced (proof of usage + effect).
+        ledger.log(ledger.SEARCH, trigger=f"blocked: {reason[:80]}", detail=query,
+                   verdict="FOUND" if found.strip() else "NONE", evidence=found[:200])
+        return found
     except Exception as e:  # noqa: BLE001 — never let research failure break the run
+        ledger.log(ledger.SEARCH, trigger=f"blocked: {reason[:80]}", detail=query, verdict="NONE")
         return (f"[research unavailable: {type(e).__name__} — diagnose the real error "
                 f"yourself and try a different method/tool]")
 
