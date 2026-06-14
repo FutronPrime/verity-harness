@@ -202,6 +202,26 @@ def _local_tools(goal: str) -> str:
     return "\n".join(out)
 
 
+# Deterministic trigger for proactive discovery. The harness — not the model —
+# decides when reuse-search is worth it, so it can't be skipped by a forgetful LLM.
+_BUILD_SIGNAL = re.compile(
+    r"\b(build|create|implement|integrat|scrap|crawl|download|convert|transcrib|"
+    r"parse|extract|generat|deploy|automat|pipeline|process|analyz|monitor|server|"
+    r"app|api|connect|configur|set ?up|install|render|encode|stream|bot|agent|tool)\w*",
+    re.I)
+_TRIVIAL_SIGNAL = re.compile(
+    r"\b(function|compute|calculat|count|sum|sort|reverse|fibonacci|palindrome|"
+    r"factorial|median|average|fizzbuzz|hello world)\b", re.I)
+
+
+def _should_discover(goal: str) -> bool:
+    """True when the goal looks like real build/integrate/research work (reuse pays
+    off), False for trivial self-contained coding (discovery would just be noise)."""
+    has_build = bool(_BUILD_SIGNAL.search(goal))
+    is_trivial = bool(_TRIVIAL_SIGNAL.search(goal)) and len(goal) < 90
+    return has_build and not is_trivial
+
+
 def _discover_tools(goal: str, verbose: bool = False) -> str:
     """Find EXISTING tools that already do (part of) the goal — LOCAL FIRST (own
     tools/skills + installed commands), THEN external (GitHub/StackOverflow). Reuse
@@ -228,12 +248,12 @@ def _discover_tools(goal: str, verbose: bool = False) -> str:
 def run_verified(goal: str, executor: Executor | None = None,
                  max_steps: int = 10, max_consecutive_fail: int = 3,
                  calibrate: bool = True, tiers=None, use_memory: bool = True,
-                 persistence: int = 2, discover: bool = False,
+                 persistence: int = 2, discover: str | bool = "auto",
                  verbose: bool = True) -> ScaffoldResult:
     """think → act → VERIFY → recover → CALIBRATE, with persistent MEMORY across
-    runs. Verify catches failed commands; calibrate catches overconfident
-    conclusions; the PERSISTENCE gate refuses to quit until alternatives are tried.
-    discover=True: up-front, search for an EXISTING tool/library before building."""
+    runs. Every gate is a DETERMINISTIC enforcer — it fires on a code condition, not
+    the model's choice (you can't trust a probabilistic model to opt into discipline).
+    discover: "auto" (a classifier decides — default), True (always), False (never)."""
     import os
     ex = executor if executor is not None else PlanOnlyExecutor()
     res = ScaffoldResult(goal=goal, done=False, summary="")
@@ -243,9 +263,10 @@ def run_verified(goal: str, executor: Executor | None = None,
         prior = recall(goal)
         if prior and verbose:
             print(f"[memory] recalled {prior.count('- goal:')} relevant prior outcome(s)")
-    discovered = ""
-    if discover:
-        discovered = _discover_tools(goal, verbose=verbose)
+    # DETERMINISTIC trigger: the harness decides when discovery is warranted — the
+    # model is never asked to remember to do it.
+    do_discover = discover is True or (discover == "auto" and _should_discover(goal))
+    discovered = _discover_tools(goal, verbose=verbose) if do_discover else ""
     transcript = (f"WORKING DIRECTORY: {os.getcwd()}\n"
                   + (prior + "\n" if prior else "")
                   + (discovered + "\n" if discovered else "") + f"GOAL: {goal}\n")
