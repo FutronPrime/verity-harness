@@ -76,10 +76,37 @@ class SwarmResult:
     repaired: int = 0
 
 
-def _agent(role: str, prompt: str, tiers=None) -> str:
+from concurrent.futures import TimeoutError as _FutureTimeout
+
+# Shared pool for BOUNDING individual agent calls (so one stuck call can't stall the whole swarm).
+_AGENT_POOL = ThreadPoolExecutor(max_workers=8)
+
+
+def _agent(role: str, prompt: str, tiers=None, timeout: float = 150.0) -> str:
+    """One swarm agent = one model call through the SAME tier as everything else — so the swarm's
+    agents are the SAME CALIBER as the base model: Opus-4.8 base → Opus-4.8 agents, Codex-5.5 →
+    5.5 agents, a local 4B → 4B agents. Bounded by a per-call wall-clock timeout so a single stuck
+    call (slow local model, provider retry storm) can't hang the swarm — it degrades to a skip."""
     from .router import ask
-    r = ask(prompt, system=ROLE_SYS[role], **({"tiers": tiers} if tiers else {}))
-    return r.text if hasattr(r, "text") else str(r)
+
+    def _call():
+        r = ask(prompt, system=ROLE_SYS[role], **({"tiers": tiers} if tiers else {}))
+        return r.text if hasattr(r, "text") else str(r)
+    try:
+        return _AGENT_POOL.submit(_call).result(timeout=timeout)
+    except _FutureTimeout:
+        return f"[agent:{role} timed out after {int(timeout)}s — skipped so the swarm can proceed]"
+    except Exception as e:  # noqa: BLE001 — never let one agent kill the swarm
+        return f"[agent:{role} failed: {type(e).__name__}]"
+
+
+def _local_primary(tiers=None) -> bool:
+    """True when the only reachable tier is LOCAL (Ollama). Then sub-tasks must run SEQUENTIALLY:
+    one Ollama serializes inference, so thread-parallel just queues and risks stalls. Cloud/API
+    tiers (with a key) DO handle concurrency — those parallelize."""
+    from .config import TIERS
+    ts = tiers or TIERS
+    return not any(getattr(t, "protocol", "") == "openai" and getattr(t, "api_key", "") for t in ts)
 
 
 def run_swarm(goal: str, executor=None, tiers=None, max_subtasks: int = 4,
@@ -134,8 +161,15 @@ def run_swarm(goal: str, executor=None, tiers=None, max_subtasks: int = 4,
                          + f"\n\nFix them using the findings:\n{findings[:1500]}", tiers)
         return {"subtask": st, "result": out, "issues": crit.get("issues", [])}
 
-    with ThreadPoolExecutor(max_workers=min(4, len(subtasks))) as pool:
-        results = list(pool.map(work, subtasks))
+    if _local_primary(tiers):
+        # one local model serializes anyway → run sub-tasks SEQUENTIALLY (avoids the stall).
+        if verbose:
+            print("[swarm] local tier → sequential sub-tasks")
+        results = [work(st) for st in subtasks]
+    else:
+        # cloud/API tier handles concurrency → parallelize sub-tasks.
+        with ThreadPoolExecutor(max_workers=min(4, len(subtasks))) as pool:
+            results = list(pool.map(work, subtasks))
     if verbose:
         print(f"[swarm] EXECUTE+CRITIQUE done ({repaired[0]} repaired)")
 
