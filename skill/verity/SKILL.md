@@ -108,7 +108,9 @@ Wire VERITY to start with your agent so it's *always working* without you invoki
 ```bash
 python3 -m verity autostart --claude-code   # or --shell
 ```
-On every session it quietly self-syncs + starts the proxy floor (:11500). Point your agent
+On session start it quietly self-syncs + starts the proxy floor (:11500); on session END it
+**stops** (`verity stop`) so it closes when you exit — no lingering RAM. (Safety net: the proxy
+also self-shuts-down after ~15 min idle.) Point your agent
 at `OPENAI_BASE_URL=http://127.0.0.1:11500/v1` to inherit failover + the gates transparently —
 the way a better model 'just works' when you switch to it.
 
