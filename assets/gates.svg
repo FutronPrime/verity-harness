@@ -1,82 +1,83 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" font-family="Georgia,'Times New Roman',serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" font-family="'Arial Narrow','Helvetica Neue',Arial,sans-serif">
   <defs>
-    <radialGradient id="bg2" cx="50%" cy="30%" r="90%">
-      <stop offset="0%" stop-color="#0c1620"/><stop offset="100%" stop-color="#05080d"/>
-    </radialGradient>
-    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#2dd4bf"/><stop offset="100%" stop-color="#0e6e62"/>
-    </linearGradient>
-    <style>.mono{font-family:'SF Mono','Menlo',monospace;} .h{fill:#e9f7f4;}</style>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070a0d"/><stop offset="1" stop-color="#03060a"/></linearGradient>
+    <linearGradient id="tg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2dd4bf"/><stop offset="1" stop-color="#0c6e62"/></linearGradient>
+    <pattern id="scan" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="1" fill="#0c1a1d" opacity="0.5"/></pattern>
+    <style>.mono{font-family:'SF Mono','Menlo','Consolas',monospace} .hv{font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;font-weight:900} .nar{font-family:'Arial Narrow',Arial,sans-serif}</style>
   </defs>
-  <rect width="1200" height="720" fill="url(#bg2)"/>
-  <rect x="26" y="26" width="1148" height="668" fill="none" stroke="#1f4d4a" opacity="0.5"/>
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <rect width="1200" height="720" fill="url(#scan)"/>
 
-  <text x="60" y="78" class="mono" font-size="13" letter-spacing="6" fill="#3f7d76">WHY A PROMPT ISN'T ENOUGH · DETERMINISTIC ENFORCEMENT</text>
-  <text x="58" y="128" font-size="40" class="h">A prompt <tspan font-style="italic" fill="#8fc7bf">requests</tspan> discipline. Verity <tspan fill="#2dd4bf">enforces</tspan> it.</text>
-  <text x="60" y="160" font-size="18" fill="#7fb3ab">LLMs are probabilistic — you can't trust them to opt into good behavior. So the harness, not the model, decides when discipline fires.</text>
+  <!-- angular cut-corner frame -->
+  <path d="M16,16 H1150 L1184,50 V704 H66 L16,654 Z" fill="none" stroke="#1f5c54" stroke-width="2"/>
+  <!-- corner registration ticks + magenta -->
+  <path d="M16,70 V16 H70 M1184,650 V704 H1130" fill="none" stroke="#2dd4bf" stroke-width="3"/>
+  <rect x="16" y="700" width="1168" height="4" fill="#d6299e"/>
 
-  <!-- left: prompt doctrine -->
-  <g>
-    <text x="60" y="232" class="mono" font-size="14" letter-spacing="4" fill="#5b6b78">PROMPT DOCTRINE  ·  HOPES</text>
-    <g font-size="17" fill="#9fb0bb">
-      <rect x="60" y="252" width="480" height="58" rx="4" fill="#0e1822" stroke="#243440"/>
-      <text x="78" y="278" class="mono" font-size="13" fill="#7d8d98">"verify before you act"</text>
-      <text x="78" y="298" font-style="italic" font-size="14" fill="#6b7c87">…model may or may not. No backstop.</text>
-      <rect x="60" y="320" width="480" height="58" rx="4" fill="#0e1822" stroke="#243440"/>
-      <text x="78" y="346" class="mono" font-size="13" fill="#7d8d98">"don't give up"</text>
-      <text x="78" y="366" font-style="italic" font-size="14" fill="#6b7c87">…quits at the first wall anyway.</text>
-      <rect x="60" y="388" width="480" height="58" rx="4" fill="#0e1822" stroke="#243440"/>
-      <text x="78" y="414" class="mono" font-size="13" fill="#7d8d98">"reuse existing tools"</text>
-      <text x="78" y="434" font-style="italic" font-size="14" fill="#6b7c87">…reinvents from scratch when it forgets.</text>
+  <!-- HUD top bar -->
+  <text x="40" y="58" class="mono" font-size="14" letter-spacing="3" fill="#2dd4bf">/// VERITY.ENFORCEMENT.MODULE</text>
+  <text x="1160" y="58" text-anchor="end" class="mono" font-size="14" letter-spacing="2" fill="#5b8a84">[ STATUS: ACTIVE ]</text>
+
+  <!-- title -->
+  <text x="44" y="132" class="hv" font-size="56" letter-spacing="1" fill="#eafffb">A PROMPT <tspan fill="#7fb3ab">REQUESTS.</tspan></text>
+  <text x="44" y="190" class="hv" font-size="56" letter-spacing="1" fill="#2dd4bf">VERITY ENFORCES.</text>
+  <rect x="46" y="204" width="430" height="3" fill="#d6299e"/>
+  <text x="44" y="234" class="nar" font-size="20" fill="#8fb8b1">LLMs are probabilistic — the harness, not the model, decides when discipline fires.</text>
+
+  <!-- left: prompt doctrine (dim) -->
+  <text x="44" y="290" class="mono" font-size="13" letter-spacing="3" fill="#586872">&gt;&gt; PROMPT DOCTRINE // HOPES</text>
+  <g class="nar" font-size="17">
+    <g>
+      <path d="M44,304 H516 V356 L500,372 H44 Z" fill="#0c1217" stroke="#26323b"/>
+      <text x="62" y="332" class="mono" font-size="13" fill="#76858f">"verify before you act"</text>
+      <text x="62" y="354" fill="#5e6e78">may or may not. no backstop.</text>
+    </g>
+    <g>
+      <path d="M44,386 H516 V438 L500,454 H44 Z" fill="#0c1217" stroke="#26323b"/>
+      <text x="62" y="414" class="mono" font-size="13" fill="#76858f">"don't give up"</text>
+      <text x="62" y="436" fill="#5e6e78">quits at the first wall anyway.</text>
+    </g>
+    <g>
+      <path d="M44,468 H516 V520 L500,536 H44 Z" fill="#0c1217" stroke="#26323b"/>
+      <text x="62" y="496" class="mono" font-size="13" fill="#76858f">"reuse existing tools"</text>
+      <text x="62" y="518" fill="#5e6e78">reinvents from scratch when it forgets.</text>
     </g>
   </g>
 
   <!-- right: verity gates -->
+  <text x="640" y="290" class="mono" font-size="13" letter-spacing="3" fill="#2dd4bf">&gt;&gt; VERITY GATES // FIRE ON CODE CONDITIONS</text>
   <g>
-    <text x="640" y="232" class="mono" font-size="14" letter-spacing="4" fill="#2dd4bf">VERITY · RUNTIME GATES · FIRE ON CODE CONDITIONS</text>
-    <g class="mono" font-size="13.5">
-      <g>
-        <rect x="640" y="252" width="500" height="60" rx="4" fill="#0c1d1b" stroke="#1f5c54"/>
-        <rect x="640" y="252" width="5" height="60" fill="url(#acc)"/>
-        <text x="662" y="278" fill="#5eead4">VERIFY GATE</text>
-        <text x="662" y="299" fill="#86bfb6" font-size="13">every action adversarially checked — did it REALLY work?</text>
-      </g>
-      <g>
-        <rect x="640" y="320" width="500" height="60" rx="4" fill="#0c1d1b" stroke="#1f5c54"/>
-        <rect x="640" y="320" width="5" height="60" fill="url(#acc)"/>
-        <text x="662" y="346" fill="#5eead4">CALIBRATION GATE</text>
-        <text x="662" y="367" fill="#86bfb6" font-size="13">challenges every "done" → tags VERIFIED vs GUESS</text>
-      </g>
-      <g>
-        <rect x="640" y="388" width="500" height="60" rx="4" fill="#0c1d1b" stroke="#1f5c54"/>
-        <rect x="640" y="388" width="5" height="60" fill="url(#acc)"/>
-        <text x="662" y="414" fill="#5eead4">PERSISTENCE GATE</text>
-        <text x="662" y="435" fill="#86bfb6" font-size="13">refuses to abort — forces a different approach, N times</text>
-      </g>
-      <g>
-        <rect x="640" y="456" width="500" height="60" rx="4" fill="#0c1d1b" stroke="#1f5c54"/>
-        <rect x="640" y="456" width="5" height="60" fill="url(#acc)"/>
-        <text x="662" y="482" fill="#5eead4">RESEARCH-ON-STUCK</text>
-        <text x="662" y="503" fill="#86bfb6" font-size="13">auto-searches GitHub/Reddit/HN/SO on the real error</text>
-      </g>
-      <g>
-        <rect x="640" y="524" width="500" height="60" rx="4" fill="#0c1d1b" stroke="#1f5c54"/>
-        <rect x="640" y="524" width="5" height="60" fill="url(#acc)"/>
-        <text x="662" y="550" fill="#5eead4">REUSE-FIRST DISCOVERY</text>
-        <text x="662" y="571" fill="#86bfb6" font-size="13">own tools → external → build; auto-fires on build tasks</text>
-      </g>
+    <!-- repeated angular HUD cards -->
+    <g class="nar" font-size="14.5">
+      <g><path d="M640,304 H1160 L1160,346 H656 L640,330 Z" fill="#0a1d1b" stroke="#1f6b60"/><rect x="640" y="304" width="6" height="42" fill="url(#tg)"/>
+        <text x="664" y="324" class="mono" font-size="13" fill="#5eead4">VERIFY_GATE</text>
+        <text x="664" y="340" fill="#86bfb6">every action adversarially checked — did it REALLY work?</text></g>
+      <g><path d="M640,356 H1160 L1160,398 H656 L640,382 Z" fill="#0a1d1b" stroke="#1f6b60"/><rect x="640" y="356" width="6" height="42" fill="url(#tg)"/>
+        <text x="664" y="376" class="mono" font-size="13" fill="#5eead4">CALIBRATION_GATE</text>
+        <text x="664" y="392" fill="#86bfb6">challenges every "done" → tags VERIFIED vs GUESS</text></g>
+      <g><path d="M640,408 H1160 L1160,450 H656 L640,434 Z" fill="#0a1d1b" stroke="#1f6b60"/><rect x="640" y="408" width="6" height="42" fill="url(#tg)"/>
+        <text x="664" y="428" class="mono" font-size="13" fill="#5eead4">PERSISTENCE_GATE</text>
+        <text x="664" y="444" fill="#86bfb6">refuses to abort — forces a different approach, N times</text></g>
+      <g><path d="M640,460 H1160 L1160,502 H656 L640,486 Z" fill="#0a1d1b" stroke="#1f6b60"/><rect x="640" y="460" width="6" height="42" fill="url(#tg)"/>
+        <text x="664" y="480" class="mono" font-size="13" fill="#5eead4">RESEARCH_ON_STUCK</text>
+        <text x="664" y="496" fill="#86bfb6">auto-searches GitHub/Reddit/HN/SO on the real error</text></g>
+      <g><path d="M640,512 H1160 L1160,554 H656 L640,538 Z" fill="#0a1d1b" stroke="#1f6b60"/><rect x="640" y="512" width="6" height="42" fill="url(#tg)"/>
+        <text x="664" y="532" class="mono" font-size="13" fill="#5eead4">REUSE_FIRST_DISCOVERY</text>
+        <text x="664" y="548" fill="#86bfb6">own tools → external → build; auto-fires on build tasks</text></g>
     </g>
   </g>
 
-  <rect x="26" y="690" width="1148" height="3" fill="#d6299e" opacity="0.85"/>
-  <line x1="60" y1="624" x2="1140" y2="624" stroke="#1f4d4a"/>
-  <text x="60" y="664" font-size="20" font-style="italic" fill="#8fc7bf">The model reasons inside rails it cannot fall off of.</text>
-  <text x="1140" y="664" text-anchor="end" class="mono" font-size="13" letter-spacing="2" fill="#3f7d76">probabilistic core · deterministic rails</text>
-  <!-- brand signature -->
-  <g transform="translate(60,706)">
-    <path d="M 0 -12 L 11 12 L 22 -12" fill="none" stroke="#b9c8c4" stroke-width="3.5" stroke-linejoin="round"/>
-    <path d="M 5 -1 L 10 5 L 19 -10" fill="none" stroke="#2dd4bf" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="36" y="6" class="mono" font-size="15" letter-spacing="4" fill="#dff7f2">VERITY</text>
-    <text x="132" y="6" class="mono" font-size="13" letter-spacing="3" fill="#3f7d76">· THE TRUTH HARNESS</text>
+  <!-- footer -->
+  <text x="44" y="612" class="hv" font-size="24" fill="#cdeee8">THE MODEL REASONS INSIDE RAILS IT CANNOT FALL OFF OF.</text>
+  <!-- barcode strip -->
+  <g fill="#2dd4bf" opacity="0.8">
+    <rect x="44" y="630" width="2" height="22"/><rect x="49" y="630" width="5" height="22"/><rect x="57" y="630" width="2" height="22"/><rect x="62" y="630" width="3" height="22"/><rect x="68" y="630" width="6" height="22"/><rect x="77" y="630" width="2" height="22"/><rect x="82" y="630" width="4" height="22"/><rect x="89" y="630" width="2" height="22"/>
+  </g>
+  <text x="100" y="646" class="mono" font-size="12" letter-spacing="2" fill="#3f7d76">PROBABILISTIC CORE · DETERMINISTIC RAILS</text>
+  <!-- brand sig -->
+  <g transform="translate(1090,632)">
+    <path d="M0,-10 L9,10 L18,-10" fill="none" stroke="#b9c8c4" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M4,-1 L8,4 L15,-8" fill="none" stroke="#2dd4bf" stroke-width="2.6" stroke-linecap="round"/>
+    <text x="28" y="6" class="hv" font-size="16" letter-spacing="3" fill="#eafffb">VERITY</text>
   </g>
 </svg>
