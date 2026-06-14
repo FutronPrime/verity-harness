@@ -58,6 +58,12 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
 
 ## What it forces (the gates — none are skippable by the model)
 
+- **🧠 METACOGNITIVE PRE-FLIGHT (rule 0, runs FIRST)** — before executing a goal, the harness
+  live-searches the **current best/established approach** for that exact goal and injects it
+  ("may supersede your training — prefer it"). The model stops *recalling* an answer from stale
+  weights and starts *finding + applying* the current best one. This is the lever that lets a
+  **weaker model punch up** — pinpoint live info beats a strong model's old priors. ("Know what
+  you don't know, then hire the right resource to fill the gap.")
 - **🔎 SEARCH-BEFORE-CONCLUDING (rule 6, the core)** — a NEGATIVE claim ("there's no X", "not
   possible", "no free option", "only way is Y") is the most expensive assumption. The harness
   forces a proactive search where solutions live (GitHub / Google / Reddit / X / YouTube / SO)
