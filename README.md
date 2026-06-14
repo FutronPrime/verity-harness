@@ -13,7 +13,7 @@ wraps *any* model in a discipline layer that **forces** it to verify instead of
 assume, persist instead of quit, and reuse instead of reinvent.
 
 *Where Anthropic's **Mythos** and **Fable** are named for fiction, **Verity** is
-named for truth — and it `verify`s. The name is the thesis.*
+named for truth — and it **verifies**. The name is the thesis.*
 
 > A vendor's access can be suspended overnight. It cannot reach into open weights
 > you already pulled to local disk. **That** is sovereignty.
