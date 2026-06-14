@@ -112,10 +112,10 @@ PRIME_DIRECTIVE = """PRIME DIRECTIVE — this OVERRIDES everything else:
    it. Do NOT theorize a cause and burn effort working around a guess.
 4. USE YOUR CAPABILITIES. Knowledge you don't act on is useless. If you lack info,
    GO GET IT (research/fetch/install). If a tool is missing, install it.
-5. REUSE BEFORE REINVENT. Before building something from scratch, SEARCH for an
-   existing open-source tool/library/skill that already does it (search_github,
-   research). Someone has likely solved this — find it, install it, use it. Don't
-   rebuild what exists; stand on it.
+5. REUSE BEFORE REINVENT — in this order: (a) CHECK YOUR OWN tools/skills and the
+   commands already installed on THIS system first; (b) then search external
+   open-source (search_github/research); (c) build from scratch only as a last
+   resort. Don't rebuild — and don't even fetch externally — what you already have.
 """
 
 _STEP_SYS = PRIME_DIRECTIVE + """
@@ -165,19 +165,64 @@ def _research_obstacle(goal: str, reason: str, obs: str, verbose: bool = False) 
                 f"yourself and try a different method/tool]")
 
 
+def _local_tools(goal: str) -> str:
+    """LOCAL-FIRST discovery: what's already on THIS system that fits the goal —
+    own tool/skill catalogs (futron-discover / futron-system-directory if present)
+    and installed commands on PATH whose names match the task. Check these before
+    reaching for the internet."""
+    import os
+    import re as _re
+    import shutil
+    import subprocess
+    out = []
+    kws = [w for w in _re.findall(r"[a-z0-9]+", goal.lower())
+           if len(w) > 3 and w not in ("with", "that", "this", "from", "into")][:6]
+    # 1. The system's OWN tool/skill catalogs, if it has them.
+    for cmd, args in (("futron-discover", [goal[:100]]),
+                      ("futron-system-directory", ["--query", " ".join(kws[:3])])):
+        if shutil.which(cmd):
+            try:
+                r = subprocess.run([cmd, *args], capture_output=True, text=True, timeout=20)
+                if r.stdout.strip():
+                    out.append(f"[{cmd}]\n{r.stdout.strip()[:900]}")
+            except (subprocess.TimeoutExpired, OSError):
+                pass
+    # 2. Installed commands on PATH whose names match the task keywords.
+    found = set()
+    for d in os.environ.get("PATH", "").split(os.pathsep)[:40]:
+        try:
+            for f in os.listdir(d):
+                if any(k in f.lower() for k in kws) and not f.startswith("."):
+                    found.add(f)
+        except OSError:
+            continue
+    if found:
+        out.append("Installed local commands matching the task: "
+                   + ", ".join(sorted(found)[:25]))
+    return "\n".join(out)
+
+
 def _discover_tools(goal: str, verbose: bool = False) -> str:
-    """Up-front: find EXISTING open-source tools/libraries that already do (part of)
-    the goal — so the model reuses instead of reinventing. GitHub-first."""
+    """Find EXISTING tools that already do (part of) the goal — LOCAL FIRST (own
+    tools/skills + installed commands), THEN external (GitHub/StackOverflow). Reuse
+    what you have before searching the web before building from scratch."""
     if verbose:
-        print(f"[discover] searching for existing tools for: {goal[:80]}")
+        print(f"[discover] checking local tools + searching for: {goal[:70]}")
+    local = _local_tools(goal)
     try:
         from .tools import search_github, search_stackoverflow
-        gh = search_github(goal, 5)
-        so = search_stackoverflow(goal, 3)
-    except Exception as e:  # noqa: BLE001
-        return ""
-    return ("EXISTING TOOLS/SOLUTIONS (reuse before reinventing — install & use one "
-            "if it fits):\n=== GitHub ===\n" + gh + "\n=== StackOverflow ===\n" + so)
+        ext = ("=== GitHub ===\n" + search_github(goal, 5)
+               + "\n=== StackOverflow ===\n" + search_stackoverflow(goal, 3))
+    except Exception:  # noqa: BLE001
+        ext = ""
+    blocks = []
+    if local:
+        blocks.append("LOCAL TOOLS ALREADY ON THIS SYSTEM (PREFER THESE — you already "
+                      "have them):\n" + local)
+    if ext:
+        blocks.append("EXTERNAL open-source options (only if nothing local fits — "
+                      "install & use one):\n" + ext)
+    return "\n\n".join(blocks)
 
 
 def run_verified(goal: str, executor: Executor | None = None,
