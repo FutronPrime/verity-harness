@@ -53,6 +53,29 @@ python3 -m sovereign_harness doctor      # probes the configured model against t
 It runs a quick JSON / tool-use / self-correction probe and tells you whether your
 model is **READY**, **MARGINAL**, or **BELOW THRESHOLD** for autonomous work.
 
+## Provider reliability for sustained agentic work (real-world caveat)
+
+A single chat call is easy. **Sustained autonomous work fires 15+ calls per task**,
+and free/public API endpoints are not built for that. In our own benchmarking we hit:
+- **Cloudflare bot-blocks** (HTTP 403, error 1010) on some providers — the default
+  `Python-urllib` signature is banned (the harness now sends a browser User-Agent).
+- **Transient error-bodies** under load (a 200 with `{"error": ...}` instead of a
+  completion) — the harness retries and surfaces the real message.
+- **Genuine rate limits** (HTTP 429) on free tiers — the harness honors `Retry-After`.
+
+The harness is now hardened against all three (retry + backoff + browser UA +
+diagnosable errors). But the deeper lesson stands: **for long-running agentic loops,
+don't depend on a free public API.** Use a **paid tier** (real limits) or your
+**local Tier 0 floor** — which has *no* rate limit, *no* bot-block, and *no* vendor
+that can throttle you mid-task. That's a second argument for sovereignty: the
+un-revocable local model isn't just resilient to suspension, it's the only tier that
+won't quietly fail under sustained load.
+
+> Honesty note: we first *assumed* these failures were rate limits and were **wrong**
+> — they were mostly a Cloudflare User-Agent block. We only found the truth by
+> instrumenting the router to surface the real error instead of guessing. That is the
+> harness's own discipline applied to its authors. Verify; don't assume.
+
 ## On sovereignty vs capability
 
 Tier 0 (local open weights) is your **un-revocable floor** — it keeps you *running*
