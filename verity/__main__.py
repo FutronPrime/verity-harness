@@ -98,6 +98,10 @@ def main(argv: list[str]) -> None:
         # Stop the background proxy (close-on-exit / manual). No lingering RAM.
         from .server import stop
         print(stop())
+    elif cmd == "dashboard":
+        # Open the status face: proxy state, failover chain, live gate receipt, scorecard.
+        from .dashboard import serve
+        serve(open_browser="--no-open" not in rest)
     elif cmd == "swarm":
         # Multi-agent swarm: planner → researchers → executors → critic → synthesizer (gated).
         if not rest:
