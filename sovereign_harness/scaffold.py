@@ -140,8 +140,25 @@ class ScaffoldResult:
     done: bool
     summary: str
     steps: list[dict] = field(default_factory=list)
-    verified_steps: int = 0
     failed_steps: int = 0
+    verified_steps: int = 0
+
+
+def _research_obstacle(goal: str, reason: str, obs: str, verbose: bool = False) -> str:
+    """When stuck, SEARCH for a solution instead of head-bumping. Sweeps
+    GitHub/Reddit/HN/StackOverflow/web on the actual error and returns findings."""
+    # Build a focused query from the real error signal (not the whole transcript).
+    err = (obs or "").strip().replace("\n", " ")
+    query = (reason or "") + " " + err
+    query = " ".join(query.split())[:160] or goal[:120]
+    if verbose:
+        print(f"[research] stuck → searching for: {query[:90]}")
+    try:
+        from .tools import research
+        return research(query)[:3000]
+    except Exception as e:  # noqa: BLE001 — never let research failure break the run
+        return (f"[research unavailable: {type(e).__name__} — diagnose the real error "
+                f"yourself and try a different method/tool]")
 
 
 def run_verified(goal: str, executor: Executor | None = None,
@@ -240,15 +257,18 @@ def run_verified(goal: str, executor: Executor | None = None,
                 if persisted < persistence:
                     persisted += 1
                     consecutive_fail = 0
+                    # ACTIVELY research the obstacle instead of bumping our head —
+                    # sweep GitHub/Reddit/HN/StackOverflow/web for how others solved
+                    # THIS error, and hand the findings straight to the model.
+                    findings = _research_obstacle(goal, v.reason, obs, verbose=verbose)
                     transcript += (
-                        f"\n[PERSISTENCE {persisted}/{persistence}] Your current "
-                        f"approach failed {max_consecutive_fail}× — but you have NOT "
-                        f"run out of options. STOP repeating it. Take a COMPLETELY "
-                        f"DIFFERENT approach: diagnose the real error, research it "
-                        f"(tools.research/fetch), install a missing tool, or use a "
-                        f"different method/language. Do NOT give up — find a way.\n")
+                        f"\n[PERSISTENCE {persisted}/{persistence}] This approach failed "
+                        f"{max_consecutive_fail}× — STOP repeating it. I searched the web, "
+                        f"GitHub, Reddit, Hacker News and StackOverflow for how others "
+                        f"solved this exact problem. USE these findings to take a "
+                        f"DIFFERENT approach:\n{findings}\n")
                     if verbose:
-                        print(f"[persistence {persisted}/{persistence}] not quitting → forcing a different approach")
+                        print(f"[persistence {persisted}/{persistence}] researched the obstacle → forcing a solution-informed retry")
                     continue
                 res.summary = (f"Stopped after {persistence} persistence attempts + "
                                f"{consecutive_fail} fails. Last: {v.reason}")
