@@ -68,7 +68,15 @@
     </g>
   </g>
 
+  <rect x="26" y="690" width="1148" height="3" fill="#d6299e" opacity="0.85"/>
   <line x1="60" y1="624" x2="1140" y2="624" stroke="#1f4d4a"/>
   <text x="60" y="664" font-size="20" font-style="italic" fill="#8fc7bf">The model reasons inside rails it cannot fall off of.</text>
   <text x="1140" y="664" text-anchor="end" class="mono" font-size="13" letter-spacing="2" fill="#3f7d76">probabilistic core · deterministic rails</text>
+  <!-- brand signature -->
+  <g transform="translate(60,706)">
+    <path d="M 0 -12 L 11 12 L 22 -12" fill="none" stroke="#b9c8c4" stroke-width="3.5" stroke-linejoin="round"/>
+    <path d="M 5 -1 L 10 5 L 19 -10" fill="none" stroke="#2dd4bf" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="36" y="6" class="mono" font-size="15" letter-spacing="4" fill="#dff7f2">VERITY</text>
+    <text x="132" y="6" class="mono" font-size="13" letter-spacing="3" fill="#3f7d76">· THE TRUTH HARNESS</text>
+  </g>
 </svg>

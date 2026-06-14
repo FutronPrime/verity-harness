@@ -1,9 +1,5 @@
 <p align="center">
-  <img src="assets/banner-cyberpunk.png" alt="VERITY — The Truth Harness" width="100%"/>
-</p>
-
-<p align="center">
-  <img src="assets/logo-cyberpunk.png" alt="VERITY logo" width="140"/>
+  <img src="assets/banner.png" alt="VERITY — The Truth Harness" width="100%"/>
 </p>
 
 # VERITY · The Truth Harness
