@@ -90,11 +90,17 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
 
 The gates write an auditable receipt — so "the harness helped" is a log, not a vibe:
 ```bash
-python3 -m verity proof     # receipt: searches fired, assumptions caught + corrected, VERIFIED vs GUESS
-python3 -m verity eval      # A/B: naive vs harness on assumption-trap questions → the lift delta
+python3 -m verity proof      # receipt: searches fired, assumptions caught + corrected, VERIFIED vs GUESS
+python3 -m verity eval       # agentic-search A/B (Seal-0/GAIA shape): naive vs harness lift
+python3 -m verity tasks      # multi-step GOAL benchmark (GAIA shape)
+python3 -m verity swebench   # SWE-Bench-style: test-scored bug fixing (the coding axis)
 ```
-`proof` reads the decision ledger (`~/.verity-harness/ledger/`); every search/verify/reuse/
-correction event is logged with its trigger and evidence. No events = the harness wasn't used.
+`proof` reads the decision ledger (`~/.verity-harness/ledger/`); no events = the harness wasn't used.
+
+**If the user asks "does this help MY model? benchmark it" — follow [`BENCHMARKING.md`](BENCHMARKING.md):**
+a step-by-step runbook (written for you, the agent) to set up the tiers/keys, run the right
+benchmark for their use case, and report the naive-vs-harness table + honest interpretation.
+Verified on this repo: **Opus 4.8 went 25% → 100%** on current-info tasks with the harness.
 
 ## Use as the executor behind another agent
 
