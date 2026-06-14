@@ -67,6 +67,9 @@ def main(argv: list[str]) -> None:
     elif cmd == "providers":
         from .providers import setup_guide
         print(setup_guide(rest[0] if rest else None))
+    elif cmd == "capabilities":
+        from .tools import capabilities_guide
+        print(capabilities_guide())
     elif cmd == "solve":
         if not rest:
             print("usage: solve \"<goal>\"", file=sys.stderr); sys.exit(2)

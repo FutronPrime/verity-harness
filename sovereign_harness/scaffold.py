@@ -100,9 +100,14 @@ def tripwire_check() -> str:
 
 # ─── 3. VERIFIED loop with RECOVER + escalate ────────────────────────────────
 
-_STEP_SYS = """You are an autonomous task-runner. Work toward the GOAL one step \
-at a time. Respond ONLY JSON:
+_STEP_SYS = """You are an autonomous task-runner with a REAL SHELL. Work toward \
+the GOAL one step at a time. Respond ONLY JSON:
 {"thought":"<reasoning>","action":"<one shell command, empty if done>","done":<bool>,"summary":"<final answer when done>"}
+
+You can go GET information you lack — do NOT guess:
+  • fetch a web page:  python3 -c "from sovereign_harness.tools import fetch; print(fetch('URL'))"
+  • search the web:    python3 -c "from sovereign_harness.tools import web_search; print(web_search('query'))"
+  • install any tool:  pip install <pkg> / npm i -g <pkg> / brew install <tool>, then use it
 If the previous step FAILED verification, read the failure reason and try a \
 different approach."""
 
