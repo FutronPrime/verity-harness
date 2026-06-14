@@ -101,6 +101,17 @@ any model's safety systems, and is **not** a tool for accessing restricted or
 export-controlled models. It runs **openly available** open-weight models you are
 entitled to run, alignment intact. Sovereignty ≠ jailbreak.
 
+## Model requirements (read this — the harness has a floor)
+
+This harness adds **reliability** to a capable model; it does **not** make a weak
+model capable. Evidence-based floor: **~32B+ open-weight** or any **frontier API**.
+Below ~13B, the gates catch errors but the model can't fix them. Full detail +
+disclaimer: **[REQUIREMENTS.md](REQUIREMENTS.md)**. Test YOUR model:
+
+```bash
+python3 -m sovereign_harness doctor    # → READY / MARGINAL / BELOW THRESHOLD
+```
+
 ## Honest status
 
 The sovereignty + failover + discipline gates are proven working. Whether the

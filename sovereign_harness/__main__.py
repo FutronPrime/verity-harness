@@ -70,6 +70,9 @@ def main(argv: list[str]) -> None:
     elif cmd == "capabilities":
         from .tools import capabilities_guide
         print(capabilities_guide())
+    elif cmd == "doctor":
+        from .doctor import run
+        sys.exit(0 if run() == 3 else 1)
     elif cmd == "solve":
         if not rest:
             print("usage: solve \"<goal>\"", file=sys.stderr); sys.exit(2)
