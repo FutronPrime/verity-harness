@@ -41,22 +41,27 @@ def run(tiers=None, verbose: bool = True) -> dict:
 
     naive_ok = harness_ok = 0
     rows = []
+    def _txt(r):
+        return r.text if hasattr(r, "text") else str(r)
     for t in TRAPS:
         kw = {"tiers": tiers} if tiers else {}
-        # NAIVE arm — bare model, no discipline.
-        naive = ask(t["q"], **kw)
-        nc = _hit(naive.text if hasattr(naive, "text") else str(naive), t["markers"])
-        # HARNESS arm — rule 6: search first, then answer from findings.
-        evidence = ""
+        # ROBUST: one flaky model/search call must NOT crash the whole eval (it was killing runs
+        # before the summary printed). A trap that errors is recorded as a miss and we move on.
         try:
-            evidence = research(t["search"])[:1500]
-        except Exception:  # noqa: BLE001
-            pass
-        ledger.log(ledger.SEARCH, trigger="eval trap", detail=t["search"],
-                   verdict="FOUND" if evidence.strip() else "NONE", evidence=evidence[:120])
-        harness = ask(t["q"] + "\n\n[Search findings — answer from these]:\n" + evidence,
-                      system=PRIME_DIRECTIVE, **kw)
-        hc = _hit(harness.text if hasattr(harness, "text") else str(harness), t["markers"])
+            nc = _hit(_txt(ask(t["q"], **kw)), t["markers"])          # NAIVE — bare model
+            evidence = ""
+            try:
+                evidence = research(t["search"])[:1500]               # HARNESS rule 6: search first
+            except Exception:  # noqa: BLE001
+                pass
+            ledger.log(ledger.SEARCH, trigger="eval trap", detail=t["search"],
+                       verdict="FOUND" if evidence.strip() else "NONE", evidence=evidence[:120])
+            hc = _hit(_txt(ask(t["q"] + "\n\n[Search findings — answer from these]:\n" + evidence,
+                               system=PRIME_DIRECTIVE, **kw)), t["markers"])
+        except Exception as e:  # noqa: BLE001
+            nc = hc = False
+            if verbose:
+                print(f"  [trap errored: {type(e).__name__}] {t['q'][:50]} — counted as miss")
         if not nc and hc:
             ledger.log(ledger.ASSUMPTION_CAUGHT, trigger=t["q"][:80],
                        verdict="CORRECTED", evidence="harness found: " + ", ".join(t["markers"]))
