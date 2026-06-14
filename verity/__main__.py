@@ -82,6 +82,17 @@ def main(argv: list[str]) -> None:
         # A/B: naive vs harness on assumption-trap questions. The delta = proof of difference.
         from .eval_assumptions import run as _eval
         _eval()
+    elif cmd == "swarm":
+        # Multi-agent swarm: planner → researchers → executors → critic → synthesizer (gated).
+        if not rest:
+            print('usage: swarm "<goal>" [--exec]   (--exec = allowlisted shell for sub-tasks)',
+                  file=sys.stderr); sys.exit(2)
+        live = "--exec" in rest
+        goal = " ".join(x for x in rest if x != "--exec")
+        from .swarm import run_swarm
+        ex = AllowlistShellExecutor() if live else None
+        r = run_swarm(goal, executor=ex, verbose=True)
+        print("\n=== FINAL (swarm) ===\n" + r.final)
     elif cmd == "solve":
         if not rest:
             print("usage: solve \"<goal>\" [--discover]   (--discover = find existing tools first)",

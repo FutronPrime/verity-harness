@@ -9,7 +9,8 @@ from .router import ask, chat, Reply, AllTiersFailed
 from .config import TIERS, summary
 from .executors import DockerExecutor, run_with_openhands
 from .social_x import post_to_x
+from .swarm import run_swarm
 
 __all__ = ["run_goal", "ask", "chat", "Reply", "AllTiersFailed", "TIERS", "summary",
-           "DockerExecutor", "run_with_openhands", "post_to_x"]
+           "DockerExecutor", "run_with_openhands", "post_to_x", "run_swarm"]
 __version__ = "0.1.0"
