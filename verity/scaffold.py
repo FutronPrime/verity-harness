@@ -387,6 +387,23 @@ def run_verified(goal: str, executor: Executor | None = None,
 
         obs = ex.run(action)
         v = verify(goal, action, obs, tiers=tiers)
+        # QC SELF-HEAL: a tool output that is ITSELF an error/empty/CAPTCHA is not a valid result —
+        # never let the model reason over garbage (the bug that tanked the first eval). Override a
+        # falsely-OK verify, and journal it via the ErrorHandlingProtocol so failures self-document.
+        from .errorhandling import looks_like_failure
+        if v.ok and looks_like_failure(obs):
+            v = Verdict(ok=False, reason="QC: tool output looks like a failure (error/empty/blocked), not a result")
+            try:
+                from . import errorhandling
+                errorhandling.handle(
+                    what=f"step {n} action {action[:60]!r} returned failure-looking output",
+                    why="tool returned error/empty/CAPTCHA text, not real data",
+                    impact="model would reason over garbage and likely conclude wrongly",
+                    fix="flagged as a FAILED step → routes into persistence/research, not 'done'",
+                    prevention="looks_like_failure() QC runs on every step's output",
+                    self_caused=False, postmortem="brief")
+            except Exception:  # noqa: BLE001
+                pass
         res.steps.append({"n": n, "action": action, "obs": obs[:300],
                           "ok": v.ok, "reason": v.reason, "tier": reply.tier})
         if verbose:

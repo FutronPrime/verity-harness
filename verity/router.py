@@ -119,6 +119,8 @@ def chat(
     The whole point: a vendor going dark is an exception we CATCH, not a
     crash. Tier 0 (local weights) is the floor that can't be revoked.
     """
+    if tiers is None:          # an explicit None (e.g. via **kw) must still default to TIERS
+        tiers = TIERS
     trail: list[str] = []
     for tier in tiers:
         t0 = time.monotonic()
