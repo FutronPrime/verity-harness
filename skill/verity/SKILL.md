@@ -102,6 +102,16 @@ a step-by-step runbook (written for you, the agent) to set up the tiers/keys, ru
 benchmark for their use case, and report the naive-vs-harness table + honest interpretation.
 Verified on this repo: **Opus 4.8 went 25% → 100%** on current-info tasks (+3) and a 4B went 33%→67% on reasoning (+1). HONEST counter-result: on *easy* coding bugs capable models already score 100% naive, so the harness shows 0 lift and can even regress −1 (agentic overhead on trivial fixes). The harness helps where the model NEEDS help — not on tasks it aces one-shot.
 
+## Run it silently in the background (no UI — just on)
+
+Wire VERITY to start with your agent so it's *always working* without you invoking it:
+```bash
+python3 -m verity autostart --claude-code   # or --shell
+```
+On every session it quietly self-syncs + starts the proxy floor (:11500). Point your agent
+at `OPENAI_BASE_URL=http://127.0.0.1:11500/v1` to inherit failover + the gates transparently —
+the way a better model 'just works' when you switch to it.
+
 ## Use as the executor behind another agent
 
 Run `python3 -m verity.server` for an OpenAI-compatible proxy on `:11500/v1`; point any

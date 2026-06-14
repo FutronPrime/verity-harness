@@ -90,6 +90,10 @@ def main(argv: list[str]) -> None:
         # SWE-Bench-style: test-scored bug fixing (the coding axis Fable 5 is ranked on).
         from .eval_swebench import run as _swe
         _swe()
+    elif cmd == "autostart":
+        # Wire VERITY to silently start with your agent (sync + proxy floor), no UI.
+        from .autostart import main as _auto
+        _auto(rest[0] if rest else "--print")
     elif cmd == "swarm":
         # Multi-agent swarm: planner → researchers → executors → critic → synthesizer (gated).
         if not rest:
