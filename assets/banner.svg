@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" font-family="Georgia, 'Times New Roman', serif">
+  <defs>
+    <radialGradient id="bg" cx="68%" cy="42%" r="80%">
+      <stop offset="0%" stop-color="#0d1822"/>
+      <stop offset="55%" stop-color="#080d14"/>
+      <stop offset="100%" stop-color="#04070b"/>
+    </radialGradient>
+    <linearGradient id="word" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f4fffd"/>
+      <stop offset="60%" stop-color="#9beede"/>
+      <stop offset="100%" stop-color="#2dd4bf"/>
+    </linearGradient>
+    <radialGradient id="core" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#7af0dc"/>
+      <stop offset="55%" stop-color="#21c5ad"/>
+      <stop offset="100%" stop-color="#0c5e53"/>
+    </radialGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <style>
+      .mono{font-family:'SF Mono','Menlo','Consolas',monospace;}
+    </style>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- faint scan grid -->
+  <g stroke="#1b3a40" stroke-width="1" opacity="0.18">
+    <line x1="0" y1="157" x2="1200" y2="157"/><line x1="0" y1="472" x2="1200" y2="472"/>
+    <line x1="300" y1="0" x2="300" y2="630"/><line x1="900" y1="0" x2="900" y2="630"/>
+  </g>
+  <rect x="28" y="28" width="1144" height="574" fill="none" stroke="#1f4d4a" stroke-width="1" opacity="0.5"/>
+
+  <!-- header labels -->
+  <text x="60" y="76" class="mono" font-size="15" letter-spacing="5" fill="#5eead4">VERITY · HARNESS · v1</text>
+  <text x="60" y="98" class="mono" font-size="12" letter-spacing="5" fill="#3f7d76">ENFORCED · RUNTIME · OPEN</text>
+  <text x="1140" y="76" text-anchor="end" class="mono" font-size="15" letter-spacing="4" fill="#5eead4">TRUTH · NOT FICTION · MIT</text>
+
+  <!-- verification motif: concentric "verify" rings + grounded check -->
+  <g transform="translate(930,315)">
+    <circle r="148" fill="none" stroke="#16413c" stroke-width="1" opacity="0.7"/>
+    <circle r="112" fill="none" stroke="#1d5a52" stroke-width="1" opacity="0.8"/>
+    <circle r="78" fill="none" stroke="#247c70" stroke-width="1.2"/>
+    <circle r="148" fill="none" stroke="#2dd4bf" stroke-width="2" stroke-dasharray="3 14" opacity="0.55"/>
+    <circle r="46" fill="url(#core)" filter="url(#glow)"/>
+    <!-- checkmark = verified/grounded -->
+    <path d="M -20 2 L -6 18 L 24 -18" fill="none" stroke="#04231f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="0" y="182" text-anchor="middle" class="mono" font-size="12" letter-spacing="4" fill="#3f7d76">GROUNDED · ran · observed · verified</text>
+  </g>
+
+  <!-- wordmark -->
+  <text x="58" y="300" font-size="34" letter-spacing="6" class="mono" fill="#2dd4bf">TRUTH · NOT · FICTION</text>
+  <text x="50" y="430" font-size="172" font-weight="700" letter-spacing="-2" fill="url(#word)">VERITY</text>
+  <text x="60" y="470" font-size="26" letter-spacing="14" class="mono" fill="#cdeee8">THE  TRUTH  HARNESS</text>
+
+  <!-- taglines -->
+  <text x="60" y="528" font-size="26" font-style="italic" fill="#8fc7bf">Fable tells the tale.  Verity verifies it.</text>
+  <text x="60" y="566" class="mono" font-size="14" letter-spacing="3" fill="#4f9a90">VERIFY · DON'T ASSUME   ·   NEVER QUIT   ·   REUSE BEFORE REINVENT</text>
+  <text x="1140" y="566" text-anchor="end" class="mono" font-size="13" letter-spacing="2" fill="#3f7d76">70B + VERITY  3/3   ·   naive  2/3</text>
+</svg>

@@ -1,9 +1,19 @@
-# Sovereign Harness
+<p align="center">
+  <img src="assets/banner.svg" alt="VERITY — The Truth Harness" width="100%"/>
+</p>
+
+# VERITY · The Truth Harness
+
+> **Fable tells the tale. Verity verifies it.**
 
 **Don't let any single vendor hold your AI hostage — and don't let any model
 proceed on confident guesses.** A zero-dependency harness that (1) survives a
 vendor vanishing overnight by failing over to open weights you own, and (2)
-wraps *any* model in a discipline layer that catches its own overconfident errors.
+wraps *any* model in a discipline layer that **forces** it to verify instead of
+assume, persist instead of quit, and reuse instead of reinvent.
+
+*Where Anthropic's **Mythos** and **Fable** are named for fiction, **Verity** is
+named for truth — and it `verify`s. The name is the thesis.*
 
 > A vendor's access can be suspended overnight. It cannot reach into open weights
 > you already pulled to local disk. **That** is sovereignty.
@@ -52,6 +62,12 @@ TIER 0   open weights via Ollama (localhost)  ← SOVEREIGN FLOOR, un-revocable
 ```
 
 ## The discipline layer (why it's different from "just route to an LLM")
+
+<p align="center"><img src="assets/gates.svg" alt="Deterministic enforcement gates" width="100%"/></p>
+
+**A prompt *requests* discipline; a gate *enforces* it.** Because LLMs are
+probabilistic, every behavior below fires on a *code condition* the harness
+controls — never the model's choice to remember.
 
 ```python
 from sovereign_harness.scaffold import run_verified
@@ -113,6 +129,10 @@ python3 -m sovereign_harness doctor    # → READY / MARGINAL / BELOW THRESHOLD
 ```
 
 ## Honest status
+
+<p align="center"><img src="assets/benchmark.svg" alt="Benchmark — scaffold vs naive by model tier" width="100%"/></p>
+
+Full results + reproduction: **[BENCHMARK.md](BENCHMARK.md)**.
 
 The sovereignty + failover + discipline gates are proven working. Whether the
 discipline layer makes a *weaker* open model match a frontier one on hard agentic

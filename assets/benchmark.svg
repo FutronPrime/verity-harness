@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" font-family="Georgia,'Times New Roman',serif">
+  <defs>
+    <radialGradient id="bg3" cx="40%" cy="25%" r="95%">
+      <stop offset="0%" stop-color="#0c1620"/><stop offset="100%" stop-color="#05080d"/>
+    </radialGradient>
+    <linearGradient id="win" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2dd4bf"/><stop offset="100%" stop-color="#118a7a"/>
+    </linearGradient>
+    <style>.mono{font-family:'SF Mono','Menlo',monospace;}</style>
+  </defs>
+  <rect width="1200" height="680" fill="url(#bg3)"/>
+  <rect x="26" y="26" width="1148" height="628" fill="none" stroke="#1f4d4a" opacity="0.5"/>
+
+  <text x="60" y="76" class="mono" font-size="13" letter-spacing="6" fill="#3f7d76">CORE BENCHMARK · SMALL SAMPLE · DIRECTIONAL · REPRODUCIBLE</text>
+  <text x="58" y="124" font-size="38" fill="#e9f7f4">Verity beats a naive loop — <tspan font-style="italic" fill="#2dd4bf">in the window it can</tspan>.</text>
+  <text x="60" y="156" font-size="17" fill="#7fb3ab">Adversarial tasks: obvious answer is wrong. Naive ships the bug; the gates catch it. Mechanically scored on the edge cases.</text>
+
+  <!-- tier curve -->
+  <text x="60" y="216" class="mono" font-size="14" letter-spacing="3" fill="#5eead4">SCAFFOLD vs NAIVE  ·  BY MODEL TIER  (same tasks, same scoring)</text>
+  <g class="mono" font-size="14">
+    <!-- weak -->
+    <text x="60" y="268" fill="#8aa">Llama-3.1-8B  (weak)</text>
+    <rect x="320" y="252" width="120" height="22" fill="#243440"/><text x="450" y="269" fill="#6b7c87">naive 0/3</text>
+    <rect x="320" y="280" width="120" height="22" fill="#243440"/><text x="450" y="297" fill="#6b7c87">verity 0/3 — too weak to act on the catch</text>
+    <!-- mid -->
+    <text x="60" y="348" fill="#cfe">Llama-3.3-70B  (mid)</text>
+    <rect x="320" y="332" width="200" height="22" fill="#34505a"/><text x="530" y="349" fill="#9fb3bb">naive 2/3</text>
+    <rect x="320" y="360" width="300" height="22" fill="url(#win)"/><text x="630" y="377" fill="#5eead4">verity 3/3  ✓ WINS — caught the bug naive shipped</text>
+    <!-- strong -->
+    <text x="60" y="428" fill="#8aa">Kimi-K2  (strong)</text>
+    <rect x="320" y="412" width="300" height="22" fill="#34505a"/><text x="630" y="429" fill="#9fb3bb">naive 3/3</text>
+    <rect x="320" y="440" width="300" height="22" fill="#2a6e64"/><text x="630" y="457" fill="#86bfb6">verity 3/3 — parity (rarely errs; gates rarely fire)</text>
+  </g>
+
+  <line x1="60" y1="500" x2="1140" y2="500" stroke="#1f4d4a"/>
+  <text x="60" y="540" class="mono" font-size="13" letter-spacing="3" fill="#5eead4">HONEST READ</text>
+  <text x="60" y="568" font-size="17" fill="#9fb3bb">The lift is real <tspan fill="#2dd4bf">in the value window</tspan> — capable-but-imperfect models (~32–70B). It can't make a weak model capable,</text>
+  <text x="60" y="592" font-size="17" fill="#9fb3bb">and a frontier model rarely needs it. Capability lives in the weights; Verity governs how reliably it's applied.</text>
+  <text x="60" y="628" font-size="16" font-style="italic" fill="#8fc7bf">Small sample. Single judge. Re-run on your own suite — `python3 eval_adversarial.py`.</text>
+</svg>
