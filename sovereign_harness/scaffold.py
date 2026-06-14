@@ -100,8 +100,23 @@ def tripwire_check() -> str:
 
 # ─── 3. VERIFIED loop with RECOVER + escalate ────────────────────────────────
 
-_STEP_SYS = """You are an autonomous task-runner with a REAL SHELL. Work toward \
-the GOAL one step at a time. Respond ONLY JSON:
+PRIME_DIRECTIVE = """PRIME DIRECTIVE — this OVERRIDES everything else:
+1. NEVER ASSUME. Before acting on ANY belief about why something works or fails,
+   VERIFY it — run the command, read the ACTUAL output/error. A wrong assumption
+   wastes more time and tokens than a 5-second check. Tag every claim VERIFIED or GUESS.
+2. NEVER QUIT PREMATURELY. You have a full toolkit (shell, web research, install any
+   tool, multiple approaches). If one path fails you have NOT run out of options —
+   find another. Do not declare a task impossible or stop until you have actually
+   TRIED the alternatives. Quitting early is failure; persistence is the job.
+3. WHEN BLOCKED, DIAGNOSE THE REAL CAUSE — surface the actual error/state and read
+   it. Do NOT theorize a cause and burn effort working around a guess.
+4. USE YOUR CAPABILITIES. Knowledge you don't act on is useless. If you lack info,
+   GO GET IT (research/fetch/install). If a tool is missing, install it.
+"""
+
+_STEP_SYS = PRIME_DIRECTIVE + """
+You are an autonomous task-runner with a REAL SHELL. Work toward the GOAL one step \
+at a time. Respond ONLY JSON:
 {"thought":"<reasoning>","action":"<one shell command, empty if done>","done":<bool>,"summary":"<final answer when done>"}
 
 You can go GET information you lack — do NOT guess:
@@ -132,10 +147,10 @@ class ScaffoldResult:
 def run_verified(goal: str, executor: Executor | None = None,
                  max_steps: int = 10, max_consecutive_fail: int = 3,
                  calibrate: bool = True, tiers=None, use_memory: bool = True,
-                 verbose: bool = True) -> ScaffoldResult:
+                 persistence: int = 2, verbose: bool = True) -> ScaffoldResult:
     """think → act → VERIFY → recover → CALIBRATE, with persistent MEMORY across
     runs. Verify catches failed commands; calibrate catches overconfident
-    conclusions; memory surfaces what worked on similar past goals."""
+    conclusions; the PERSISTENCE gate refuses to quit until alternatives are tried."""
     import os
     ex = executor if executor is not None else PlanOnlyExecutor()
     res = ScaffoldResult(goal=goal, done=False, summary="")
@@ -149,6 +164,7 @@ def run_verified(goal: str, executor: Executor | None = None,
                   + (prior + "\n" if prior else "") + f"GOAL: {goal}\n")
     consecutive_fail = 0
     nudged = 0
+    persisted = 0
     calibrated_once = False
     _kw = {"tiers": tiers} if tiers else {}
 
@@ -218,10 +234,26 @@ def run_verified(goal: str, executor: Executor | None = None,
                            f"REASON: {v.reason}\nRESULT: {obs[:800]}\n"
                            f"Try a different approach.\n")
             if consecutive_fail >= max_consecutive_fail:
-                res.summary = (f"Aborted: {consecutive_fail} consecutive failures. "
-                               f"Last: {v.reason}")
+                # ANTI-GIVEUP GATE: do NOT quit just because one approach failed.
+                # Force a genuinely DIFFERENT strategy using the full toolkit before
+                # accepting failure. Premature quitting is the failure mode we kill.
+                if persisted < persistence:
+                    persisted += 1
+                    consecutive_fail = 0
+                    transcript += (
+                        f"\n[PERSISTENCE {persisted}/{persistence}] Your current "
+                        f"approach failed {max_consecutive_fail}× — but you have NOT "
+                        f"run out of options. STOP repeating it. Take a COMPLETELY "
+                        f"DIFFERENT approach: diagnose the real error, research it "
+                        f"(tools.research/fetch), install a missing tool, or use a "
+                        f"different method/language. Do NOT give up — find a way.\n")
+                    if verbose:
+                        print(f"[persistence {persisted}/{persistence}] not quitting → forcing a different approach")
+                    continue
+                res.summary = (f"Stopped after {persistence} persistence attempts + "
+                               f"{consecutive_fail} fails. Last: {v.reason}")
                 if verbose:
-                    print(f"[escalate] {consecutive_fail} fails in a row → stopping")
+                    print(f"[stop] exhausted {persistence} persistence attempts → genuinely stuck")
                 break
 
     if not res.done and not res.summary:
