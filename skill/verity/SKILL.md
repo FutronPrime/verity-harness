@@ -46,6 +46,10 @@ VERITY adds reliability to a *capable* model; it can't make a weak one capable. 
 python3 -m verity ask "..."              # one prompt, with tier failover
 python3 -m verity solve "<goal>"         # full discipline scaffold (real shell):
                                          #   think → act → VERIFY → recover → CALIBRATE
+python3 -m verity swarm "<goal>"         # MULTI-AGENT (Mythos/Fable shape): plan → parallel
+                                         #   research+execute → critic → synthesize (gated)
+python3 -m verity proof                  # the receipt: which gates fired, what got corrected
+python3 -m verity eval                   # A/B naive-vs-harness lift on assumption traps
 python3 -m verity failover-test          # prove cloud-down → local floor answers
 python3 -m verity capabilities           # what the agent can reach (web/search/install)
 ```

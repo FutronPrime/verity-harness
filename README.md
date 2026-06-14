@@ -104,6 +104,31 @@ r = run_verified("find and fix the off-by-one bug in utils.py",
   Routes the check to a cheap model (verification is discrimination, not generation).
 - **Memory** — remembers verified outcomes across runs (`~/.verity-harness/`),
   surfaces "you've done something like this before."
+- **QC self-heal** — tool results are quality-checked: garbage (CAPTCHA/empty/error) is
+  *dropped* instead of fed to the model as "findings", and a 5-block ErrorHandlingProtocol
+  (What/Why/Impact/Fix/Prevention) journals every failure so the harness fixes its own plumbing.
+
+## Multi-agent swarm (the Mythos/Fable shape — self-contained)
+
+A single disciplined model is good; a **swarm of specialized disciplined agents** is the shape
+that frontier agentic systems get their power from. VERITY ships it natively, **zero external
+dependencies** — every agent is a role-prompted model call wrapped in the same gates:
+
+```bash
+python3 -m verity swarm "research and recommend the best approach to X"   # add --exec for real shell
+```
+```
+PLAN  →  decompose the goal into independent sub-tasks
+  ↓      (parallel — one worker per sub-task)
+RESEARCH → pre-flight live-search the current best approach
+EXECUTE  → do it under verify + QC gates
+CRITIQUE → an adversarial CRITIC agent reviews; one repair pass on issues
+  ↓
+SYNTHESIZE → combine the verified sub-results → final answer (VERIFIED vs GUESS tagged)
+```
+Every step is gate-disciplined and logged to the ledger. A fresh `git clone` runs the full swarm
+with **no knowledge of any private tooling** — that's the point: same system, same results, for
+anyone who installs it.
 
 ## Invisible, always-on (proxy daemon)
 
