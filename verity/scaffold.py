@@ -196,6 +196,16 @@ def _local_tools(goal: str) -> str:
     import shutil
     import subprocess
     out = []
+    # 0. REUSE-FIRST for web access — surface the system's own scrape/search/browse tools so
+    #    the model never hand-rolls a scraper when a cascade is already installed.
+    if _re.search(r"\b(web|search|scrap|crawl|fetch|url|http|browse|research|find|lookup|online)\b",
+                  goal.lower()):
+        try:
+            from .tools import system_web_tools
+            if (wt := system_web_tools()):
+                out.append(wt)
+        except Exception:  # noqa: BLE001
+            pass
     kws = [w for w in _re.findall(r"[a-z0-9]+", goal.lower())
            if len(w) > 3 and w not in ("with", "that", "this", "from", "into")][:6]
     # 1. The system's OWN tool/skill catalogs, if it has them.

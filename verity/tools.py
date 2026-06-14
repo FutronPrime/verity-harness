@@ -248,6 +248,39 @@ def youtube_transcript(url_or_id: str, max_chars: int = 12000) -> str:
         return f"[youtube error: {type(e).__name__}]"
 
 
+def system_web_tools() -> str:
+    """REUSE-FIRST for web access: list the web fetch/search/scrape/browse tools ALREADY
+    installed on THIS system, so the LLM uses them before hand-rolling a scraper (the mistake
+    this function exists to prevent). Portable: scans PATH for the common cascade/scrape/search
+    CLIs by name (FUTRON's futron-scrape/-mcp-search/-cua-fetch/-crawl4ai, plus generic
+    crawl4ai, scrapy, firecrawl, jina, etc.). Empty result = nothing installed → use a keyed
+    search (BRAVE/TAVILY) or browse()."""
+    import os
+    import shutil
+    # canonical web-access command-name fragments, in rough preference order
+    wanted = ("futron-scrape", "futron-mcp-search", "futron-local-researcher", "futron-cua-fetch",
+              "futron-crawl4ai-scrape", "futron-claw", "futron-research", "crawl4ai", "scrapy",
+              "firecrawl", "jina", "trafilatura", "newspaper", "playwright", "browser-use")
+    found = []
+    seen = set()
+    pathdirs = os.environ.get("PATH", "").split(os.pathsep)
+    for frag in wanted:
+        # exact-ish: a command whose name contains the fragment
+        for d in pathdirs[:60]:
+            try:
+                for f in os.listdir(d):
+                    if frag in f and not f.startswith(".") and ".bak" not in f and f not in seen:
+                        if shutil.which(f):
+                            seen.add(f); found.append(f)
+            except OSError:
+                continue
+    if not found:
+        return ""
+    return ("WEB-ACCESS TOOLS ALREADY ON THIS SYSTEM — PREFER THESE before hand-rolling any "
+            "fetch/search/scrape (run `<tool> --help` to learn its interface):\n  "
+            + ", ".join(sorted(set(found))[:20]))
+
+
 def _is_garbage(block: str) -> bool:
     """QC: True if a search block is an error/empty/blocked response, NOT real evidence.
     The whole point — never feed the model a wall of '[no results]' / CAPTCHA text and call
@@ -335,15 +368,25 @@ def browse(url: str, screenshot: str | None = None, wait_ms: int = 4000,
 
 
 def capabilities_guide() -> str:
+    _own = system_web_tools()
+    _reuse = (("\n⭐ REUSE-FIRST — " + _own + "\n") if _own else
+              "\n⭐ REUSE-FIRST — before hand-rolling a scraper, run "
+              "`compgen -c | grep -iE 'scrape|crawl|search|fetch'` to see if this system already "
+              "has a web tool; if not, set BRAVE_API_KEY/TAVILY_API_KEY for reliable search.\n")
     return """\
 AGENT CAPABILITIES — you can go GET information, not just reason from memory.
-
+""" + _reuse + """
 You have a REAL SHELL (ShellExecutor). That means you can:
 
+  • WEB ACCESS — REUSE-FIRST (don't reinvent): if the box above lists installed web/scrape
+      tools (e.g. futron-scrape, crawl4ai, browser-use), PREFER them — they're battle-tested
+      cascades that already handle CAPTCHA/JS/login/rate-limits. Hand-rolling DDG/curl is the
+      LAST resort, not the first. (This rule exists because the harness's own author once
+      hand-rolled a scraper while futron-scrape sat one command away.)
   • FETCH the web:
       python3 -c "from verity.tools import fetch; print(fetch('URL'))"
-      …or just: curl -sL URL
-  • SEARCH the web (free, no key):
+      …or just: curl -sL URL   (or a system scrape tool from the REUSE-FIRST box above)
+  • SEARCH the web (uses Brave/Tavily if a key is set — reliable; else free scraping):
       python3 -c "from verity.tools import web_search; print(web_search('query'))"
   • MULTI-PLATFORM RESEARCH (find rare/inside knowledge + open-source tools):
       python3 -c "from verity.tools import research; print(research('your topic'))"

@@ -73,7 +73,13 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
 - **Evidence** — no "done" on a fact-question without verified evidence
 - **Calibration** — challenges every confident conclusion; tags VERIFIED vs GUESS
 - **Persistence** — refuses to quit; on stuck, **auto-researches the error** (GitHub/Reddit/HN/SO) and forces a different approach
-- **Reuse-first** — checks your own tools, then existing open-source, before building from scratch
+- **Reuse-first** — checks your own tools, then existing open-source, before building from scratch.
+  Includes **web access**: `system_web_tools()` surfaces installed scrape/search/browse CLIs
+  (futron-scrape, crawl4ai, browser-use, scrapy…) so the LLM uses a battle-tested cascade
+  instead of hand-rolling a CAPTCHA-prone scraper. `capabilities` leads with this box.
+- **QC self-heal** — `research()` drops garbage (CAPTCHA/empty/error) blocks instead of feeding
+  the model noise, and `errorhandling.py` runs a 5-block root-cause protocol (What/Why/Impact/
+  Fix/Prevention) + journals every failure, so the harness catches and corrects its own plumbing.
 - **Sovereign failover** — cloud → local open weights you own
 
 ## Prove it's actually being used (and that it helps)
