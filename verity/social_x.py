@@ -111,7 +111,16 @@ def post_to_x(text: str, image_path: Optional[str] = None, creds: Optional[dict]
             return {"ok": False, "error": "X returned no tweet id — write not confirmed", "raw": res}
         return {"ok": True, "tweet_id": tid, "url": f"https://x.com/i/web/status/{tid}"}
     except urllib.error.HTTPError as e:
-        return {"ok": False, "error": f"HTTP {e.code}: {e.read().decode()[:400]}"}
+        body = e.read().decode()[:400]
+        if e.code == 402:   # CreditsDepleted — X API 2026 is pay-per-use (~$0.02/post)
+            return {"ok": False, "credits_depleted": True,
+                    "error": ("X API credits depleted (pay-per-use, ~$0.02/post). Add credits at "
+                              "console.x.com -> Buy Credits, OR use the FREE browser-clipboard "
+                              "fallback: open the real x.com composer, type the text, put the image on "
+                              "the system clipboard and paste it, then click Post (the real web client "
+                              "handles the x-client-transaction-id). See capabilities_guide()."),
+                    "raw": body}
+        return {"ok": False, "error": f"HTTP {e.code}: {body}"}
 
 
 if __name__ == "__main__":
