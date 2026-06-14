@@ -44,14 +44,36 @@ class Reply:
     attempts: list[str] = field(default_factory=list)  # human-readable trail
 
 
+class ProviderError(RuntimeError):
+    """A provider returned an error WITH a readable message (HTTP body or error
+    field). Carries .status so the retry layer can honor 429/503 backoff."""
+    def __init__(self, msg: str, status: int = 0, headers=None):
+        super().__init__(msg)
+        self.status = status
+        self.headers = headers or {}
+
+
 def _post_json(url: str, payload: dict, timeout: float, api_key: str = "") -> dict:
-    headers = {"Content-Type": "application/json"}
+    # A browser-like User-Agent: some providers sit behind Cloudflare, which 403s
+    # (error 1010) the default "Python-urllib" signature. VERIFIED: default UA →
+    # 403 on Groq, browser UA → OK. (Not a rate limit — measured, not assumed.)
+    headers = {"Content-Type": "application/json",
+               "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                             "AppleWebKit/537.36 (KHTML, like Gecko) sovereign-harness"}
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=data, headers=headers, method="POST")
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        # Surface the REAL provider message instead of an opaque "HTTPError".
+        try:
+            body = e.read().decode("utf-8", "ignore")[:400]
+        except Exception:  # noqa: BLE001
+            body = ""
+        raise ProviderError(f"HTTP {e.code}: {body}", status=e.code, headers=e.headers)
 
 
 def _call_openai_compat(tier: Tier, messages: list[dict], timeout: float) -> str:
@@ -61,6 +83,12 @@ def _call_openai_compat(tier: Tier, messages: list[dict], timeout: float) -> str
         {"model": tier.model, "messages": messages, "stream": False},
         timeout, getattr(tier, "api_key", ""),
     )
+    # Some providers return a 200 with an {"error": ...} body — surface it clearly
+    # instead of letting it become an opaque KeyError on out["choices"].
+    if "choices" not in out:
+        err = out.get("error")
+        msg = (err.get("message") if isinstance(err, dict) else err) or str(out)[:300]
+        raise ProviderError(f"no choices in response: {msg}")
     return out["choices"][0]["message"]["content"]
 
 
@@ -109,20 +137,22 @@ def chat(
                 return Reply(text=text, tier=tier.name, model=tier.model,
                              latency_s=dt, attempts=trail)
             except (urllib.error.URLError, urllib.error.HTTPError, OSError,
-                    KeyError, json.JSONDecodeError, TimeoutError) as e:
+                    KeyError, json.JSONDecodeError, TimeoutError, ProviderError) as e:
                 last = e
                 if attempt < _RETRIES:
                     wait = _BACKOFF * (attempt + 1)
                     # Respect a 429/503 Retry-After header (free tiers rate-limit
                     # agentic loops hard — honor their backoff window).
-                    if isinstance(e, urllib.error.HTTPError) and e.code in (429, 503):
+                    status = getattr(e, "code", None) or getattr(e, "status", None)
+                    hdrs = getattr(e, "headers", {}) or {}
+                    if status in (429, 503):
                         try:
-                            wait = max(wait, float(e.headers.get("Retry-After", wait)))
+                            wait = max(wait, float(hdrs.get("Retry-After", wait)))
                         except (TypeError, ValueError):
                             pass
                     time.sleep(min(wait, 30))
         dt = time.monotonic() - t0
-        reason = type(last).__name__
+        reason = str(last)[:160]
         trail.append(f"{tier.name}: FAIL [{reason}] after {_RETRIES+1} tries "
                      f"({dt:.1f}s) → failing over")
         if verbose:
