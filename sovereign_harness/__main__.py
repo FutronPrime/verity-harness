@@ -4,12 +4,14 @@
   python3 -m sovereign_harness tiers              # show routing order
   python3 -m sovereign_harness ask "your prompt"  # route a prompt (verbose trail)
   python3 -m sovereign_harness failover-test      # prove Tier1→Tier0 failover
+  python3 -m sovereign_harness providers [name]   # how to wire FREE LLM access
+  python3 -m sovereign_harness solve "<goal>"     # full discipline scaffold (real shell)
 """
 import sys
 
 from .config import summary, TIERS, Tier
 from .router import ask, chat, AllTiersFailed
-from .loop import run_goal, PlanOnlyExecutor, AllowlistShellExecutor
+from .loop import run_goal, PlanOnlyExecutor, AllowlistShellExecutor, ShellExecutor
 
 
 def _cmd_tiers():
@@ -62,6 +64,16 @@ def main(argv: list[str]) -> None:
         _cmd_ask(" ".join(rest))
     elif cmd == "failover-test":
         _cmd_failover_test()
+    elif cmd == "providers":
+        from .providers import setup_guide
+        print(setup_guide(rest[0] if rest else None))
+    elif cmd == "solve":
+        if not rest:
+            print("usage: solve \"<goal>\"", file=sys.stderr); sys.exit(2)
+        from .scaffold import run_verified
+        r = run_verified(" ".join(rest), executor=ShellExecutor(), verbose=True)
+        print(f"\n=== result ===\ndone={r.done} verified={r.verified_steps} "
+              f"failed={r.failed_steps}\n{r.summary}")
     elif cmd == "loop":
         if not rest:
             print("usage: loop \"<goal>\" [--exec]   (--exec = allowlisted shell, else plan-only)",

@@ -50,9 +50,18 @@ def decompose(goal: str, timeout: float = 60) -> list[str]:
 
 # ─── 2. VERIFY (adversarial, not optimistic) ─────────────────────────────────
 
-_VERIFY_SYS = """You are a strict verifier. Given a GOAL, an ACTION taken, and \
-the OBSERVED RESULT, decide whether the action genuinely advanced the goal.
-Be adversarial — assume failure unless the result clearly proves success.
+_VERIFY_SYS = """You judge whether ONE STEP in a multi-step task succeeded at what \
+it attempted — NOT whether the whole goal is finished.
+
+ok=true if the command executed without error AND produced useful or relevant \
+output. Reading a file, inspecting state, checking the environment, running a \
+test to see it fail — these are all valid PROGRESS in a multi-step task, so ok=true.
+
+ok=false ONLY if the command errored, produced a clearly wrong/empty result when \
+output was expected, or was irrelevant/counterproductive.
+
+Do NOT fail a step merely because the goal isn't done yet — multi-step work \
+requires intermediate exploration. Judge the STEP, not the finish line.
 Respond ONLY JSON: {"ok": <true|false>, "reason": "<short>"}"""
 
 
