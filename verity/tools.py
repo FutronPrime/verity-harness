@@ -305,16 +305,19 @@ def research(query: str) -> str:
                        ("GITHUB (tools / open-source)", search_github(query))):
         if not _is_garbage(body):
             blocks.append((name, body))
-    # Community sources — include ONLY if they returned real content.
-    for name, fn in (("REDDIT (real-world experience)", search_reddit),
-                     ("HACKER NEWS", search_hackernews),
-                     ("STACKOVERFLOW (solutions)", search_stackoverflow)):
-        try:
-            r = fn(query)
-            if not _is_garbage(r):
-                blocks.append((name, r))
-        except Exception:  # noqa: BLE001
-            pass
+    # SHORT-CIRCUIT (perf): if a good web/GitHub result is already in hand, SKIP the community
+    # backends. They're slow (rate-limit/timeout waits) and usually get QC-dropped anyway — that
+    # wasted latency was stalling eval/agent runs. Only consult them when web came back thin.
+    if not blocks:
+        for name, fn in (("REDDIT (real-world experience)", search_reddit),
+                         ("HACKER NEWS", search_hackernews),
+                         ("STACKOVERFLOW (solutions)", search_stackoverflow)):
+            try:
+                r = fn(query)
+                if not _is_garbage(r):
+                    blocks.append((name, r))
+            except Exception:  # noqa: BLE001
+                pass
     # REUSE-FIRST self-heal: if web came back thin and the system has its own scraping cascade
     # (e.g. FUTRON's futron-scrape / crawl4ai), use the agent's own arsenal before giving up.
     if not blocks:
