@@ -50,11 +50,12 @@ Optional cloud tier (frontier-class while available): `export LLM_TIER1_API_KEY=
 ## Architecture
 
 ```
-TIER 1   any OpenAI-compatible cloud API      ← fast, capable, REVOCABLE
-   │     (OpenAI / OpenRouter / Together / …)     used while available
-   ▼     failover on ANY error
+TIER 1   a CHAIN of peer frontier models      ← capability-preserving failover
+   │     Opus 4.8 → GPT-5.5 → Gemini 3.1 …        (LLM_TIER1_MODELS, one key via
+   │     each self-retries, then → next peer       OpenRouter or a local shim)
+   ▼     all peers exhausted → drop to floor
 TIER 0   open weights via Ollama (localhost)  ← SOVEREIGN FLOOR, un-revocable
-         llama3.2 / qwen2.5 / deepseek on YOUR disk
+         llama3.2 / qwen2.5 / deepseek on YOUR disk     (last resort, never first)
 
         ── wrapped in the metacognitive discipline layer ──
    PRE-FLIGHT (research current best approach) → think → act → VERIFY →
