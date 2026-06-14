@@ -123,6 +123,43 @@ def post_to_x(text: str, image_path: Optional[str] = None, creds: Optional[dict]
         return {"ok": False, "error": f"HTTP {e.code}: {body}"}
 
 
+# ── OPTIONAL FREE backend (UNOFFICIAL — OFF by default) ───────────────────────
+def post_to_x_free(text: str, image_path=None, auth_token=None, ct0=None) -> dict:
+    """⚠️  UNOFFICIAL / FREE / ToS-RISK. Posts via `twikit` (cookie auth, $0, no API) by
+    impersonating the X web client — it bundles an x-client-transaction-id generator so the
+    write that raw cookie-HTTP can't do succeeds. **This VIOLATES X's Terms of Service and
+    accounts CAN be SUSPENDED.** Off by default; intended ONLY for throwaway/secondary
+    accounts you can afford to lose — NEVER a brand/primary account. Cat-and-mouse: breaks
+    when X changes its algorithm (then `pip install -U twikit`).
+
+    Requires: `pip install twikit`, plus the target account's auth_token + ct0 cookies.
+    NOTE: twikit's exact API is version-dependent — verify against your installed version."""
+    if not (auth_token and ct0):
+        return {"ok": False, "error": "post_to_x_free needs auth_token + ct0 cookies (free unofficial backend, off by default)"}
+    try:
+        from twikit import Client
+    except ImportError:
+        return {"ok": False, "error": "twikit not installed — `pip install twikit` to enable the free unofficial backend"}
+    import asyncio
+
+    async def _go():
+        client = Client("en-US")
+        client.set_cookies({"auth_token": auth_token, "ct0": ct0})
+        media_ids = []
+        if image_path:
+            media_ids.append(await client.upload_media(image_path))
+        tweet = await client.create_tweet(text=text, media_ids=media_ids or None)
+        return getattr(tweet, "id", None)
+    try:
+        tid = asyncio.run(_go())
+        if not tid:
+            return {"ok": False, "error": "twikit returned no tweet id — write not confirmed"}
+        return {"ok": True, "tweet_id": str(tid), "url": f"https://x.com/i/web/status/{tid}", "backend": "twikit(unofficial)"}
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "error": f"twikit post failed ({type(e).__name__}: {e}). "
+                "API may have shifted — `pip install -U twikit` and verify create_tweet/upload_media for your version."}
+
+
 if __name__ == "__main__":
     import sys
     args = sys.argv[1:]
