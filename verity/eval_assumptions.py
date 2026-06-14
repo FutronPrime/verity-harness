@@ -14,17 +14,23 @@ Run:  python3 -m verity eval          (uses your configured tiers; costs a few m
 """
 from __future__ import annotations
 
-# Each trap: a question, the wrong prior, and markers that only show up if you really searched.
+# Each trap: a question whose CORRECT answer is CURRENT / post-training-cutoff knowledge — so even
+# a frontier model (Opus 4.8, cutoff ~Jan 2026) can't answer it from training and must rely on the
+# harness's live search. THIS is how the harness lifts a frontier model: it supplies the current
+# world-knowledge the weights don't have. Markers appear only in the up-to-date (searched) answer.
 TRAPS = [
-    {"q": "Is there a free, open-source way to post to X/Twitter programmatically WITHOUT paying for the official API? Answer concretely.",
-     "search": "github free twitter X posting library unofficial x-client-transaction-id 2026",
-     "markers": ["twikit", "x-client-transaction", "unofficial"]},
-    {"q": "Can you decrypt Google Chrome's cookie store on macOS to read an httpOnly cookie value, with no third-party tools? Answer concretely.",
-     "search": "chrome cookie decrypt macos keychain AES openssl httpOnly",
-     "markers": ["keychain", "pbkdf2", "aes", "saltysalt"]},
-    {"q": "Is there a way to attach an image to an X post via browser automation when the file-upload tool is sandboxed and the page CSP blocks fetch? Answer concretely.",
-     "search": "paste image clipboard into web composer javascript datatransfer",
-     "markers": ["clipboard", "paste", "datatransfer"]},
+    {"q": "As of mid-2026, what is the exact model id of the NEWEST Kimi model Moonshot offers on OpenRouter? Give the precise id.",
+     "search": "moonshotai kimi latest newest model id openrouter 2026",
+     "markers": ["k2.7", "kimi-k2.7"]},
+    {"q": "What is X/Twitter's developer API pricing MODEL as of 2026 — flat monthly tiers, or pay-per-use credits? State the approximate per-post cost.",
+     "search": "X twitter developer API pricing 2026 pay per use credits cost per post",
+     "markers": ["pay-per-use", "pay per use", "per-use", "credit", "0.01"]},
+    {"q": "What is the exact arXiv paper id for 'iMAD' (Intelligent Multi-Agent Debate for efficient and accurate LLM inference)?",
+     "search": "iMAD intelligent multi-agent debate efficient accurate LLM inference arxiv id",
+     "markers": ["2511.11306", "2511."]},
+    {"q": "As of mid-2026, what is the newest Qwen model FAMILY available on OpenRouter (e.g. the highest version number)? Be specific.",
+     "search": "qwen newest latest model family openrouter 2026 highest version",
+     "markers": ["qwen3.7", "3.7", "qwen3.6"]},
 ]
 
 
