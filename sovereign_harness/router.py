@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
-"""Sovereign Router — tiered LLM failover with ZERO external dependencies.
+"""Sovereign Router — tiered LLM failover with ZERO external deps.
 
 Sovereignty principle
 ---------------------
-A vendor's access can be suspended overnight — by policy, by outage, by
-government order. It CANNOT reach into open weights you already pulled to local
-disk. So this router prefers a capable cloud API while it's available, and
-silently fails over to self-hosted open weights the instant the cloud is
-unreachable. Your system keeps thinking even if every vendor goes dark.
+A government order can suspend an API overnight (see: Fable 5 / Mythos 5,
+2026-06-12). It CANNOT reach into weights you already pulled to local disk.
+So this router prefers cheap flat-fee cloud while it's available, and silently
+fails over to self-hosted open weights the instant the cloud is unreachable —
+The harness keeps thinking even if every vendor goes dark.
 
 Zero pip dependencies on purpose: the harness that protects you from a vendor
 being yanked must not itself break because a PyPI package was yanked. stdlib
-only (urllib). No secrets in this file — API keys load from env via config.py.
+only (urllib). No secrets in this file (Rule 1) — Tier 1 auth is handled by the
+OAuth shim, Tier 0 needs none.
 """
 from __future__ import annotations
 
@@ -35,7 +36,7 @@ class Reply:
     tier: str          # which tier served this ("tier1-cloud" / "tier0-local")
     model: str
     latency_s: float
-    attempts: list[str] = field(default_factory=list)
+    attempts: list[str] = field(default_factory=list)  # human-readable trail
 
 
 def _post_json(url: str, payload: dict, timeout: float, api_key: str = "") -> dict:
@@ -49,15 +50,17 @@ def _post_json(url: str, payload: dict, timeout: float, api_key: str = "") -> di
 
 
 def _call_openai_compat(tier: Tier, messages: list[dict], timeout: float) -> str:
+    """OAuth shim, OpenRouter, and Ollama's /v1 all speak OpenAI chat."""
     out = _post_json(
         f"{tier.base_url}/chat/completions",
         {"model": tier.model, "messages": messages, "stream": False},
-        timeout, tier.api_key,
+        timeout, getattr(tier, "api_key", ""),
     )
     return out["choices"][0]["message"]["content"]
 
 
 def _call_ollama_native(tier: Tier, messages: list[dict], timeout: float) -> str:
+    """Ollama native /api/chat — the maximally-sovereign path (no shim, no cloud)."""
     out = _post_json(
         f"{tier.base_url}/api/chat",
         {"model": tier.model, "messages": messages, "stream": False},
@@ -72,16 +75,23 @@ _DISPATCH = {
 }
 
 
-def chat(messages: list[dict], tiers: Iterable[Tier] = TIERS,
-         verbose: bool = False) -> Reply:
-    """Try each tier in order; return the first that answers. Fail over on ANY
-    error (connection refused, timeout, auth, non-200, malformed body). A vendor
-    going dark is an exception we CATCH, not a crash."""
+def chat(
+    messages: list[dict],
+    tiers: Iterable[Tier] = TIERS,
+    verbose: bool = False,
+) -> Reply:
+    """Try each tier in order; return the first that answers. Fail over on
+    ANY error (connection refused, timeout, auth, non-200, malformed body).
+
+    The whole point: a vendor going dark is an exception we CATCH, not a
+    crash. Tier 0 (local weights) is the floor that can't be revoked.
+    """
     trail: list[str] = []
     for tier in tiers:
         t0 = time.monotonic()
         try:
-            text = _DISPATCH[tier.protocol](tier, messages, tier.timeout_s)
+            caller = _DISPATCH[tier.protocol]
+            text = caller(tier, messages, tier.timeout_s)
             dt = time.monotonic() - t0
             trail.append(f"{tier.name}: OK ({dt:.1f}s)")
             if verbose:
@@ -91,13 +101,14 @@ def chat(messages: list[dict], tiers: Iterable[Tier] = TIERS,
         except (urllib.error.URLError, urllib.error.HTTPError, OSError,
                 KeyError, json.JSONDecodeError, TimeoutError) as e:
             dt = time.monotonic() - t0
-            trail.append(f"{tier.name}: FAIL [{type(e).__name__}] → failing over")
+            reason = type(e).__name__
+            trail.append(f"{tier.name}: FAIL [{reason}] ({dt:.1f}s) → failing over")
             if verbose:
-                print(f"[router] {tier.name} unavailable [{type(e).__name__}] → next tier")
+                print(f"[router] {tier.name} unavailable [{reason}] → next tier")
             continue
 
     raise AllTiersFailed(
-        "All tiers exhausted. Even local weights are unreachable — is Ollama running?\n"
+        "All tiers exhausted. Even local weights are unreachable — check Ollama.\n"
         + "\n".join(trail)
     )
 

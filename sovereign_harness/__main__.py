@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""CLI for the Sovereign Harness.
+"""CLI for the Sovereign Router.
 
   python3 -m sovereign_harness tiers              # show routing order
   python3 -m sovereign_harness ask "your prompt"  # route a prompt (verbose trail)
   python3 -m sovereign_harness failover-test      # prove Tier1→Tier0 failover
-  python3 -m sovereign_harness loop "<goal>"      # autonomous loop (plan-only)
-  python3 -m sovereign_harness loop "<goal>" --exec   # loop w/ allowlisted shell
 """
 import sys
 
 from .config import summary, TIERS, Tier
 from .router import ask, chat, AllTiersFailed
 from .loop import run_goal, PlanOnlyExecutor, AllowlistShellExecutor
+
+
+def _cmd_tiers():
+    print(summary())
 
 
 def _cmd_ask(prompt: str):
@@ -27,11 +29,12 @@ def _cmd_ask(prompt: str):
 
 
 def _cmd_failover_test():
-    """Simulate the cloud being yanked: point Tier 1 at a dead port, confirm the
-    router drops to Tier 0 (local weights) and still answers."""
-    dead = Tier(name="tier1-cloud(SIMULATED-DOWN)", protocol="openai",
-                base_url="http://127.0.0.1:9/v1", model="x", timeout_s=3)
-    tiers = [dead] + [t for t in TIERS if t.name == "tier0-local"]
+    """Simulate the cloud being yanked: point Tier 1 at a dead port, confirm
+    the router silently drops to Tier 0 (local weights) and still answers."""
+    dead_tier1 = Tier(name="tier1-cloud(SIMULATED-DOWN)", protocol="openai",
+                      base_url="http://127.0.0.1:9/v1", model="claude-opus",
+                      timeout_s=3)
+    tiers = [dead_tier1] + [t for t in TIERS if t.name == "tier0-local"]
     print("Simulating vendor suspension: Tier 1 pointed at a dead port.")
     print("Expectation: router fails over to Tier 0 (owned weights) and answers.\n")
     try:
@@ -43,6 +46,7 @@ def _cmd_failover_test():
     print("\n--- reply ---")
     print(r.text.strip())
     print(f"\n[PROOF] cloud was down, yet {r.tier} ({r.model}) served in {r.latency_s:.1f}s")
+    print("trail:", " | ".join(r.attempts))
 
 
 def main(argv: list[str]) -> None:
@@ -51,7 +55,7 @@ def main(argv: list[str]) -> None:
         return
     cmd, rest = argv[0], argv[1:]
     if cmd == "tiers":
-        print(summary())
+        _cmd_tiers()
     elif cmd == "ask":
         if not rest:
             print("usage: ask \"<prompt>\"", file=sys.stderr); sys.exit(2)
@@ -60,7 +64,8 @@ def main(argv: list[str]) -> None:
         _cmd_failover_test()
     elif cmd == "loop":
         if not rest:
-            print("usage: loop \"<goal>\" [--exec]", file=sys.stderr); sys.exit(2)
+            print("usage: loop \"<goal>\" [--exec]   (--exec = allowlisted shell, else plan-only)",
+                  file=sys.stderr); sys.exit(2)
         live = "--exec" in rest
         goal = " ".join(x for x in rest if x != "--exec")
         ex = AllowlistShellExecutor() if live else PlanOnlyExecutor()
