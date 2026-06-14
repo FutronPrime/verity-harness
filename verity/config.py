@@ -34,14 +34,25 @@ _T1_KEY = (os.environ.get("LLM_TIER1_API_KEY")
            or os.environ.get("OPENROUTER_API_KEY")
            or os.environ.get("OPENAI_API_KEY", ""))
 _T1_MODEL = os.environ.get("LLM_TIER1_MODEL", "openai/gpt-4o-mini")
+_T1_TIMEOUT = float(os.environ.get("LLM_TIER1_TIMEOUT", "90"))
 
-# ── Tier 0: SOVEREIGN floor — open weights on YOUR machine via Ollama ──
+# CAPABILITY-PRESERVING FAILOVER: a chain of PEER models so a frontier outage falls to ANOTHER
+# frontier, not a weak floor. Set LLM_TIER1_MODELS="claude-opus,gpt-5.5,gemini-3.1-pro" (all at the
+# same OpenAI-compatible URL — a shim, or OpenRouter which serves all of them on one key). The
+# router retries each model itself, THEN walks to the next peer, and only as a LAST resort drops to
+# the local sovereign floor. So: Opus 4.8 → (self-retry) → GPT-5.5 → Gemini 3.1 → local weights.
+_T1_MODELS = [m.strip() for m in os.environ.get("LLM_TIER1_MODELS", "").split(",") if m.strip()] \
+    or [_T1_MODEL]
+
+# ── Tier 0: SOVEREIGN floor — open weights on YOUR machine via Ollama (un-revocable last resort) ──
 _OLLAMA = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 _T0_MODEL = os.environ.get("LLM_TIER0_MODEL", "llama3.2")
 
 TIERS: list[Tier] = [
-    Tier(name="tier1-cloud", protocol="openai", base_url=_T1_URL, model=_T1_MODEL,
-         api_key=_T1_KEY, timeout_s=float(os.environ.get("LLM_TIER1_TIMEOUT", "90"))),
+    Tier(name=f"tier1-{i+1}-{m.split('/')[-1][:18]}", protocol="openai", base_url=_T1_URL,
+         model=m, api_key=_T1_KEY, timeout_s=_T1_TIMEOUT)
+    for i, m in enumerate(_T1_MODELS)
+] + [
     Tier(name="tier0-local", protocol="ollama", base_url=_OLLAMA, model=_T0_MODEL,
          timeout_s=float(os.environ.get("LLM_TIER0_TIMEOUT", "120"))),
 ]
