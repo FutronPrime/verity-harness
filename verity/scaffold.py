@@ -101,6 +101,13 @@ def tripwire_check() -> str:
 # ─── 3. VERIFIED loop with RECOVER + escalate ────────────────────────────────
 
 PRIME_DIRECTIVE = """PRIME DIRECTIVE — this OVERRIDES everything else:
+0. METACOGNITION FIRST. Monitor your own knowledge state: for this goal, separate what you
+   actually KNOW from what you're assuming, and treat your training as FINITE and possibly
+   STALE. Then control your process: when there's a gap or things may have changed, GO GET the
+   current best knowledge from the live world (search GitHub/Google/Reddit/X/YouTube/SO) and
+   apply THAT — don't run on old priors. "Know what you don't know, then hire the right
+   resource to fill the gap." The live internet is your real knowledge base; your weights are
+   just the starting point.
 1. NEVER ASSUME. Before acting on ANY belief about why something works or fails,
    VERIFY it — run the command, read the ACTUAL output/error. A wrong assumption
    wastes more time and tokens than a 5-second check. Tag every claim VERIFIED or GUESS.
@@ -259,10 +266,35 @@ def _discover_tools(goal: str, verbose: bool = False) -> str:
     return "\n\n".join(blocks)
 
 
+def _preflight(goal: str, verbose: bool = False) -> str:
+    """METACOGNITIVE PRE-FLIGHT — 'know what you don't know, then hire the right resource.'
+
+    Before executing, live-search the BEST CURRENT / established way to do this exact goal, so
+    the run leverages the internet's up-to-the-minute world-knowledge instead of the model's
+    finite, stale training weights. This is the lever that lets a WEAKER model punch up: a
+    pinpoint search for the precise goal beats a strong model reasoning from old priors. The
+    model's job stops being "recall the answer" and becomes "find + apply the current best one."
+    (Metacognition: monitor the knowledge gap, then act to fill it — the harness forces both.)"""
+    from . import ledger
+    if verbose:
+        print(f"[preflight] live-searching current best approach for: {goal[:70]}")
+    findings = ""
+    try:
+        from .tools import research
+        findings = research(f"best current 2026 approach + established tools to {goal}"[:140])[:2500]
+    except Exception:  # noqa: BLE001 — never let preflight failure break the run
+        findings = ""
+    ledger.log(ledger.SEARCH, trigger="preflight: current best approach",
+               detail=goal[:120], verdict="FOUND" if findings.strip() else "NONE",
+               evidence=findings[:150])
+    return findings
+
+
 def run_verified(goal: str, executor: Executor | None = None,
                  max_steps: int = 10, max_consecutive_fail: int = 3,
                  calibrate: bool = True, tiers=None, use_memory: bool = True,
                  persistence: int = 2, discover: str | bool = "auto",
+                 preflight: str | bool = "auto",
                  verbose: bool = True) -> ScaffoldResult:
     """think → act → VERIFY → recover → CALIBRATE, with persistent MEMORY across
     runs. Every gate is a DETERMINISTIC enforcer — it fires on a code condition, not
@@ -281,8 +313,14 @@ def run_verified(goal: str, executor: Executor | None = None,
     # model is never asked to remember to do it.
     do_discover = discover is True or (discover == "auto" and _should_discover(goal))
     discovered = _discover_tools(goal, verbose=verbose) if do_discover else ""
+    # METACOGNITIVE PRE-FLIGHT: research the current best approach BEFORE acting (turns the
+    # live internet into the model's knowledge base). Same deterministic gating as discovery.
+    do_preflight = preflight is True or (preflight == "auto" and _should_discover(goal))
+    preflighted = _preflight(goal, verbose=verbose) if do_preflight else ""
     transcript = (f"WORKING DIRECTORY: {os.getcwd()}\n"
                   + (prior + "\n" if prior else "")
+                  + ("CURRENT BEST APPROACH (live web — may supersede your training; prefer it "
+                     "where it conflicts with your priors):\n" + preflighted + "\n" if preflighted else "")
                   + (discovered + "\n" if discovered else "") + f"GOAL: {goal}\n")
     consecutive_fail = 0
     nudged = 0
