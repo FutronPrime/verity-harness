@@ -57,17 +57,25 @@ def wire_claude_code() -> str:
             data = json.loads(cfg.read_text())
         except ValueError:
             return f"[refused] {cfg} is not valid JSON — fix it first, then re-run."
-    cmd = f"bash {SCRIPT}"
     hooks = data.setdefault("hooks", {})
-    sessions = hooks.setdefault("SessionStart", [])
-    # idempotent: skip if our command is already wired anywhere in SessionStart
-    blob = json.dumps(sessions)
-    if str(SCRIPT) in blob:
-        return f"[already wired] Claude Code SessionStart → {SCRIPT}"
-    sessions.append({"hooks": [{"type": "command", "command": cmd}]})
+    changed = []
+    # SessionStart → sync + start the proxy floor (silent).
+    starts = hooks.setdefault("SessionStart", [])
+    if str(SCRIPT) not in json.dumps(starts):
+        starts.append({"hooks": [{"type": "command", "command": f"bash {SCRIPT}"}]})
+        changed.append("SessionStart→start")
+    # SessionEnd → STOP the proxy so it closes when you exit your agent (no lingering RAM).
+    stop_cmd = f"python3 -m verity stop"
+    ends = hooks.setdefault("SessionEnd", [])
+    if "verity stop" not in json.dumps(ends):
+        ends.append({"hooks": [{"type": "command", "command": f"cd {REPO} && {stop_cmd}"}]})
+        changed.append("SessionEnd→stop")
+    if not changed:
+        return "[already wired] Claude Code SessionStart→start + SessionEnd→stop."
     cfg.write_text(json.dumps(data, indent=2))
-    return (f"[wired] Claude Code SessionStart now runs {SCRIPT} on every session.\n"
-            "VERITY syncs + starts its proxy silently in the background from now on.")
+    return (f"[wired] Claude Code: {', '.join(changed)}.\nVERITY now starts silently on session "
+            "start and STOPS on session end — it closes when you do, no lingering process. "
+            "(Safety net: the proxy also self-shuts-down after idle.)")
 
 
 def wire_shell() -> str:

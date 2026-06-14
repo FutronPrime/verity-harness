@@ -94,6 +94,10 @@ def main(argv: list[str]) -> None:
         # Wire VERITY to silently start with your agent (sync + proxy floor), no UI.
         from .autostart import main as _auto
         _auto(rest[0] if rest else "--print")
+    elif cmd == "stop":
+        # Stop the background proxy (close-on-exit / manual). No lingering RAM.
+        from .server import stop
+        print(stop())
     elif cmd == "swarm":
         # Multi-agent swarm: planner → researchers → executors → critic → synthesizer (gated).
         if not rest:

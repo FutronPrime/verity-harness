@@ -19,12 +19,34 @@ from __future__ import annotations
 
 import json
 import os
+import pathlib
+import threading
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from .router import chat, AllTiersFailed
 from .guardrail import classify, CAPABILITY_DIRECTIVE, SAFETY_DIRECTIVE
 
 _MODE = os.environ.get("VERITY_GUARDRAIL_MODE", "off").lower()
+
+# LIFECYCLE: don't linger. Track last real use; a watchdog exits the process after this many idle
+# minutes so a stray proxy never eats RAM after your agent closes. 0 disables. Default 15 min.
+_IDLE_MIN = float(os.environ.get("VERITY_IDLE_SHUTDOWN_MIN", "15"))
+_LAST_USE = [time.time()]
+PIDFILE = pathlib.Path(os.path.expanduser("~/.verity-harness/proxy.pid"))
+
+
+def _idle_watchdog():
+    if _IDLE_MIN <= 0:
+        return
+    while True:
+        time.sleep(30)
+        if time.time() - _LAST_USE[0] > _IDLE_MIN * 60:
+            try:
+                PIDFILE.unlink(missing_ok=True)
+            except OSError:
+                pass
+            os._exit(0)   # hard-exit the whole process — clean, no lingering threads
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -50,6 +72,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path.rstrip("/") not in ("/v1/chat/completions", "/chat/completions"):
             self._send(404, {"error": "not found"})
             return
+        _LAST_USE[0] = time.time()   # real use — keep alive; health pings don't count
         try:
             n = int(self.headers.get("Content-Length", 0))
             req = json.loads(self.rfile.read(n) or b"{}")
@@ -92,10 +115,38 @@ def _as_openai(content: str, model: str, tier: str = "") -> dict:
 def serve(port: int | None = None):
     port = port or int(os.environ.get("PORT", "11500"))
     srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    PIDFILE.parent.mkdir(parents=True, exist_ok=True)
+    PIDFILE.write_text(str(os.getpid()))
+    threading.Thread(target=_idle_watchdog, daemon=True).start()
     print(f"verity-harness proxy on http://127.0.0.1:{port}/v1  "
-          f"(guardrail={_MODE})")
-    srv.serve_forever()
+          f"(guardrail={_MODE}, idle-shutdown={_IDLE_MIN}min)")
+    try:
+        srv.serve_forever()
+    finally:
+        PIDFILE.unlink(missing_ok=True)
+
+
+def stop() -> str:
+    """Stop a running proxy (read the pidfile, signal it). Used by `verity stop` + the
+    SessionEnd hook so the harness closes when your agent does — no lingering RAM."""
+    import signal
+    if not PIDFILE.exists():
+        return "[verity] no proxy pidfile — nothing running (or already stopped)."
+    try:
+        pid = int(PIDFILE.read_text().strip())
+        os.kill(pid, signal.SIGTERM)
+        PIDFILE.unlink(missing_ok=True)
+        return f"[verity] stopped proxy (pid {pid})."
+    except (ValueError, ProcessLookupError):
+        PIDFILE.unlink(missing_ok=True)
+        return "[verity] proxy already gone; cleared stale pidfile."
+    except OSError as e:
+        return f"[verity] could not stop proxy: {e}"
 
 
 if __name__ == "__main__":
-    serve()
+    import sys
+    if "--stop" in sys.argv:
+        print(stop())
+    else:
+        serve()
