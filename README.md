@@ -49,6 +49,13 @@ Optional cloud tier (frontier-class while available): `export LLM_TIER1_API_KEY=
 
 ## Architecture
 
+<p align="center">
+  <img src="assets/architecture.svg" alt="VERITY architecture & control flow" width="100%"/>
+</p>
+
+> 📐 **Full walkthrough:** [ARCHITECTURE.md](ARCHITECTURE.md) — stage-by-stage breakdown, an editable
+> Mermaid flow, how it lifts top-end enterprise LLMs (with measured numbers + honest limits), and bulletins.
+
 ```
 TIER 1   a CHAIN of peer frontier models      ← capability-preserving failover
    │     Opus 4.8 → GPT-5.5 → Gemini 3.1 …        (LLM_TIER1_MODELS, one key via
