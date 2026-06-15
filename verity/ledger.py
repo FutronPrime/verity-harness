@@ -90,6 +90,48 @@ def proof(days: int = 1) -> str:
     return "\n".join(lines)
 
 
+def playbook(days: int = 30) -> str:
+    """Distill an INJECTABLE behavioral playbook from this harness's own verified history — the
+    'make any model think like Fable' move (recreate-fable technique, 2026-06-15): mine what the
+    model got WRONG and how a gate FIXED it, plus what already EXISTED so it doesn't rebuild, and
+    feed those hard-won lessons back in at session start. Capability lives in the workflow + the
+    accumulated corrections, not just the weights. `verity playbook --inject` writes it to
+    ~/.verity-harness/playbook.md, which the autostart context-inject appends every session."""
+    ev = _read(days)
+    seen_c, corrections, seen_r, reuses = set(), [], set(), []
+    for e in ev:
+        v = (e.get("verdict") or "").upper()
+        trig = (e.get("trigger") or "").strip()
+        eviden = (e.get("evidence") or e.get("detail") or "").strip()
+        if not trig:
+            continue
+        if v in ("CORRECTED", "WRONG", "GUESS") and trig not in seen_c:
+            seen_c.add(trig); corrections.append((trig, eviden))
+        elif v in ("FOUND", "REUSED") and trig not in seen_r:
+            seen_r.add(trig); reuses.append((trig, eviden))
+    if not corrections and not reuses:
+        return ("[VERITY PLAYBOOK — empty so far. It fills as the gates catch + correct things across "
+                "your sessions. Run real work through `verity solve`, then `verity playbook --inject`.]")
+    out = ["[VERITY PLAYBOOK — lessons distilled from THIS system's own verified history.",
+           "Apply them proactively; do not relearn them the hard way.]"]
+    if corrections:
+        out.append("\n● Assumptions that were WRONG before (don't repeat — the truth is on the right):")
+        for t, e in corrections[-12:]:
+            out.append(f"   ✗ you thought: {t[:120]}" + (f"\n     ✓ actual: {e[:160]}" if e else ""))
+    if reuses:
+        out.append("\n● Things that ALREADY EXIST here (reuse, don't rebuild):")
+        for t, e in reuses[-10:]:
+            out.append(f"   ♻ {t[:90]}" + (f" → {e[:120]}" if e else ""))
+    return "\n".join(out)
+
+
+def write_playbook(days: int = 30) -> pathlib.Path:
+    p = pathlib.Path(os.path.expanduser("~/.verity-harness/playbook.md"))
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(playbook(days))
+    return p
+
+
 if __name__ == "__main__":
     import sys
     d = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else 1

@@ -94,6 +94,11 @@ agents talk direct to the API) — so apply these gates MANUALLY, every task. No
    outward-facing actions (deletes, money, publishing). Apply ALL gates above to EACH goal.
  • Multi-step / uncertain / stuck:  python3 -m verity solve "<goal>"  (fires the gates + logs the ledger).
 GATES
+# PLAYBOOK: inject the lessons distilled from THIS system's own verified history (assumptions it
+# already caught, tools it already found) — 'make any model think like Fable' applied to your own
+# corrections. Built by `verity playbook --inject`. Refresh it opportunistically so it stays current.
+[ -f "$HOME/.verity-harness/playbook.md" ] && {{ echo; cat "$HOME/.verity-harness/playbook.md"; }}
+( cd "{REPO}" && python3 -m verity playbook --inject >/dev/null 2>&1 & )   # refresh for next session
 curl -s -m 1 http://127.0.0.1:11500/health >/dev/null 2>&1 || ( cd "{REPO}" && nohup python3 -m verity.server >/dev/null 2>&1 & )
 exit 0
 """

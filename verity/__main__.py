@@ -112,6 +112,17 @@ def main(argv: list[str]) -> None:
     elif cmd == "capabilities":
         from .tools import capabilities_guide
         print(capabilities_guide())
+    elif cmd == "playbook":
+        # 'make any model think like Fable' — distill an injectable playbook from THIS harness's own
+        # verified history (the assumptions it caught + the tools it found). --inject writes the file
+        # the autostart context-inject appends every session.
+        from . import ledger
+        days = next((int(x) for x in rest if x.isdigit()), 30)
+        if "--inject" in rest:
+            p = ledger.write_playbook(days)
+            print(f"[playbook] wrote {p} ({len(p.read_text())} chars) — autostart injects it each session.")
+        else:
+            print(ledger.playbook(days))
     elif cmd == "doctor":
         from .doctor import run
         sys.exit(0 if run() == 3 else 1)

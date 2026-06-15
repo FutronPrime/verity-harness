@@ -52,6 +52,9 @@ python3 -m verity swarm "<goal>"         # MULTI-AGENT (Mythos/Fable shape): pla
                                          #   research+execute → critic → synthesize (gated)
 python3 -m verity x-read "<x.com url or tweet id>"   # read tweets AND long-form X Articles, no key
 python3 -m verity web-setup              # one-time: enable auth-walled X-article reading (Playwright)
+python3 -m verity playbook [--inject]    # 'make any model think like Fable': distill an injectable
+                                         #   playbook from THIS system's own caught-assumptions/found-tools
+                                         #   history; --inject + autostart feeds it back every session
 python3 -m verity proof                  # the receipt: which gates fired, what got corrected
 python3 -m verity eval                   # A/B naive-vs-harness lift on assumption traps
 python3 -m verity failover-test          # prove cloud-down → local floor answers
