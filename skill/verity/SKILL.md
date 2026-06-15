@@ -147,6 +147,14 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
   persistently with idle-shutdown OFF, so the discipline layer is **never down and never bypassed by
   being offline**; survives crashes (auto-restart) and boots multi-provider. The strongest form of "the
   gates fire on a code condition, not the model's goodwill" — they're always there.
+- **Works for ANY setup (1 model, 1 vendor, or many)** — the tiers adapt to what you configure, and
+  the discipline layer (gates, overconfidence guard, verify, calibrate) is model-agnostic, so it's
+  identical whether you run five tiers or one local 8B:
+    - *Local-only* (no cloud key): Tier1 is skipped entirely → straight to your Ollama floor. You still
+      get every gate + the overconfidence guard, just served by your own weights.
+    - *Single enterprise model* (e.g. only OpenAI or only Anthropic): set `LLM_TIER1_URL/MODEL/API_KEY`
+      to that one vendor → it + the local floor.
+    - *Multi-provider*: the full chain + independent 2nd provider + floor (above).
 - **Sovereign failover** — cloud → local open weights you own
 
 ## Prove it's actually being used (and that it helps)

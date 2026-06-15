@@ -58,10 +58,16 @@ _T2_MODEL = os.environ.get("LLM_TIER2_MODEL", "llama-3.3-70b-versatile")
 _OLLAMA = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 _T0_MODEL = os.environ.get("LLM_TIER0_MODEL", "llama3.2")
 
+# Works for ANY setup — the tiers present adapt to what YOU configured:
+#   • Multi-provider (default + keys): full chain → 2nd provider → local floor.
+#   • Single enterprise model only: set LLM_TIER1_URL/MODEL/API_KEY to that one vendor → it + local floor.
+#   • LOCAL-ONLY (no cloud key at all): Tier1 is SKIPPED entirely → straight to your Ollama floor, no
+#     doomed cloud calls. The discipline layer (gates, overconfidence guard, verify, calibrate) is
+#     model-agnostic, so it works identically whether you run 5 tiers or just a local 8B.
 TIERS: list[Tier] = (
-    [Tier(name=f"tier1-{i+1}-{m.split('/')[-1][:18]}", protocol="openai", base_url=_T1_URL,
-          model=m, api_key=_T1_KEY, timeout_s=_T1_TIMEOUT)
-     for i, m in enumerate(_T1_MODELS)]
+    ([Tier(name=f"tier1-{i+1}-{m.split('/')[-1][:18]}", protocol="openai", base_url=_T1_URL,
+           model=m, api_key=_T1_KEY, timeout_s=_T1_TIMEOUT)
+      for i, m in enumerate(_T1_MODELS)] if _T1_KEY else [])
     + ([Tier(name="tier1b-2nd-provider", protocol="openai", base_url=_T2_URL,
              model=_T2_MODEL, api_key=_T2_KEY, timeout_s=_T1_TIMEOUT)]
        if _T2_URL and _T2_KEY else [])
