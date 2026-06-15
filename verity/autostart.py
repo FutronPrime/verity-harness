@@ -42,6 +42,7 @@ import stat
 REPO = str(pathlib.Path(__file__).resolve().parent.parent)
 SCRIPT = pathlib.Path(os.path.expanduser("~/.verity-harness/autostart.sh"))
 INJECT = pathlib.Path(os.path.expanduser("~/.verity-harness/verity-context-inject.sh"))
+GUARD = pathlib.Path(os.path.expanduser("~/.verity-harness/stop_guard.py"))
 
 _SCRIPT_BODY = f"""#!/usr/bin/env bash
 # VERITY silent background harness — idempotent, fast, NON-BLOCKING (never delays your agent).
@@ -109,10 +110,23 @@ def write_inject_script() -> pathlib.Path:
     return INJECT
 
 
+def write_guard_script() -> pathlib.Path:
+    """Install the mechanical stop-guard (catches premature 'it's down/impossible' negatives and
+    'only you can' deferrals as the agent tries to stop). Copied from the repo to the stable
+    state dir so it survives the repo moving."""
+    GUARD.parent.mkdir(parents=True, exist_ok=True)
+    src = pathlib.Path(REPO) / "hooks" / "stop_guard.py"
+    if src.exists():
+        GUARD.write_text(src.read_text())
+        GUARD.chmod(GUARD.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP)
+    return GUARD
+
+
 def wire_claude_code() -> str:
     """Add a SessionStart hook to ~/.claude/settings.json (idempotent, preserves everything)."""
     write_script()
     write_inject_script()
+    write_guard_script()
     cfg = pathlib.Path(os.path.expanduser("~/.claude/settings.json"))
     data = {}
     if cfg.exists():
@@ -138,6 +152,15 @@ def wire_claude_code() -> str:
     if "verity stop" not in json.dumps(ends):
         ends.append({"hooks": [{"type": "command", "command": f"cd {REPO} && {stop_cmd}"}]})
         changed.append("SessionEnd→stop")
+    # Stop / SubagentStop → the MECHANICAL overconfidence guard: blocks ending a turn on an
+    # unverified "it's down/impossible" negative or a premature "only you can" deferral, with no
+    # opt-out (the gate text was advisory and got rationalized past; this fires on a code condition).
+    guard_cmd = f"python3 {GUARD}"
+    for ev in ("Stop", "SubagentStop"):
+        arr = hooks.setdefault(ev, [])
+        if "stop_guard.py" not in json.dumps(arr):
+            arr.append({"matcher": "", "hooks": [{"type": "command", "command": guard_cmd, "timeout": 10}]})
+            changed.append(f"{ev}→overconfidence-guard")
     if not changed:
         return "[already wired] Claude Code SessionStart→start + SessionEnd→stop."
     cfg.write_text(json.dumps(data, indent=2))

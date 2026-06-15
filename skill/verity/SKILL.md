@@ -121,6 +121,14 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
 - **QC self-heal** — `research()` drops garbage (CAPTCHA/empty/error) blocks instead of feeding
   the model noise, and `errorhandling.py` runs a 5-block root-cause protocol (What/Why/Impact/
   Fix/Prevention) + journals every failure, so the harness catches and corrects its own plumbing.
+- **🔒 Mechanical stop-guard (overconfidence killer)** — the gate text above is advisory; a model can
+  rationalize past it. This is the *enforced* version: a Claude Code `Stop`/`SubagentStop` hook
+  (`verity autostart --claude-code` installs it) that fires when the agent tries to END its turn. If
+  the conclusion contains an **unverified negative** ("it's down / broken / impossible / outage") with
+  no log-read/repair/search in the recent tool trail, OR a **premature deferral** ("only you can…")
+  with no automation attempt, it **blocks the stop and sends the agent back to investigate** — no
+  opt-out. Evidence-aware (an *earned* negative passes) and loop-safe (per-session cap). The VERITY
+  thesis applied to the model's own reasoning: fire on a code condition, not the model's goodwill.
 - **Sovereign failover** — cloud → local open weights you own
 
 ## Prove it's actually being used (and that it helps)
