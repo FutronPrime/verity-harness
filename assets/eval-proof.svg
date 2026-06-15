@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" font-family="'Arial Narrow','Helvetica Neue',Arial,sans-serif" role="img" aria-label="VERITY eval A/B result">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070a0d"/><stop offset="1" stop-color="#03060a"/></linearGradient>
+    <pattern id="scan" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="1" fill="#0c1a1d" opacity="0.5"/></pattern>
+    <style>.mono{font-family:'SF Mono','Menlo',monospace} .hv{font-family:'Arial Black',Arial,sans-serif;font-weight:900} .nar{font-family:'Arial Narrow',Arial,sans-serif}</style>
+  </defs>
+  <rect width="1200" height="720" fill="url(#bg)"/><rect width="1200" height="720" fill="url(#scan)"/>
+  <path d="M16,16 H1150 L1184,50 V704 H66 L16,654 Z" fill="none" stroke="#1f5c54" stroke-width="2"/>
+
+  <text x="40" y="56" class="mono" font-size="13" fill="#2dd4bf" text-anchor="start" letter-spacing="2">/// VERITY.EVAL // SAME MODEL · OPPOSITE RESULT · REPRODUCIBLE</text>
+  <text x="44" y="110" class="hv" font-size="42" fill="#eafffb" text-anchor="start">FORCE THE SEARCH,</text>
+  <text x="44" y="156" class="hv" font-size="42" fill="#2dd4bf" text-anchor="start">FLIP THE ANSWER.</text>
+  <rect x="46" y="170" width="300" height="3" fill="#d6299e"/>
+  <text x="44" y="200" class="nar" font-size="16" fill="#8fb8b1" text-anchor="start">A/B on assumption-trap questions (correct answer is post-training-cutoff → the model can't know it). Same model: gpt-4o-mini (OpenRouter). Bare prompt vs. the harness forcing a live search first.</text>
+  <text x="90" y="240" class="hv" font-size="18" fill="#eafffb" text-anchor="start">NAIVE — bare model (answers from stale training)</text>
+  <rect x="90" y="250" width="920" height="46" rx="3" fill="#0c1417" stroke="#1f3a3a"/>
+  <text x="1026" y="280" class="hv" font-size="22" fill="#3a5660" text-anchor="start">0/4  (0%)</text>
+  <text x="90" y="320" class="nar" font-size="13.5" fill="#5b8a84" text-anchor="start">what the model says with no discipline</text>
+  <text x="90" y="360" class="hv" font-size="18" fill="#eafffb" text-anchor="start">VERITY — search-before-concluding fires first</text>
+  <rect x="90" y="370" width="920" height="46" rx="3" fill="#0c1417" stroke="#1f3a3a"/>
+  <path d="M90,370 L996,370 L1010,384 L1010,416 L99,416 L90,407 Z" fill="#2dd4bf" opacity="0.92"/>
+  <text x="1026" y="400" class="hv" font-size="22" fill="#2dd4bf" text-anchor="start">4/4  (100%)</text>
+  <text x="90" y="440" class="nar" font-size="13.5" fill="#5b8a84" text-anchor="start">same model, after the harness forces the lookup</text>
+  <path d="M90,500 L536,500 L560,524 L560,596 L104,596 L90,582 Z" fill="#10090d" stroke="#d6299e" stroke-width="1.6"/>
+  <path d="M94,504 L535,504 L556,525 L556,592 L105,592 L94,581 Z" fill="none" stroke="#d6299e" stroke-width="0.7" opacity="0.38"/>
+  <text x="112" y="542" class="hv" font-size="56" fill="#d6299e" text-anchor="start">+4</text>
+  <text x="200" y="535" class="nar" font-size="17" fill="#eafffb" text-anchor="start">the LIFT — same model, same prompt,</text>
+  <text x="200" y="559" class="nar" font-size="17" fill="#8fb8b1" text-anchor="start">opposite result. The harness IS the difference.</text>
+  <text x="600" y="528" class="mono" font-size="13" fill="#2dd4bf" text-anchor="start" letter-spacing="1">>> PER-TRAP (✓ = landed the real, search-only answer)</text>
+  <text x="600" y="550" class="hv" font-size="15" fill="#5e6e78" text-anchor="start">✗</text>
+  <text x="630" y="550" class="hv" font-size="15" fill="#2dd4bf" text-anchor="start">✓</text>
+  <text x="660" y="550" class="nar" font-size="13" fill="#8fb8b1" text-anchor="start">Newest Kimi model id (mid-2026)</text>
+  <text x="600" y="576" class="hv" font-size="15" fill="#5e6e78" text-anchor="start">✗</text>
+  <text x="630" y="576" class="hv" font-size="15" fill="#2dd4bf" text-anchor="start">✓</text>
+  <text x="660" y="576" class="nar" font-size="13" fill="#8fb8b1" text-anchor="start">X/Twitter API pricing model, 2026</text>
+  <text x="600" y="602" class="hv" font-size="15" fill="#5e6e78" text-anchor="start">✗</text>
+  <text x="630" y="602" class="hv" font-size="15" fill="#2dd4bf" text-anchor="start">✓</text>
+  <text x="660" y="602" class="nar" font-size="13" fill="#8fb8b1" text-anchor="start">arXiv id for the iMAD paper</text>
+  <text x="600" y="628" class="hv" font-size="15" fill="#5e6e78" text-anchor="start">✗</text>
+  <text x="630" y="628" class="hv" font-size="15" fill="#2dd4bf" text-anchor="start">✓</text>
+  <text x="660" y="628" class="nar" font-size="13" fill="#8fb8b1" text-anchor="start">Newest Qwen family on OpenRouter</text>
+  <text x="600" y="660" class="mono" font-size="11" fill="#586872" text-anchor="start">naive ↑   harness ↑</text>
+  <text x="44" y="674" class="mono" font-size="14" fill="#8fc7bf" text-anchor="start">$ python3 -m verity eval    </text>
+  <text x="290" y="674" class="mono" font-size="13" fill="#586872" text-anchor="start"># reproducible · run it on your own model + suite · receipts in `verity proof`</text>
+  <rect x="16" y="700" width="1168" height="4" fill="#d6299e"/>
+</svg>

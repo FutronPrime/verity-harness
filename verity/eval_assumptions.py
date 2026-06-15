@@ -87,5 +87,30 @@ def run(tiers=None, verbose: bool = True) -> dict:
     return result
 
 
+def run_models(model_ids, verbose: bool = True) -> list[dict]:
+    """RIGOR: run the SAME A/B across several models → a per-model table proving the lift GENERALIZES,
+    not a one-model fluke. Each model gets its own single-model tier so the comparison is clean.
+    Usage: python3 -m verity eval --models "openai/gpt-4o-mini,google/gemini-2.0-flash-001,…"."""
+    from . import config
+    results = []
+    for m in model_ids:
+        if verbose:
+            print(f"\n=== {m} ===")
+        tier = config.Tier(name=f"eval-{m.split('/')[-1][:18]}", protocol="openai",
+                           base_url=config._T1_URL, model=m, api_key=config._T1_KEY,
+                           timeout_s=config._T1_TIMEOUT)
+        r = run(tiers=[tier], verbose=verbose)
+        r["model"] = m
+        results.append(r)
+    if verbose:
+        print("\n──────── MULTI-MODEL SUMMARY (the lift, across models) ────────")
+        for r in results:
+            print(f"  {r['model'][:34]:34}  naive {r['naive_correct']}/{r['traps']} "
+                  f"→ harness {r['harness_correct']}/{r['traps']}   (+{r['lift']})")
+        tot_l = sum(r["lift"] for r in results)
+        print(f"  {'TOTAL lift across all models':34}  +{tot_l}")
+    return results
+
+
 if __name__ == "__main__":
     run()

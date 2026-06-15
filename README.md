@@ -259,6 +259,10 @@ python3 -m verity doctor    # → READY / MARGINAL / BELOW THRESHOLD
 
 ## Honest status
 
+<p align="center"><img src="assets/eval-proof.svg" alt="verity eval — same model 0/4 → 4/4 on current-info traps" width="100%"/></p>
+
+<p align="center"><sub>Live run, gpt-4o-mini: <b>0/4 → 4/4</b> on current-info assumption traps — same model, same prompts, the only change is the harness forcing a search first. 4-trap sample, reproducible: <code>python3 -m verity eval</code>. Run it on your own model + suite.</sub></p>
+
 <p align="center"><img src="assets/benchmark.svg" alt="Benchmark — scaffold vs naive by model tier" width="100%"/></p>
 
 Full results + reproduction: **[BENCHMARK.md](BENCHMARK.md)**.

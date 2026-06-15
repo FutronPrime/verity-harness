@@ -133,8 +133,18 @@ def main(argv: list[str]) -> None:
         print(proof(days))
     elif cmd == "eval":
         # A/B: naive vs harness on assumption-trap questions. The delta = proof of difference.
-        from .eval_assumptions import run as _eval
-        _eval()
+        # --models "a,b,c" runs the A/B across SEVERAL models → proof the lift generalizes (rigor).
+        if "--models" in rest:
+            i = rest.index("--models")
+            models = [m.strip() for m in (rest[i + 1] if i + 1 < len(rest) else "").split(",") if m.strip()]
+            if not models:
+                print('usage: eval --models "openai/gpt-4o-mini,google/gemini-2.0-flash-001,…"',
+                      file=sys.stderr); sys.exit(2)
+            from .eval_assumptions import run_models
+            run_models(models)
+        else:
+            from .eval_assumptions import run as _eval
+            _eval()
     elif cmd == "tasks":
         # GAIA/Seal-0-shaped GOAL benchmark: multi-step goals via the full agentic harness.
         from .eval_tasks import run as _tasks
