@@ -9,6 +9,7 @@
 The failure these target: an LLM concluding "it's down / impossible / I can't / only you can" WITHOUT
 investigating — the single most expensive, most common LLM error. Caught on a code condition.
 """
+from __future__ import annotations  # keep `str | None` annotations safe on Python 3.7–3.9 too
 import re
 
 # A negative VERDICT about feasibility/infra ("it can't be done / it's broken / it's an outage").

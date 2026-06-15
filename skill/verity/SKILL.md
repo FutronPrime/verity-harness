@@ -137,11 +137,16 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
     - **Codex / Gemini:** the injected gate block carries the same rule as standing context; route
       them through `:11500` for the daemon-enforced version. (For Claude Code 100%-enforcement, point
       `ANTHROPIC_BASE_URL` at a VERITY Anthropic-format proxy — on the roadmap.)
-- **No single point of failure** — Tier 1 is a CHAIN of models (set `LLM_TIER1_MODELS=` to several),
-  each self-retrying, then it drops to the local floor. `autostart` sources an optional
-  `~/.verity-harness/proxy.env` so the proxy ALWAYS boots with keyed multi-model Tier1 + local Tier0 —
-  one expired token or down provider can never take the reasoning layer down (the failure mode that
-  motivated this: a single expired OAuth shim collapsed everything; now it's one tier among several).
+- **No single point of failure** — Tier 1 is a CHAIN of models, plus an INDEPENDENT 2nd provider, then
+  the local floor: e.g. `gpt-4o-mini → gemini-flash → llama-3.3-70b` (OpenRouter, `LLM_TIER1_MODELS=`)
+  `→ Groq` (`LLM_TIER2_URL/KEY` or auto from `GROQ_API_KEY`) `→ local Ollama`. No single model, token,
+  OR whole provider being down can take the reasoning layer down. `autostart` sources an optional
+  `~/.verity-harness/proxy.env` so the proxy ALWAYS boots redundant. (Motivating failure: one expired
+  OAuth shim collapsed everything; now it's one tier among five.)
+- **Always-on gate daemon** (`verity autostart --daemon`, macOS launchd KeepAlive) — runs the proxy
+  persistently with idle-shutdown OFF, so the discipline layer is **never down and never bypassed by
+  being offline**; survives crashes (auto-restart) and boots multi-provider. The strongest form of "the
+  gates fire on a code condition, not the model's goodwill" — they're always there.
 - **Sovereign failover** — cloud → local open weights you own
 
 ## Prove it's actually being used (and that it helps)

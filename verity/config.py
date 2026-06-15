@@ -45,17 +45,29 @@ _T1_MODELS = [m.strip() for m in os.environ.get("LLM_TIER1_MODELS", "").split(",
     or [_T1_MODEL]
 
 # ── Tier 0: SOVEREIGN floor — open weights on YOUR machine via Ollama (un-revocable last resort) ──
+# ── Tier 1b: an INDEPENDENT second provider (different company + endpoint + key) so a WHOLE-PROVIDER
+# outage (OpenRouter itself down, or one key revoked) still has a frontier-class fallback before the
+# local floor. No single provider/token is a point of failure. Set LLM_TIER2_URL/KEY/MODEL, or it
+# auto-enables from GROQ_API_KEY (Groq's OpenAI-compatible endpoint). ──
+_T2_URL = (os.environ.get("LLM_TIER2_URL")
+           or ("https://api.groq.com/openai/v1" if os.environ.get("GROQ_API_KEY") else ""))
+_T2_KEY = os.environ.get("LLM_TIER2_API_KEY") or os.environ.get("GROQ_API_KEY", "")
+_T2_MODEL = os.environ.get("LLM_TIER2_MODEL", "llama-3.3-70b-versatile")
+
+# ── Tier 0: SOVEREIGN floor — open weights on YOUR machine via Ollama (un-revocable last resort) ──
 _OLLAMA = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 _T0_MODEL = os.environ.get("LLM_TIER0_MODEL", "llama3.2")
 
-TIERS: list[Tier] = [
-    Tier(name=f"tier1-{i+1}-{m.split('/')[-1][:18]}", protocol="openai", base_url=_T1_URL,
-         model=m, api_key=_T1_KEY, timeout_s=_T1_TIMEOUT)
-    for i, m in enumerate(_T1_MODELS)
-] + [
-    Tier(name="tier0-local", protocol="ollama", base_url=_OLLAMA, model=_T0_MODEL,
-         timeout_s=float(os.environ.get("LLM_TIER0_TIMEOUT", "120"))),
-]
+TIERS: list[Tier] = (
+    [Tier(name=f"tier1-{i+1}-{m.split('/')[-1][:18]}", protocol="openai", base_url=_T1_URL,
+          model=m, api_key=_T1_KEY, timeout_s=_T1_TIMEOUT)
+     for i, m in enumerate(_T1_MODELS)]
+    + ([Tier(name="tier1b-2nd-provider", protocol="openai", base_url=_T2_URL,
+             model=_T2_MODEL, api_key=_T2_KEY, timeout_s=_T1_TIMEOUT)]
+       if _T2_URL and _T2_KEY else [])
+    + [Tier(name="tier0-local", protocol="ollama", base_url=_OLLAMA, model=_T0_MODEL,
+            timeout_s=float(os.environ.get("LLM_TIER0_TIMEOUT", "120")))]
+)
 
 # Token efficiency: verification is discrimination, not generation — route it to a
 # cheap model. Defaults to the same tiers (safe everywhere); set LLM_VERIFIER_MODEL

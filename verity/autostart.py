@@ -233,8 +233,51 @@ def wire_gemini() -> str:
     return "Gemini: " + _ensure_md_block(pathlib.Path(os.path.expanduser("~/.gemini/GEMINI.md")))
 
 
+def wire_daemon() -> str:
+    """Install an ALWAYS-ON proxy daemon (macOS launchd KeepAlive) so the gate layer is never down —
+    it can't be bypassed by being offline, survives crashes, and boots with the multi-provider chain
+    (sources ~/.verity-harness/proxy.env). idle-shutdown OFF. macOS only; on Linux, run the printed
+    systemd/`nohup` line instead."""
+    import sys
+    if sys.platform != "darwin":
+        return ("[daemon] non-macOS: run the proxy under your init system, e.g.:\n"
+                f"  (set -a; . ~/.verity-harness/proxy.env 2>/dev/null; set +a; "
+                f"VERITY_IDLE_SHUTDOWN_MIN=0 nohup python3 -m verity.server &)   # add to systemd/supervisor")
+    wrapper = pathlib.Path(os.path.expanduser("~/.verity-harness/proxy-daemon.sh"))
+    pys = "/opt/homebrew/bin/python3 /usr/local/bin/python3 python3"
+    wrapper.write_text(
+        "#!/usr/bin/env bash\nset -euo pipefail\n"
+        '[ -f "$HOME/.verity-harness/proxy.env" ] && set -a && . "$HOME/.verity-harness/proxy.env" && set +a\n'
+        "export VERITY_IDLE_SHUTDOWN_MIN=0 VERITY_OVERCONFIDENCE_GUARD=on\n"
+        f'cd "{REPO}"\n'
+        f'for PY in {pys}; do command -v "$PY" >/dev/null 2>&1 && exec "$PY" -m verity.server; done\n'
+        "exec python3 -m verity.server\n")
+    wrapper.chmod(wrapper.stat().st_mode | stat.S_IEXEC)
+    label = "io.verity.proxy"
+    plist = pathlib.Path(os.path.expanduser(f"~/Library/LaunchAgents/{label}.plist"))
+    plist.write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" '
+        '"http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0"><dict>\n'
+        f'  <key>Label</key><string>{label}</string>\n'
+        f'  <key>ProgramArguments</key><array><string>/bin/bash</string><string>{wrapper}</string></array>\n'
+        '  <key>RunAtLoad</key><true/>\n  <key>KeepAlive</key><true/>\n  <key>ThrottleInterval</key><integer>10</integer>\n'
+        f'  <key>StandardOutPath</key><string>{os.path.expanduser("~/.verity-harness/proxy-daemon.log")}</string>\n'
+        f'  <key>StandardErrorPath</key><string>{os.path.expanduser("~/.verity-harness/proxy-daemon.log")}</string>\n'
+        '</dict></plist>\n')
+    import subprocess
+    uid = os.getuid()
+    subprocess.run(["launchctl", "bootout", f"gui/{uid}/{label}"], capture_output=True)
+    r = subprocess.run(["launchctl", "bootstrap", f"gui/{uid}", str(plist)], capture_output=True, text=True)
+    if r.returncode != 0:
+        subprocess.run(["launchctl", "load", "-w", str(plist)], capture_output=True)
+    return (f"[daemon] installed always-on proxy: {label} (KeepAlive). The gate layer is now persistent "
+            f"+ multi-provider (sources proxy.env) + idle-shutdown off — never down, never bypassed.")
+
+
 def main(target: str) -> None:
-    if target == "--claude-code":
+    if target == "--daemon":
+        print(wire_daemon())
+    elif target == "--claude-code":
         print(wire_claude_code())
     elif target == "--codex":
         print(wire_codex())
@@ -256,6 +299,7 @@ def main(target: str) -> None:
         print("  • Gemini:       python3 -m verity autostart --gemini         (~/.gemini/GEMINI.md)")
         print("  • Everything:   python3 -m verity autostart --all")
         print("  • Any shell:    python3 -m verity autostart --shell")
+        print("  • Always-on daemon (proxy never down, never bypassed): python3 -m verity autostart --daemon")
         print("\nLocal / OSS / OpenAI-API agents ALSO inherit the gates by routing through the proxy:")
         print("  export OPENAI_BASE_URL=http://127.0.0.1:11500/v1")
 
