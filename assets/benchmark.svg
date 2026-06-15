@@ -13,7 +13,7 @@
 
   <text x="40" y="58" class="mono" font-size="14" letter-spacing="3" fill="#2dd4bf">/// VERITY.BENCHMARK // SMALL-SAMPLE · DIRECTIONAL · REPRODUCIBLE</text>
   <text x="44" y="104" class="hv" font-size="42" fill="#eafffb">VERITY BEATS A NAIVE LOOP</text>
-  <text x="44" y="148" class="hv" font-size="42" fill="#2dd4bf">— IN THE WINDOW IT CAN.</text>
+  <text x="44" y="148" class="hv" font-size="42" fill="#2dd4bf">— WHERE THE MODEL NEEDS IT.</text>
   <text x="44" y="180" class="nar" font-size="18" fill="#8fb8b1">Adversarial tasks: the obvious answer is wrong. Naive ships the bug; the gates catch it. Mechanically scored on the edge cases.</text>
 
   <text x="44" y="206" class="mono" font-size="14" letter-spacing="2" fill="#5eead4">&gt;&gt; SCAFFOLD vs NAIVE // BY MODEL TIER</text>

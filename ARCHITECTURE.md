@@ -26,6 +26,16 @@ instead of assume, persist instead of quit, reuse instead of reinvent, and prove
 
 ---
 
+## Guided walkthrough
+
+<p align="center">
+  <img src="assets/architecture-walkthrough.gif" alt="Animated walkthrough — a spotlight sweeps each VERITY stage: input, router, discipline layer, output, distribution" width="82%"/>
+</p>
+
+<p align="center"><sub>A spotlight sweeps each stage: goal → sovereign router → discipline layer → verified result → universal distribution.</sub></p>
+
+---
+
 ## The pipeline, stage by stage
 
 ### ① Sovereign Router — *capability-preserving failover*
