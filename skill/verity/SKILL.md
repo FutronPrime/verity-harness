@@ -87,7 +87,11 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
   so constraints don't drift (the "turn-47" problem).
 - **Evidence** — no "done" on a fact-question without verified evidence
 - **Calibration** — challenges every confident conclusion; tags VERIFIED vs GUESS
-- **Persistence** — refuses to quit; on stuck, **auto-researches the error** (GitHub/Reddit/HN/SO) and forces a different approach
+- **Persistence + root-cause** — refuses to quit; a "broken / down / can't-fix / environmental-outage"
+  verdict is a forbidden premature negative until you've, IN ORDER: (1) READ the component's logs,
+  (2) ATTEMPTED its repair/restart/refresh, (3) SEARCHED the exact error where fixes live
+  (GitHub/Reddit/X/YouTube/Google/SO). "Errored/empty/timed-out" is a symptom, not a diagnosis. On
+  stuck, the harness **auto-researches the error** and forces a different approach.
 - **Reuse-first** — checks your own tools, then existing open-source, before building from scratch.
   Includes **web access**: `system_web_tools()` surfaces installed scrape/search/browse CLIs
   (futron-scrape, crawl4ai, browser-use, scrapy, **agent-reach**…) so the LLM uses a battle-tested

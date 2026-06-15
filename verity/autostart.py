@@ -72,8 +72,15 @@ agents talk direct to the API) — so apply these gates MANUALLY, every task. No
  • RULE 0 — PRE-FLIGHT: before executing a goal, search the CURRENT best approach (may supersede
    training). FIND the answer, don't RECALL it.
  • RULE 6 — SEARCH-BEFORE-CONCLUDING (BLOCKER): never assert a NEGATIVE ("there's no X", "not
-   possible", "doesn't exist", "unsolvable", "only way is Y") until you've SEARCHED where solutions
-   live (the platform's own API, GitHub, Reddit, X, YouTube, StackOverflow). Someone likely solved it.
+   possible", "doesn't exist", "unsolvable", "only way is Y", "it's down / broken / can't be fixed /
+   it's a global/environmental outage") until you've actually INVESTIGATED. For a broken tool/service
+   that means, IN THIS ORDER: (1) READ its logs, (2) ATTEMPT its documented repair/restart/refresh,
+   (3) SEARCH the exact error where fixes live (the platform's own API, GitHub, Reddit, X, YouTube,
+   Google, StackOverflow). "It errored / returned empty / timed out" is a SYMPTOM, not a diagnosis —
+   find the ROOT CAUSE before concluding. Someone (or a log line) almost always has the real answer.
+   (Real lapse 2026-06-15: called a QA backend a "global model outage" from empty responses + 4 port
+   probes; the shim log showed ONE expired OAuth token, fixable with one command. The assumption cost
+   the real answer and produced a weak "can't fix it" result. Don't repeat it.)
  • VERIFY (Borg): adversarially confirm each action actually worked; >=2 backends; no "done" on a vibe.
  • REUSE-FIRST: check installed tools + existing OSS BEFORE building.
  • CALIBRATE: label conclusions VERIFIED vs GUESS.
@@ -160,8 +167,12 @@ _GATES_MD = """<!-- VERITY-GATES:start (managed by `verity autostart` — re-run
 - **Rule 0 — Pre-flight:** before executing a goal, search the CURRENT best approach (may supersede
   training). FIND the answer, don't RECALL it.
 - **Rule 6 — Search-before-concluding (BLOCKER):** never assert a NEGATIVE ("there's no X", "not
-  possible", "doesn't exist", "unsolvable", "only way is Y") until you've SEARCHED where solutions
-  live (the platform's own API, GitHub, Reddit, X, YouTube, StackOverflow). Someone likely solved it.
+  possible", "doesn't exist", "unsolvable", "only way is Y", "it's down / broken / can't be fixed /
+  environmental outage") until you've INVESTIGATED. For a broken tool/service, IN ORDER: (1) READ its
+  logs, (2) ATTEMPT its documented repair/restart/refresh, (3) SEARCH the exact error where fixes live
+  (platform API, GitHub, Reddit, X, YouTube, Google, StackOverflow). "Errored / empty / timed out" is a
+  SYMPTOM, not a diagnosis — find the ROOT CAUSE first. (Real lapse: a QA backend was called a "global
+  outage" from empty responses; the log showed one expired OAuth token, fixable in one command.)
 - **Verify (Borg):** adversarially confirm each action actually worked; >=2 backends; no "done" on a vibe.
 - **Reuse-first:** check installed tools + existing OSS BEFORE building.
 - **Calibrate:** label conclusions VERIFIED vs GUESS.
