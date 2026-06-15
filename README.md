@@ -112,6 +112,15 @@ r = run_verified("find and fix the off-by-one bug in utils.py",
   consecutively and autonomously to completion; don't stop to re-ask for confirmation (it wastes
   the user's time). Pause only for genuinely destructive, ambiguous, or outward-facing actions.
   (Injected as standing context for Anthropic-format agents that can't route through the proxy.)
+- **Objective completion gate** *(opt-in: `solve --gate "<cmd>"`)* — when you supply a real
+  test/build/lint command, **`done` is rejected until that command exits 0**. The maker doesn't get
+  to declare victory — an exit code does. This is the *loop-engineering* lesson in code: a stop
+  condition that's an LLM opinion is "a second optimist"; a passing test is a gate. Defeats the
+  **Ralph-Wiggum loop** (agent emits the completion token on a half-done job).
+- **Hard-stop gate** *(`solve --deadline <seconds>`, plus the always-on `max_steps` iteration cap)* —
+  a loop with no kill-switch "runs until someone notices the bill." Wall-clock + iteration give two
+  of the three classic kill-switches (the third, token budget, is the tier layer's job). Long runs
+  also get a periodic **goal reanchor** so constraints don't drift away over many steps.
 
 ## Reading the walled web (X posts & Articles, no API key)
 

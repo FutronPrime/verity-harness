@@ -46,6 +46,8 @@ VERITY adds reliability to a *capable* model; it can't make a weak one capable. 
 python3 -m verity ask "..."              # one prompt, with tier failover
 python3 -m verity solve "<goal>"         # full discipline scaffold (real shell):
                                          #   think → act → VERIFY → recover → CALIBRATE
+   #   [--gate "<test/build/lint cmd>"]  objective completion gate: 'done' rejected until it exits 0
+   #   [--deadline <seconds>]            wall-clock hard stop (no kill-switch → runs until $$ spent)
 python3 -m verity swarm "<goal>"         # MULTI-AGENT (Mythos/Fable shape): plan → parallel
                                          #   research+execute → critic → synthesize (gated)
 python3 -m verity x-read "<x.com url or tweet id>"   # read tweets AND long-form X Articles, no key
@@ -76,6 +78,13 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
   **before** any such claim stands. Someone has almost certainly open-sourced or documented it.
   *Don't assume scarcity — go look.* (This is what turns "no free X API" into "twikit posts free".)
 - **Verify** every action (adversarial: did it REALLY work?)
+- **Objective completion gate** (opt-in `solve --gate "<cmd>"`) — `done` is REJECTED until your real
+  test/build/lint command exits 0. The maker doesn't declare victory; an exit code does. The
+  loop-engineering lesson in code — a stop condition that's an LLM opinion is "a second optimist";
+  a passing test is a gate. Kills the **Ralph-Wiggum loop** (completion token on a half-done job).
+- **Hard stop** (`solve --deadline <s>` + always-on `max_steps`) — a loop with no kill-switch "runs
+  until someone notices the bill." Wall-clock + iteration cap; long runs get a periodic goal reanchor
+  so constraints don't drift (the "turn-47" problem).
 - **Evidence** — no "done" on a fact-question without verified evidence
 - **Calibration** — challenges every confident conclusion; tags VERIFIED vs GUESS
 - **Persistence** — refuses to quit; on stuck, **auto-researches the error** (GitHub/Reddit/HN/SO) and forces a different approach

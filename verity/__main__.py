@@ -143,12 +143,34 @@ def main(argv: list[str]) -> None:
         print("\n=== FINAL (swarm) ===\n" + r.final)
     elif cmd == "solve":
         if not rest:
-            print("usage: solve \"<goal>\" [--discover]   (--discover = find existing tools first)",
-                  file=sys.stderr); sys.exit(2)
+            print("usage: solve \"<goal>\" [--discover] [--gate \"<test/build/lint cmd>\"] "
+                  "[--deadline <seconds>]\n"
+                  "  --gate     objective completion gate: 'done' is rejected until this exits 0\n"
+                  "             (a passing test, not the model's opinion — defeats Ralph-Wiggum loops)\n"
+                  "  --deadline wall-clock hard stop in seconds (a loop with no kill-switch runs "
+                  "until it burns the budget)", file=sys.stderr); sys.exit(2)
         disc = "--discover" in rest
-        goal = " ".join(x for x in rest if x != "--discover")
+        gate_cmd = None
+        deadline = None
+        toks = list(rest)
+        for flag, setter in (("--gate", "gate"), ("--deadline", "deadline")):
+            if flag in toks:
+                i = toks.index(flag)
+                val = toks[i + 1] if i + 1 < len(toks) else None
+                if val is None:
+                    print(f"{flag} needs a value", file=sys.stderr); sys.exit(2)
+                if setter == "gate":
+                    gate_cmd = val
+                else:
+                    try:
+                        deadline = float(val)
+                    except ValueError:
+                        print("--deadline must be a number (seconds)", file=sys.stderr); sys.exit(2)
+                del toks[i:i + 2]
+        goal = " ".join(x for x in toks if x != "--discover")
         from .scaffold import run_verified
-        r = run_verified(goal, executor=ShellExecutor(), discover=disc, verbose=True)
+        r = run_verified(goal, executor=ShellExecutor(), discover=disc,
+                         gate_cmd=gate_cmd, deadline_s=deadline, verbose=True)
         print(f"\n=== result ===\ndone={r.done} verified={r.verified_steps} "
               f"failed={r.failed_steps}\n{r.summary}")
     elif cmd == "loop":

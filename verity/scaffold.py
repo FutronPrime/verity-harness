@@ -304,15 +304,27 @@ def run_verified(goal: str, executor: Executor | None = None,
                  max_steps: int = 10, max_consecutive_fail: int = 3,
                  calibrate: bool = True, tiers=None, use_memory: bool = True,
                  persistence: int = 2, discover: str | bool = "auto",
-                 preflight: str | bool = "auto",
+                 preflight: str | bool = "auto", gate_cmd: str | None = None,
+                 deadline_s: float | None = None,
                  verbose: bool = True) -> ScaffoldResult:
     """think → act → VERIFY → recover → CALIBRATE, with persistent MEMORY across
     runs. Every gate is a DETERMINISTIC enforcer — it fires on a code condition, not
     the model's choice (you can't trust a probabilistic model to opt into discipline).
-    discover: "auto" (a classifier decides — default), True (always), False (never)."""
+    discover: "auto" (a classifier decides — default), True (always), False (never).
+
+    Loop-engineering hard stops (from the 'prompter → loop designer' roadmap — a loop with
+    no hard stop "runs until someone notices the bill", and a stop condition that's an LLM
+    opinion is "a second optimist", not a gate):
+      • gate_cmd  — an OBJECTIVE completion gate: a shell command (test/build/lint) that must
+        exit 0 before any 'done' is accepted. Defeats the 'Ralph-Wiggum' loop (agent emits the
+        completion token on a half-done job). A passing test beats a verifier with an opinion.
+      • deadline_s — a wall-clock hard stop (seconds). With max_steps (iteration cap) this gives
+        two of the article's three kill-switches; the third (token budget) is the tier layer's job."""
     import os
+    import time
     ex = executor if executor is not None else PlanOnlyExecutor()
     res = ScaffoldResult(goal=goal, done=False, summary="")
+    _start = time.monotonic()
     prior = ""
     if use_memory:
         from .memory import recall
@@ -339,6 +351,17 @@ def run_verified(goal: str, executor: Executor | None = None,
     _kw = {"tiers": tiers} if tiers else {}
 
     for n in range(1, max_steps + 1):
+        # HARD STOP (wall-clock) — a loop without a kill-switch runs until it burns the budget.
+        if deadline_s is not None and (time.monotonic() - _start) > deadline_s:
+            res.summary = (f"(hard stop: {deadline_s:.0f}s wall-clock deadline hit after "
+                           f"{n - 1} steps, {res.verified_steps} verified)")
+            if verbose:
+                print(f"[hard-stop] {deadline_s:.0f}s deadline exceeded → stopping")
+            break
+        # GOAL REANCHOR — re-state the goal every few steps so long runs don't drift off it
+        # (the 'turn-47' failure: summarization is lossy, "don't do X" constraints evaporate).
+        if n > 1 and n % 4 == 0:
+            transcript += f"\n[REANCHOR] Stay on the original GOAL: {goal}\n"
         reply = ask(transcript, system=_STEP_SYS, **_kw)
         step = parse_step_json(reply.text)  # robust: survives weak-model malformed JSON
         action = str(step.get("action", "")).strip()
@@ -377,6 +400,29 @@ def run_verified(goal: str, executor: Executor | None = None,
                     if verbose:
                         print(f"[calibration] conclusion challenged → forcing re-examination")
                     continue
+            # OBJECTIVE COMPLETION GATE — a real test/build/lint, not a verifier's opinion. The
+            # maker doesn't get to declare victory; an exit code does. Defeats the Ralph-Wiggum
+            # loop (completion token emitted on a half-done job). Only blocks 'done', never quits.
+            if gate_cmd:
+                import subprocess
+                try:
+                    g = subprocess.run(gate_cmd, shell=True, capture_output=True,
+                                       text=True, timeout=300)
+                    gate_ok = g.returncode == 0
+                except Exception as e:  # noqa: BLE001
+                    gate_ok, g = False, None
+                if not gate_ok:
+                    tail = ((g.stdout or "") + (g.stderr or ""))[-400:] if g else "gate command errored"
+                    transcript += (
+                        f"\n[GATE FAILED] The objective completion gate `{gate_cmd}` did NOT pass "
+                        f"(exit {g.returncode if g else 'ERR'}). 'done' is REJECTED until it does. "
+                        f"Last gate output:\n{tail}\nReturn done=false and a command that makes the "
+                        f"gate pass. A passing test — not your judgment — is what 'done' means.\n")
+                    if verbose:
+                        print(f"[objective-gate] `{gate_cmd}` failed → 'done' rejected, forcing more work")
+                    continue
+                if verbose:
+                    print(f"[objective-gate] `{gate_cmd}` passed ✓ → 'done' allowed")
             res.done = True
             res.summary = str(step.get("summary", step.get("thought", "")))
             if res.verified_steps == 0:
