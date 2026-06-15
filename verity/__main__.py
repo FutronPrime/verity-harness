@@ -133,6 +133,13 @@ def main(argv: list[str]) -> None:
         print(f"[loop] executor={'allowlist-shell' if live else 'PLAN-ONLY (safe)'}\n")
         r = run_goal(goal, executor=ex, verbose=True)
         print(f"\n=== result ===\ndone={r.done}  steps={len(r.steps)}\n{r.summary}")
+    elif cmd in ("x-read", "read-x", "tweet"):
+        if not rest:
+            print("usage: x-read <x.com URL or tweet id>   (reads tweets AND long-form Articles, "
+                  "no API key; bare /i/article/<id> needs a one-time cookie — it tells you how)",
+                  file=sys.stderr); sys.exit(2)
+        from .tools import fetch_tweet
+        print(fetch_tweet(rest[0]))
     else:
         print(f"unknown command: {cmd}", file=sys.stderr); sys.exit(2)
 

@@ -203,36 +203,124 @@ def search_stackoverflow(query: str, n: int = 5) -> str:
         for i, x in enumerate(d.get("items", [])[:n])) or "[so: no results]"
 
 
-def fetch_tweet(url: str) -> str:
-    """Read an X/Twitter post WITHOUT an API key — incl. long-form ARTICLES. Tries the free
-    FxTwitter/FixTweet JSON mirror first (handles articles, where the tweet `text` is EMPTY and
-    the body lives in article.content.blocks), then falls back to the public oembed endpoint.
-
-    Lesson baked in (2026-06-15, after a real Rule-6 lapse): concluding "X is unreadable /
-    auth-walled" after only one method is the premature negative Rule 6 forbids — these free,
-    no-auth paths read public tweets AND articles. Accepts a URL or a bare tweet id."""
+def _x_article_from_status(user: str, tid: str) -> str | None:
+    """Full no-auth read of a tweet OR long-form X Article via the FxTwitter/FixTweet mirror
+    (the ONLY no-auth backend that returns the FULL article body — verified 2026-06-15;
+    syndication CDN + guest-token GraphQL return only the article's title/preview). For an
+    Article the tweet `text` is EMPTY; the body lives in article.content.blocks. Returns None
+    if every mirror failed (so the caller can fall through to oembed / honest message)."""
     import json as _j
-    import re as _re
-    m = _re.search(r"(?:x|twitter)\.com/([^/]+)/status/(\d+)", url)
-    user, tid = (m.group(1), m.group(2)) if m else ("i", url if url.isdigit() else "")
-    if tid:
-        for host in ("api.fxtwitter.com", "api.vxtwitter.com"):
+    for host in ("api.fxtwitter.com", "api.vxtwitter.com"):
+        try:
+            req = urllib.request.Request(f"https://{host}/{user}/status/{tid}",
+                                         headers={"User-Agent": _UA})
+            d = _j.loads(urllib.request.urlopen(req, timeout=15).read())
+            t = d.get("tweet") or d  # vxtwitter is flatter
+            txt = (t.get("text") or "").strip()
+            art = t.get("article")
+            if isinstance(art, dict):
+                blocks = (art.get("content") or {}).get("blocks", [])
+                body = "\n".join(b.get("text", "").strip() for b in blocks if b.get("text"))
+                if body:
+                    return f"[X ARTICLE] {art.get('title', '').strip()}\n\n{body}".strip()
+            if txt:
+                return txt
+        except Exception:  # noqa: BLE001
+            continue
+    return None
+
+
+def _x_cookies() -> tuple[str, str] | None:
+    """Find an X auth cookie (auth_token + ct0) for reading auth-walled content (the bare
+    /i/article/<id> permalink). Order: env (TWITTER_AUTH_TOKEN/X_AUTH_TOKEN + TWITTER_CT0/X_CT0)
+    → agent-reach config (~/.agent-reach/config.json) → a logged-in browser via rookiepy if
+    present. Returns None if no logged-in session is reachable (an honest, common outcome)."""
+    import os
+    at = os.environ.get("TWITTER_AUTH_TOKEN") or os.environ.get("X_AUTH_TOKEN")
+    ct0 = os.environ.get("TWITTER_CT0") or os.environ.get("X_CT0")
+    if at and ct0:
+        return at, ct0
+    try:
+        import json as _j
+        cfg = _j.load(open(os.path.expanduser("~/.agent-reach/config.json")))
+        tw = (cfg.get("twitter") or cfg.get("twitter_cookies") or {})
+        at, ct0 = tw.get("auth_token"), tw.get("ct0")
+        if at and ct0:
+            return at, ct0
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        import rookiepy  # type: ignore
+        for attr in ("chrome", "brave", "arc", "edge", "firefox", "chromium"):
+            fn = getattr(rookiepy, attr, None)
+            if not fn:
+                continue
             try:
-                req = urllib.request.Request(f"https://{host}/{user}/status/{tid}",
-                                             headers={"User-Agent": _UA})
-                d = _j.loads(urllib.request.urlopen(req, timeout=15).read())
-                t = d.get("tweet") or d  # vxtwitter is flatter
-                txt = (t.get("text") or "").strip()
-                art = t.get("article")
-                if (not txt) and isinstance(art, dict):
-                    blocks = (art.get("content") or {}).get("blocks", [])
-                    body = "\n".join(b.get("text", "").strip() for b in blocks if b.get("text"))
-                    if body:
-                        return f"[X ARTICLE] {art.get('title', '').strip()}\n\n{body}".strip()
-                if txt:
-                    return txt
+                jar = {c["name"]: c["value"] for c in fn([".x.com", "x.com", ".twitter.com"])}
+                if jar.get("auth_token") and jar.get("ct0"):
+                    return jar["auth_token"], jar["ct0"]
             except Exception:  # noqa: BLE001
                 continue
+    except Exception:  # noqa: BLE001
+        pass
+    return None
+
+
+def fetch_tweet(url: str) -> str:
+    """Read an X/Twitter post — incl. long-form ARTICLES — WITHOUT an API key wherever possible.
+    Handles every URL form: x.com/<user>/status/<id>, /i/status/<id>, /i/web/status/<id>, a bare
+    tweet id, AND the article permalink x.com/i/article/<id>.
+
+    • status / bare-id  → FxTwitter (full article body) → vxtwitter → oembed. Fully autonomous.
+    • /i/article/<id>   → the article id is NOT a tweet id and has NO no-auth resolver (verified
+      across 7 backends 2026-06-15: fxtwitter/vxtwitter 404, syndication/guest-GraphQL body-gated,
+      oembed/redirect refused). Needs a one-time X cookie → uses twitter-cli/cookie if available,
+      else returns an HONEST, actionable next step — NOT 'unreadable' (the premature negative Rule 6
+      forbids). The autonomous workaround is almost always available: the SAME article opens at its
+      status URL (x.com/<author>/status/<id>), which reads with zero auth."""
+    import re as _re
+    # ---- bare article permalink: x.com/i/article/<id> ----
+    am = _re.search(r"(?:x|twitter)\.com/i/article/(\d+)", url)
+    if am:
+        aid = am.group(1)
+        ck = _x_cookies()
+        if ck:
+            # cookie present → drive the installed twitter-cli (reuse-first) if it can read articles
+            import shutil
+            import subprocess
+            if shutil.which("twitter"):
+                import os
+                env = {**os.environ, "TWITTER_AUTH_TOKEN": ck[0], "TWITTER_CT0": ck[1]}
+                for sub in ("article", "tweet"):
+                    try:
+                        r = subprocess.run(["twitter", sub, url], capture_output=True,
+                                            text=True, timeout=40, env=env)
+                        if r.returncode == 0 and r.stdout.strip():
+                            return r.stdout.strip()[:16000]
+                    except Exception:  # noqa: BLE001
+                        continue
+            return (f"[x article {aid}: cookie found but twitter-cli couldn't read it. Install the "
+                    "article-capable client: `pipx install twitter-cli` (v0.8.5+) or `agent-reach "
+                    "install --channels=twitter`, then retry. Or paste the article's status URL.]")
+        return (f"[x article {aid}: bare /i/article permalinks have NO no-auth read path (the "
+                "article id isn't a tweet id). Two autonomous fixes: (1) paste the SAME article's "
+                "status URL — x.com/<author>/status/<id> — which I read FULLY with zero auth; or "
+                "(2) one-time cookie: log into x.com in Chrome, then `agent-reach configure "
+                "twitter-cookies --from-browser chrome` (or set TWITTER_AUTH_TOKEN+TWITTER_CT0). "
+                "Do NOT conclude 'unreadable'.]")
+    # ---- status / bare-id forms ----
+    m = (_re.search(r"(?:x|twitter)\.com/([^/]+)/status/(\d+)", url)
+         or _re.search(r"(?:x|twitter)\.com/i/web/status/(\d+)", url))
+    if m and m.lastindex == 2:
+        user, tid = m.group(1), m.group(2)
+    elif m:                       # /i/web/status/<id> — handle unknown
+        user, tid = "i", m.group(1)
+    else:
+        user, tid = "i", (url if url.isdigit() else "")
+    if tid:
+        got = _x_article_from_status(user, tid)
+        if got:
+            return got
     try:
         u = "https://publish.twitter.com/oembed?omit_script=true&url=" + urllib.parse.quote(url)
         d = _json(u)

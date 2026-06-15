@@ -48,6 +48,7 @@ python3 -m verity solve "<goal>"         # full discipline scaffold (real shell)
                                          #   think → act → VERIFY → recover → CALIBRATE
 python3 -m verity swarm "<goal>"         # MULTI-AGENT (Mythos/Fable shape): plan → parallel
                                          #   research+execute → critic → synthesize (gated)
+python3 -m verity x-read "<x.com url or tweet id>"   # read tweets AND long-form X Articles, no key
 python3 -m verity proof                  # the receipt: which gates fired, what got corrected
 python3 -m verity eval                   # A/B naive-vs-harness lift on assumption traps
 python3 -m verity failover-test          # prove cloud-down → local floor answers
@@ -81,13 +82,23 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
   Includes **web access**: `system_web_tools()` surfaces installed scrape/search/browse CLIs
   (futron-scrape, crawl4ai, browser-use, scrapy, **agent-reach**…) so the LLM uses a battle-tested
   cascade instead of hand-rolling a CAPTCHA-prone scraper. `capabilities` leads with this box.
-- **Walled-platform reach (the Rule-6 fix in code)** — `fetch_tweet(url)` (alias `read_x`) reads
-  X/Twitter posts **and long-form Articles** with no API key (FxTwitter→oembed; for articles the
-  body lives in `article.content.blocks`, not `text` — auto-extracted). For Reddit / XiaoHongShu /
-  Bilibili / YouTube / LinkedIn / GitHub, install **Agent Reach** (github.com/Panniantong/Agent-Reach,
-  MIT) — a multi-backend router with `agent-reach doctor --json` showing the live backend per
-  platform. This exists because asserting "this site is unreadable / API-walled" after testing ONE
-  method is the premature negative Rule 6 forbids — free no-auth paths usually read it.
+- **Walled-platform reach (the Rule-6 fix in code)** — `fetch_tweet(url)` (alias `read_x`, CLI
+  `python3 -m verity x-read <url>`) reads X/Twitter posts **and long-form Articles** with no API
+  key. Handles every URL form: `x.com/<user>/status/<id>`, `/i/status/<id>`, `/i/web/status/<id>`,
+  a bare tweet id, AND the article permalink `x.com/i/article/<id>`.
+    - status / bare-id → FxTwitter (the ONLY no-auth backend that returns the **full** article
+      body — it lives in `article.content.blocks`, not `text`) → vxtwitter → oembed. Autonomous.
+    - `x.com/i/article/<id>` → the article id is NOT a tweet id and has **no** no-auth resolver
+      (verified across 7 backends 2026-06-15: fxtwitter/vxtwitter 404, syndication CDN + guest-token
+      GraphQL return the article object but the body is auth-gated). The reader uses a one-time X
+      cookie (env `TWITTER_AUTH_TOKEN`+`TWITTER_CT0`, `~/.agent-reach/config.json`, or a logged-in
+      browser via rookiepy) to drive `twitter-cli`; with no cookie it returns an **honest,
+      actionable** next step — paste the same article's *status* URL (reads fully, zero auth) or
+      run `agent-reach configure twitter-cookies --from-browser chrome` — never the lazy "unreadable".
+  For Reddit / XiaoHongShu / Bilibili / YouTube / LinkedIn / GitHub, install **Agent Reach**
+  (github.com/Panniantong/Agent-Reach, MIT) — a multi-backend router; `agent-reach doctor --json`
+  shows the live backend per platform. All of this exists because asserting "this site is unreadable /
+  API-walled" after testing ONE method is the premature negative Rule 6 forbids.
 - **QC self-heal** — `research()` drops garbage (CAPTCHA/empty/error) blocks instead of feeding
   the model noise, and `errorhandling.py` runs a 5-block root-cause protocol (What/Why/Impact/
   Fix/Prevention) + journals every failure, so the harness catches and corrects its own plumbing.
