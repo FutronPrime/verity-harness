@@ -17,10 +17,20 @@ core gates as standing CONTEXT every session — that is what actually disciplin
 proxy still serves as the sovereign-failover floor + gates anything explicitly run via `verity
 solve/ask` or routed through :11500.)
 
+Universal coverage (the gates reach EVERY agent class):
+  • Claude Code/Desktop (Anthropic-format) — SessionStart hook injects the gates as context.
+  • Codex (codex 5.5)                       — gates block written to ~/.codex/AGENTS.md.
+  • Gemini CLI                              — gates block written to ~/.gemini/GEMINI.md.
+  • Local / OSS / any OpenAI-API agent      — point it at OPENAI_BASE_URL=http://127.0.0.1:11500/v1
+    and the proxy gates it NATIVELY (failover + discipline) — no injection needed.
+
 Usage:
-  python3 -m verity autostart --claude-code   # add a Claude Code SessionStart hook
-  python3 -m verity autostart --shell         # add a line to your shell profile (~/.zshrc etc.)
-  python3 -m verity autostart --print         # just print the startup script + manual steps
+  python3 -m verity autostart --claude-code   # Claude Code SessionStart hook (proxy + gate-inject)
+  python3 -m verity autostart --codex         # inject gates into ~/.codex/AGENTS.md
+  python3 -m verity autostart --gemini         # inject gates into ~/.gemini/GEMINI.md
+  python3 -m verity autostart --all            # claude-code + codex + gemini + the OSS/proxy note
+  python3 -m verity autostart --shell          # add a line to your shell profile (~/.zshrc etc.)
+  python3 -m verity autostart --print          # print the startup script + manual steps
 """
 from __future__ import annotations
 
@@ -143,19 +153,73 @@ def wire_shell() -> str:
     return f"[wired] {prof} — new shells start the VERITY harness silently."
 
 
+# Gates as a MANAGED markdown block, for agents whose context = a .md file (Codex AGENTS.md,
+# Gemini GEMINI.md). Same gates as the Claude-Code injector, idempotently inserted between markers.
+_GATES_MD = """<!-- VERITY-GATES:start (managed by `verity autostart` — re-run to update) -->
+## VERITY discipline gates — apply to EVERY task (not optional)
+- **Rule 0 — Pre-flight:** before executing a goal, search the CURRENT best approach (may supersede
+  training). FIND the answer, don't RECALL it.
+- **Rule 6 — Search-before-concluding (BLOCKER):** never assert a NEGATIVE ("there's no X", "not
+  possible", "doesn't exist", "unsolvable", "only way is Y") until you've SEARCHED where solutions
+  live (the platform's own API, GitHub, Reddit, X, YouTube, StackOverflow). Someone likely solved it.
+- **Verify (Borg):** adversarially confirm each action actually worked; >=2 backends; no "done" on a vibe.
+- **Reuse-first:** check installed tools + existing OSS BEFORE building.
+- **Calibrate:** label conclusions VERIFIED vs GUESS.
+- **Autonomy:** once told "proceed / do this / do all of this", execute EVERY stated goal
+  consecutively & autonomously to completion — don't stop to re-ask (pause only for destructive,
+  ambiguous, or outward-facing actions).
+- Multi-step / uncertain / stuck: run `python3 -m verity solve "<goal>"` (fires gates + logs ledger).
+<!-- VERITY-GATES:end -->"""
+
+import re as _re
+
+def _ensure_md_block(path: pathlib.Path) -> str:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    text = path.read_text() if path.exists() else ""
+    pat = _re.compile(r"<!-- VERITY-GATES:start.*?VERITY-GATES:end -->", _re.S)
+    if pat.search(text):
+        new = pat.sub(_GATES_MD, text)
+        if new == text:
+            return f"[already current] {path}"
+        path.write_text(new); return f"[updated] {path}"
+    sep = "" if text.endswith("\n") or not text else "\n\n"
+    path.write_text(text + sep + "\n" + _GATES_MD + "\n"); return f"[wired] {path}"
+
+def wire_codex() -> str:
+    write_script()
+    msg = _ensure_md_block(pathlib.Path(os.path.expanduser("~/.codex/AGENTS.md")))
+    return (f"Codex: {msg}\n  NOTE: if a bootstrap regenerates AGENTS.md, add the gates block to that "
+            "template too (or re-run this). Codex also gates natively if pointed at OPENAI_BASE_URL=:11500/v1.")
+
+def wire_gemini() -> str:
+    write_script()
+    return "Gemini: " + _ensure_md_block(pathlib.Path(os.path.expanduser("~/.gemini/GEMINI.md")))
+
+
 def main(target: str) -> None:
     if target == "--claude-code":
         print(wire_claude_code())
+    elif target == "--codex":
+        print(wire_codex())
+    elif target == "--gemini":
+        print(wire_gemini())
     elif target == "--shell":
         print(wire_shell())
+    elif target == "--all":
+        print(wire_claude_code()); print(wire_codex()); print(wire_gemini())
+        print("\nLocal / open-source / any OpenAI-API agent: no injection needed — point it at the")
+        print("proxy and it inherits failover + ALL gates transparently:")
+        print("  export OPENAI_BASE_URL=http://127.0.0.1:11500/v1")
     else:
         write_script()
         print("VERITY background-harness startup script written to:\n  " + str(SCRIPT) + "\n")
-        print("Wire it into your agent (pick one):")
-        print("  • Claude Code:  python3 -m verity autostart --claude-code")
+        print("Wire the GATES into your agent (context-injection — works for any agent):")
+        print("  • Claude Code:  python3 -m verity autostart --claude-code   (SessionStart hook)")
+        print("  • Codex:        python3 -m verity autostart --codex          (~/.codex/AGENTS.md)")
+        print("  • Gemini:       python3 -m verity autostart --gemini         (~/.gemini/GEMINI.md)")
+        print("  • Everything:   python3 -m verity autostart --all")
         print("  • Any shell:    python3 -m verity autostart --shell")
-        print("  • Manual:       run `bash " + str(SCRIPT) + "` from your agent's startup hook.")
-        print("\nThen point your agent at the proxy to inherit failover + gates:")
+        print("\nLocal / OSS / OpenAI-API agents ALSO inherit the gates by routing through the proxy:")
         print("  export OPENAI_BASE_URL=http://127.0.0.1:11500/v1")
 
 
