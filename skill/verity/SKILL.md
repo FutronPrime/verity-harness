@@ -114,6 +114,16 @@ also self-shuts-down after ~15 min idle.) Point your agent
 at `OPENAI_BASE_URL=http://127.0.0.1:11500/v1` to inherit failover + the gates transparently —
 the way a better model 'just works' when you switch to it.
 
+### ⚠️ Anthropic-format agents (Claude Code / Desktop): the proxy is NOT enough
+Claude Code talks **directly to api.anthropic.com** and **cannot** route through the OpenAI-format
+:11500 proxy — so the proxy alone never gates its reasoning (`verity proof` stays empty; negative
+"it's impossible / doesn't exist" claims slip past Rule 6). **`--claude-code` therefore installs a
+SECOND SessionStart hook** (`~/.verity-harness/verity-context-inject.sh`) that injects VERITY's core
+gates (Rule 0 pre-flight, Rule 6 search-before-concluding, Verify, Reuse-first, Calibrate) as
+standing **context** every session — that is what actually disciplines an Anthropic agent. The proxy
+still serves as the sovereign-failover floor + gates anything run via `verity solve/ask` or routed
+through :11500. (Discovered 2026-06-15 after a real Rule-6 lapse that the proxy-only setup couldn't catch.)
+
 ## Use as the executor behind another agent
 
 Run `python3 -m verity.server` for an OpenAI-compatible proxy on `:11500/v1`; point any
