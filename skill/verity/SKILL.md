@@ -121,14 +121,22 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
 - **QC self-heal** — `research()` drops garbage (CAPTCHA/empty/error) blocks instead of feeding
   the model noise, and `errorhandling.py` runs a 5-block root-cause protocol (What/Why/Impact/
   Fix/Prevention) + journals every failure, so the harness catches and corrects its own plumbing.
-- **🔒 Mechanical stop-guard (overconfidence killer)** — the gate text above is advisory; a model can
-  rationalize past it. This is the *enforced* version: a Claude Code `Stop`/`SubagentStop` hook
-  (`verity autostart --claude-code` installs it) that fires when the agent tries to END its turn. If
-  the conclusion contains an **unverified negative** ("it's down / broken / impossible / outage") with
-  no log-read/repair/search in the recent tool trail, OR a **premature deferral** ("only you can…")
-  with no automation attempt, it **blocks the stop and sends the agent back to investigate** — no
-  opt-out. Evidence-aware (an *earned* negative passes) and loop-safe (per-session cap). The VERITY
-  thesis applied to the model's own reasoning: fire on a code condition, not the model's goodwill.
+- **🔒 Overconfidence killer — enforced two ways, universal across agent classes** — the gate text is
+  advisory (a model rationalizes past it); these fire on a CODE condition, no opt-out. Both target the
+  same patterns (`verity/guard.py`): an unverified negative ("it's down / impossible / outage") or a
+  premature deferral ("only you can…"). Coverage:
+    - **Proxy (daemon — universal, 100% on its path):** the `:11500` server inspects every model
+      RESPONSE; on a flagged giveup it **re-prompts the model once, server-side**, forcing investigation
+      before returning. Fires for **ANY OpenAI-format model** routed through it (local Llama/Qwen, LM
+      Studio, Ollama, Codex/Cursor/etc. pointed at it) — the model can't opt out because the daemon
+      sits in the request path. Tags the response `x_verity_overconfidence_guard`.
+    - **Claude Code `Stop`/`SubagentStop` hook** (`verity autostart --claude-code` installs it): for
+      the Anthropic-format agent that talks direct to the API (bypassing the proxy), it **blocks ending
+      the turn** on the same patterns unless the recent tool trail shows logs-read / repair / search /
+      an automation attempt. Evidence-aware (earned negatives pass) and loop-safe (per-session cap).
+    - **Codex / Gemini:** the injected gate block carries the same rule as standing context; route
+      them through `:11500` for the daemon-enforced version. (For Claude Code 100%-enforcement, point
+      `ANTHROPIC_BASE_URL` at a VERITY Anthropic-format proxy — on the roadmap.)
 - **Sovereign failover** — cloud → local open weights you own
 
 ## Prove it's actually being used (and that it helps)

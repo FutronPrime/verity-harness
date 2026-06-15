@@ -99,7 +99,32 @@ class Handler(BaseHTTPRequestHandler):
         except AllTiersFailed as e:
             self._send(503, {"error": f"all tiers down: {e}"})
             return
-        self._send(200, _as_openai(reply.text, reply.model, reply.tier))
+
+        # RESPONSE-SIDE OVERCONFIDENCE GUARD (universal, daemon-enforced): if the model's answer is a
+        # premature giveup ("it's down / impossible / only you can") the proxy re-prompts it ONCE,
+        # server-side, forcing investigation — no opt-out, fires for ANY model routed here. Off when
+        # guardrail mode is off. Capped at one re-prompt (no latency/loop blowup).
+        guarded = ""
+        if _MODE != "off":
+            from .guard import flag, CORRECTIVE
+            if flag(reply.text):
+                try:
+                    reprompt = list(messages) + [
+                        {"role": "assistant", "content": reply.text},
+                        {"role": "user", "content": CORRECTIVE},
+                    ]
+                    reply2 = chat(reprompt)
+                    if reply2.text and not flag(reply2.text):
+                        reply = reply2
+                        guarded = "corrected"
+                    else:
+                        guarded = "flagged"  # still a giveup after one nudge — surface it, don't loop
+                except AllTiersFailed:
+                    guarded = "flagged"
+        out = _as_openai(reply.text, reply.model, reply.tier)
+        if guarded:
+            out["x_verity_overconfidence_guard"] = guarded
+        self._send(200, out)
 
 
 def _as_openai(content: str, model: str, tier: str = "") -> dict:
