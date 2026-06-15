@@ -6,9 +6,14 @@
 #   • Tier 0 (sovereign): installs Ollama + pulls a local open model you OWN.
 #   • Tier 1 (cloud, optional): detects an API key if you have one.
 #
-# Usage:  bash setup.sh
+# Usage:  bash setup.sh [--web-reach]
+#   --web-reach : also install the OPTIONAL walled-web reader (Playwright + cryptography +
+#                 Chromium, in an isolated venv) so VERITY can read auth-walled X Articles
+#                 through your own logged-in browser. Core stays zero-dependency without it.
 set -euo pipefail
 
+WEB_REACH=0
+for a in "$@"; do [ "$a" = "--web-reach" ] && WEB_REACH=1; done
 MODEL="${LLM_TIER0_MODEL:-llama3.2}"
 say() { printf "\033[1;36m[setup]\033[0m %s\n" "$*"; }
 warn() { printf "\033[1;33m[setup]\033[0m %s\n" "$*"; }
@@ -50,7 +55,16 @@ else
   warn "(OpenRouter gives one key → hundreds of models: https://openrouter.ai)"
 fi
 
-# ── 4. Done ──
+# ── 4. Optional: walled-web reader (X Articles via your logged-in browser) ──
+if [ "$WEB_REACH" = "1" ]; then
+  say "Installing the optional walled-web reader (Playwright + cryptography + Chromium)…"
+  python3 -m verity web-setup || warn "web-setup failed — run 'python3 -m verity web-setup' later."
+else
+  say "Optional: to read auth-walled X Articles (x.com/i/article/<id>) via your logged-in browser,"
+  say "  run:  python3 -m verity web-setup   (or re-run: bash setup.sh --web-reach). Core needs none of this."
+fi
+
+# ── 5. Done ──
 say "Setup complete. Verify the tiers:"
 echo "    python3 -m verity tiers"
 say "Prove vendor-suspension survival (cloud down → local floor answers):"

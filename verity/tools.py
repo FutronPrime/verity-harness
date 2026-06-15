@@ -230,118 +230,6 @@ def _x_article_from_status(user: str, tid: str) -> str | None:
     return None
 
 
-def _x_cookies() -> tuple[str, str] | None:
-    """Find an X auth cookie (auth_token + ct0) for reading auth-walled content (the bare
-    /i/article/<id> permalink). Order: env (TWITTER_AUTH_TOKEN/X_AUTH_TOKEN + TWITTER_CT0/X_CT0)
-    → agent-reach config (~/.agent-reach/config.json) → a logged-in browser via rookiepy if
-    present. Returns None if no logged-in session is reachable (an honest, common outcome)."""
-    import os
-    at = os.environ.get("TWITTER_AUTH_TOKEN") or os.environ.get("X_AUTH_TOKEN")
-    ct0 = os.environ.get("TWITTER_CT0") or os.environ.get("X_CT0")
-    if at and ct0:
-        return at, ct0
-    try:
-        import json as _j
-        cfg = _j.load(open(os.path.expanduser("~/.agent-reach/config.json")))
-        tw = (cfg.get("twitter") or cfg.get("twitter_cookies") or {})
-        at, ct0 = tw.get("auth_token"), tw.get("ct0")
-        if at and ct0:
-            return at, ct0
-    except Exception:  # noqa: BLE001
-        pass
-    cc = _x_chrome_cookies()                      # decrypt straight from Chrome (ALL profiles)
-    if cc:
-        return cc
-    try:
-        import rookiepy  # type: ignore
-        for attr in ("chrome", "brave", "arc", "edge", "firefox", "chromium"):
-            fn = getattr(rookiepy, attr, None)
-            if not fn:
-                continue
-            try:
-                jar = {c["name"]: c["value"] for c in fn([".x.com", "x.com", ".twitter.com"])}
-                if jar.get("auth_token") and jar.get("ct0"):
-                    return jar["auth_token"], jar["ct0"]
-            except Exception:  # noqa: BLE001
-                continue
-    except Exception:  # noqa: BLE001
-        pass
-    return None
-
-
-def _x_chrome_cookies() -> tuple[str, str] | None:
-    """Decrypt the X auth cookie (auth_token+ct0) directly from Chrome — scanning EVERY profile,
-    not just Default (the lesson from 2026-06-15: the logged-in session was in 'Profile 1', so a
-    Default-only probe wrongly reported 'not logged in'). macOS v10 scheme: key = PBKDF2(Keychain
-    'Chrome Safe Storage' pw, 'saltysalt', 1003, 16); AES-128-CBC, IV=16 spaces. Optional deps
-    (`cryptography`) — returns None if absent or no profile holds a live session. Linux/Windows
-    use a different key source, so this is best-effort macOS; env/agent-reach config cover the rest."""
-    import os
-    import sys
-    if sys.platform != "darwin":
-        return None
-    try:
-        import glob
-        import hashlib
-        import shutil
-        import sqlite3
-        import subprocess
-        import tempfile
-        from cryptography.hazmat.backends import default_backend
-        from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-    except Exception:  # noqa: BLE001 — cryptography not installed; that's fine
-        return None
-    try:
-        pw = subprocess.run(["security", "find-generic-password", "-wa", "Chrome",
-                             "-s", "Chrome Safe Storage"], capture_output=True, text=True,
-                            timeout=10).stdout.strip().encode()
-        if not pw:
-            return None
-        key = hashlib.pbkdf2_hmac("sha1", pw, b"saltysalt", 1003, 16)
-
-        def _dec(buf: bytes) -> str:
-            if not buf or buf[:3] != b"v10":
-                return ""
-            dctx = Cipher(algorithms.AES(key), modes.CBC(b" " * 16),
-                          backend=default_backend()).decryptor()
-            pt = dctx.update(buf[3:]) + dctx.finalize()
-            pt = pt[:-pt[-1]]                       # strip PKCS7 padding
-            if len(pt) >= 32:                       # newer Chrome prefixes a 32-byte domain hash
-                try:
-                    pt[:32].decode("ascii")
-                except Exception:  # noqa: BLE001
-                    pt = pt[32:]
-            return pt.decode("utf-8", "ignore")
-
-        base = os.path.expanduser("~/Library/Application Support/Google/Chrome")
-        profiles = ["Default"] + [os.path.basename(p) for p in glob.glob(os.path.join(base, "Profile *"))]
-        for prof in profiles:
-            for sub in ("Cookies", "Network/Cookies"):
-                src = os.path.join(base, prof, sub)
-                if not os.path.exists(src):
-                    continue
-                tmp = tempfile.mktemp(suffix=".db")
-                try:
-                    shutil.copy2(src, tmp)
-                    con = sqlite3.connect(tmp)
-                    rows = con.execute("SELECT name,encrypted_value FROM cookies WHERE "
-                                       "host_key LIKE '%x.com%' AND name IN ('auth_token','ct0')").fetchall()
-                    con.close()
-                    ck = {n: _dec(v) for n, v in rows}
-                    if ck.get("auth_token") and ck.get("ct0"):
-                        return ck["auth_token"], ck["ct0"]
-                except Exception:  # noqa: BLE001
-                    continue
-                finally:
-                    try:
-                        os.unlink(tmp)
-                    except OSError:
-                        pass
-    except Exception:  # noqa: BLE001
-        return None
-    return None
-
-
 def _playwright_python() -> str | None:
     """Find a python interpreter that can actually run Playwright (the package importable AND a
     browser installed). VERITY's own interpreter often can't (PEP-668 blocks the install, or it's
@@ -374,10 +262,66 @@ def _playwright_python() -> str | None:
     return None
 
 
+_X_NO_SESSION = "\x01NO_X_SESSION\x01"   # sentinel: renderer ran but found no logged-in X session
+
+# Self-contained render script — runs OUT OF PROCESS in a Playwright-capable python (which also
+# has `cryptography`), so VERITY's own interpreter stays pure-stdlib. It discovers the X auth
+# cookie itself (env → ~/.agent-reach/config.json → ~/.verity-harness/x.json → decrypt from Chrome,
+# scanning EVERY profile — the 2026-06-15 lesson: a live session lived in 'Profile 1', not Default),
+# then renders the auth-walled article. Cookies stay local; nothing is uploaded.
 _X_RENDER_SCRIPT = r'''
-import sys, json
+import sys, os, json, glob, hashlib, sqlite3, shutil, tempfile, subprocess
+url, ua = sys.argv[1], sys.argv[2]
+
+def find_cookie():
+    at = os.environ.get("TWITTER_AUTH_TOKEN") or os.environ.get("X_AUTH_TOKEN")
+    ct0 = os.environ.get("TWITTER_CT0") or os.environ.get("X_CT0")
+    if at and ct0: return at, ct0
+    for cfgp in ("~/.agent-reach/config.json", "~/.verity-harness/x.json"):
+        try:
+            cfg = json.load(open(os.path.expanduser(cfgp)))
+            tw = cfg.get("twitter") or cfg.get("twitter_cookies") or cfg
+            if tw.get("auth_token") and tw.get("ct0"): return tw["auth_token"], tw["ct0"]
+        except Exception: pass
+    if sys.platform == "darwin":
+        try:
+            from cryptography.hazmat.backends import default_backend
+            from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+            pw = subprocess.run(["security","find-generic-password","-wa","Chrome","-s","Chrome Safe Storage"],
+                                capture_output=True, text=True, timeout=10).stdout.strip().encode()
+            if pw:
+                key = hashlib.pbkdf2_hmac("sha1", pw, b"saltysalt", 1003, 16)
+                def dec(buf):
+                    if not buf or buf[:3] != b"v10": return ""
+                    d = Cipher(algorithms.AES(key), modes.CBC(b" "*16), backend=default_backend()).decryptor()
+                    pt = d.update(buf[3:]) + d.finalize(); pt = pt[:-pt[-1]]
+                    if len(pt) >= 32:
+                        try: pt[:32].decode("ascii")
+                        except Exception: pt = pt[32:]
+                    return pt.decode("utf-8","ignore")
+                base = os.path.expanduser("~/Library/Application Support/Google/Chrome")
+                for prof in ["Default"] + [os.path.basename(p) for p in glob.glob(os.path.join(base,"Profile *"))]:
+                    for sub in ("Cookies","Network/Cookies"):
+                        src = os.path.join(base, prof, sub)
+                        if not os.path.exists(src): continue
+                        tmp = tempfile.mktemp(suffix=".db")
+                        try:
+                            shutil.copy2(src, tmp); con = sqlite3.connect(tmp)
+                            rows = con.execute("SELECT name,encrypted_value FROM cookies WHERE host_key LIKE '%x.com%' AND name IN ('auth_token','ct0')").fetchall()
+                            con.close(); ck = {n: dec(v) for n,v in rows}
+                            if ck.get("auth_token") and ck.get("ct0"): return ck["auth_token"], ck["ct0"]
+                        except Exception: pass
+                        finally:
+                            try: os.unlink(tmp)
+                            except OSError: pass
+        except Exception: pass
+    return None
+
+ck = find_cookie()
+if not ck:
+    sys.stdout.write("\x01NO_X_SESSION\x01"); sys.exit(0)
 from playwright.sync_api import sync_playwright
-url, at, ct0, ua = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+at, ct0 = ck
 with sync_playwright() as p:
     b = p.chromium.launch(headless=True)
     ctx = b.new_context(user_agent=ua)
@@ -391,23 +335,26 @@ with sync_playwright() as p:
 '''
 
 
-def _x_render_article(url: str, at: str, ct0: str, max_chars: int = 16000) -> str | None:
-    """Render an auth-walled X article in a cookie-injected headless browser and return the
-    cleaned article text — the durable read for the bare /i/article/<id> permalink (no rotating
-    GraphQL hash). Runs the render OUT OF PROCESS via a python that has Playwright (see
-    _playwright_python), so it works regardless of VERITY's own interpreter. Returns None if no
-    Playwright-capable python exists, so the caller falls back to an honest message. Verified
-    end-to-end 2026-06-15 (16K-char article read through a logged-in Chrome cookie)."""
+def _x_render_article(url: str, max_chars: int = 16000) -> str | None:
+    """Read an auth-walled X article (the bare /i/article/<id> permalink) through YOUR logged-in
+    browser session — the durable path (no rotating GraphQL hash). Runs OUT OF PROCESS via a
+    Playwright-capable python (see _playwright_python), which self-discovers the X cookie and
+    renders the page, so VERITY's own interpreter stays pure-stdlib. Returns the cleaned article
+    text; the _X_NO_SESSION sentinel if the renderer ran but found no live session; or None if no
+    Playwright-capable python exists (→ run `python3 -m verity web-setup`). Verified end-to-end
+    2026-06-15 (16K-char article read through a logged-in Chrome cookie)."""
     import subprocess
     py = _playwright_python()
     if not py:
         return None
     try:
-        r = subprocess.run([py, "-c", _X_RENDER_SCRIPT, url, at, ct0, _UA],
+        r = subprocess.run([py, "-c", _X_RENDER_SCRIPT, url, _UA],
                            capture_output=True, text=True, timeout=90)
         txt = r.stdout
     except Exception:  # noqa: BLE001
         return None
+    if txt.strip() == _X_NO_SESSION:
+        return _X_NO_SESSION
     if not txt or not txt.strip():
         return None
     flat = _WS.sub("\n", txt).strip()
@@ -442,23 +389,23 @@ def fetch_tweet(url: str) -> str:
     am = _re.search(r"(?:x|twitter)\.com/i/article/(\d+)", url)
     if am:
         aid = am.group(1)
-        ck = _x_cookies()
-        if ck:
-            # cookie found (env / agent-reach cfg / auto-decrypted from Chrome, ALL profiles) →
-            # render the article in a cookie-injected headless browser (durable, no rotating hash).
-            body = _x_render_article(url, ck[0], ck[1])
-            if body and len(body) > 200:
-                return f"[X ARTICLE] {body}"
-            # cookie OK but Playwright missing → tell the agent how to enable the render path.
-            return (f"[x article {aid}: a live X session was found, but the headless renderer isn't "
-                    "installed. Run once: `pip install playwright && playwright install chromium`, "
-                    "then retry — it will read the article. Or paste the article's status URL.]")
-        return (f"[x article {aid}: bare /i/article permalinks have NO no-auth read path (the "
-                "article id isn't a tweet id). Two autonomous fixes: (1) paste the SAME article's "
-                "status URL — x.com/<author>/status/<id> — which I read FULLY with zero auth; or "
-                "(2) one-time login: be logged into x.com in Chrome (any profile — the reader "
-                "auto-decrypts the cookie) or set TWITTER_AUTH_TOKEN+TWITTER_CT0. "
-                "Do NOT conclude 'unreadable'.]")
+        # Render through YOUR logged-in session (cookie self-discovered out-of-process: env /
+        # agent-reach cfg / ~/.verity-harness/x.json / decrypted from Chrome, ALL profiles).
+        body = _x_render_article(url)
+        if body and body != _X_NO_SESSION and len(body) > 200:
+            return f"[X ARTICLE] {body}"
+        if body == _X_NO_SESSION:
+            return (f"[x article {aid}: the reader ran but found no logged-in X session. Two fixes: "
+                    "(1) paste the SAME article's status URL — x.com/<author>/status/<id> — which "
+                    "reads FULLY with zero auth; or (2) be logged into x.com in Chrome (any profile "
+                    "— the cookie is auto-decrypted) or set TWITTER_AUTH_TOKEN+TWITTER_CT0. "
+                    "Do NOT conclude 'unreadable'.]")
+        # body is None → no Playwright-capable python found.
+        return (f"[x article {aid}: bare /i/article permalinks need a headless renderer (the article "
+                "id isn't a tweet id, so there's no no-auth API path). One-time enable: "
+                "`python3 -m verity web-setup` (installs Playwright + Chromium into an isolated venv). "
+                "Or just paste the article's STATUS URL — x.com/<author>/status/<id> — which reads "
+                "FULLY with zero auth. Do NOT conclude 'unreadable'.]")
     # ---- status / bare-id forms ----
     m = (_re.search(r"(?:x|twitter)\.com/([^/]+)/status/(\d+)", url)
          or _re.search(r"(?:x|twitter)\.com/i/web/status/(\d+)", url))

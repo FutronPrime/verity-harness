@@ -51,6 +51,34 @@ def _cmd_failover_test():
     print("trail:", " | ".join(r.attempts))
 
 
+def _cmd_web_setup():
+    """Build the OPTIONAL walled-web reader venv (~/.verity-harness/venv) with Playwright +
+    cryptography + Chromium. The harness CORE stays zero-dependency / pure-stdlib; this is an
+    opt-in extra that enables reading auth-walled X Articles (the bare x.com/i/article/<id>
+    permalink) through your own logged-in browser session. VERITY auto-detects this venv via
+    tools._playwright_python(), so no PATH or env wiring is needed afterward."""
+    import os
+    import subprocess
+    import sys
+    import venv
+    target = os.path.expanduser("~/.verity-harness/venv")
+    binp = os.path.join(target, "Scripts" if os.name == "nt" else "bin")
+    py = os.path.join(binp, "python.exe" if os.name == "nt" else "python")
+    print(f"[web-setup] creating optional reader venv at {target} …")
+    if not os.path.exists(py):
+        venv.create(target, with_pip=True)
+    subprocess.run([py, "-m", "pip", "install", "-q", "--upgrade", "pip"], check=False)
+    print("[web-setup] installing playwright + cryptography …")
+    r = subprocess.run([py, "-m", "pip", "install", "-q", "playwright", "cryptography"])
+    if r.returncode != 0:
+        print("[web-setup] pip install failed — see output above.", file=sys.stderr); sys.exit(1)
+    print("[web-setup] downloading Chromium (one-time, ~170MB; shared across installs) …")
+    subprocess.run([py, "-m", "playwright", "install", "chromium"], check=False)
+    print("[web-setup] done ✅  Auth-walled X Articles now read via your logged-in browser:")
+    print('    python3 -m verity x-read "https://x.com/i/article/<id>"')
+    print("    (be logged into x.com in Chrome — the cookie is auto-decrypted, never uploaded)")
+
+
 def main(argv: list[str]) -> None:
     if not argv or argv[0] in ("-h", "--help"):
         print(__doc__)
@@ -140,6 +168,8 @@ def main(argv: list[str]) -> None:
                   file=sys.stderr); sys.exit(2)
         from .tools import fetch_tweet
         print(fetch_tweet(rest[0]))
+    elif cmd in ("web-setup", "x-setup"):
+        _cmd_web_setup()
     else:
         print(f"unknown command: {cmd}", file=sys.stderr); sys.exit(2)
 

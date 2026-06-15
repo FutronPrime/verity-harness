@@ -113,6 +113,38 @@ r = run_verified("find and fix the off-by-one bug in utils.py",
   the user's time). Pause only for genuinely destructive, ambiguous, or outward-facing actions.
   (Injected as standing context for Anthropic-format agents that can't route through the proxy.)
 
+## Reading the walled web (X posts & Articles, no API key)
+
+The search-before-concluding gate is only as good as the agent's *reach*. "I can't read that page"
+is usually a premature negative — so VERITY ships a real reader:
+
+```bash
+python3 -m verity x-read "https://x.com/<user>/status/<id>"   # tweet OR long-form Article
+python3 -m verity x-read "https://x.com/i/article/<id>"        # the bare article permalink
+```
+
+- **Status form** (`/<user>/status/<id>`, `/i/status/<id>`, bare id) → read **fully, no auth, no
+  key** via the FxTwitter mirror. Long-form Articles included (their body lives in
+  `article.content.blocks`, not the empty `text` field — auto-extracted). This is ~95% of shared links.
+- **Bare article permalink** (`x.com/i/article/<id>`) → the article id isn't a tweet id and has **no**
+  no-auth path (verified across 7 backends). So VERITY reads it through **your own logged-in browser
+  session**: it auto-discovers the X cookie (env `TWITTER_AUTH_TOKEN`+`TWITTER_CT0` → config →
+  decrypted from Chrome, **scanning every profile**) and renders the page in a cookie-injected
+  headless browser. Cookies stay **local — nothing is uploaded**. With no session it returns an
+  *honest, actionable* next step (paste the status URL, or log in) — never a bare "unreadable".
+
+This render path is the **one optional extra** (Playwright + cryptography). The core stays
+zero-dependency; enable the reader once with:
+
+```bash
+python3 -m verity web-setup      # installs Playwright + Chromium into an isolated venv
+```
+
+VERITY auto-detects that venv and runs the render **out of process**, so the harness itself stays
+pure-stdlib. (For other walled platforms — Reddit, YouTube, Bilibili, LinkedIn — pair with
+[Agent Reach](https://github.com/Panniantong/Agent-Reach), a multi-backend router VERITY surfaces
+via `system_web_tools()`.)
+
 ## Multi-agent swarm (the Mythos/Fable shape — self-contained)
 
 A single disciplined model is good; a **swarm of specialized disciplined agents** is the shape
