@@ -67,6 +67,10 @@ agents talk direct to the API) — so apply these gates MANUALLY, every task. No
  • VERIFY (Borg): adversarially confirm each action actually worked; >=2 backends; no "done" on a vibe.
  • REUSE-FIRST: check installed tools + existing OSS BEFORE building.
  • CALIBRATE: label conclusions VERIFIED vs GUESS.
+ • AUTONOMY (BLOCKER): once the user says "proceed" / "do this" / "do all of this", execute EVERY
+   stated goal CONSECUTIVELY and autonomously to completion — do NOT stop to re-ask for confirmation
+   (that wastes their time). Chain the goals; only pause for genuinely destructive, ambiguous, or
+   outward-facing actions (deletes, money, publishing). Apply ALL gates above to EACH goal.
  • Multi-step / uncertain / stuck:  python3 -m verity solve "<goal>"  (fires the gates + logs the ledger).
 GATES
 curl -s -m 1 http://127.0.0.1:11500/health >/dev/null 2>&1 || ( cd "{REPO}" && nohup python3 -m verity.server >/dev/null 2>&1 & )

@@ -108,6 +108,10 @@ r = run_verified("find and fix the off-by-one bug in utils.py",
 - **QC self-heal** — tool results are quality-checked: garbage (CAPTCHA/empty/error) is
   *dropped* instead of fed to the model as "findings", and a 5-block ErrorHandlingProtocol
   (What/Why/Impact/Fix/Prevention) journals every failure so the harness fixes its own plumbing.
+- **Autonomy gate** — once told "proceed / do this / do all of this", execute EVERY stated goal
+  consecutively and autonomously to completion; don't stop to re-ask for confirmation (it wastes
+  the user's time). Pause only for genuinely destructive, ambiguous, or outward-facing actions.
+  (Injected as standing context for Anthropic-format agents that can't route through the proxy.)
 
 ## Multi-agent swarm (the Mythos/Fable shape — self-contained)
 

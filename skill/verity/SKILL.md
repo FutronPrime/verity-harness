@@ -124,6 +124,11 @@ standing **context** every session — that is what actually disciplines an Anth
 still serves as the sovereign-failover floor + gates anything run via `verity solve/ask` or routed
 through :11500. (Discovered 2026-06-15 after a real Rule-6 lapse that the proxy-only setup couldn't catch.)
 
+The injected gates also include an **AUTONOMY** rule: once the user says "proceed / do this / do all
+of this", the agent must execute EVERY stated goal **consecutively and autonomously** to completion —
+not stop to re-ask for confirmation (wastes the user's time) — pausing only for genuinely destructive,
+ambiguous, or outward-facing actions. Every gate (Rule 0/6, Verify, Reuse-first, Calibrate) applies to EACH goal.
+
 ## Use as the executor behind another agent
 
 Run `python3 -m verity.server` for an OpenAI-compatible proxy on `:11500/v1`; point any
