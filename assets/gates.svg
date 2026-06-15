@@ -1,81 +1,74 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" font-family="'Arial Narrow','Helvetica Neue',Arial,sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 766" font-family="'Arial Narrow','Helvetica Neue',Arial,sans-serif" role="img" aria-labelledby="t d">
+  <title id="t">VERITY enforcement gates</title>
+  <desc id="d">Left: prompt 'hopes' that have no backstop. Right: VERITY's deterministic gates (verify, calibration, persistence, research-on-stuck, reuse-first, objective) that fire on code conditions. AVANI UI DNA corner-cut panels.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070a0d"/><stop offset="1" stop-color="#03060a"/></linearGradient>
     <linearGradient id="tg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2dd4bf"/><stop offset="1" stop-color="#0c6e62"/></linearGradient>
     <pattern id="scan" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="1" fill="#0c1a1d" opacity="0.5"/></pattern>
     <style>.mono{font-family:'SF Mono','Menlo','Consolas',monospace} .hv{font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;font-weight:900} .nar{font-family:'Arial Narrow',Arial,sans-serif}</style>
   </defs>
-  <rect width="1200" height="720" fill="url(#bg)"/>
-  <rect width="1200" height="720" fill="url(#scan)"/>
-
-  <!-- angular cut-corner frame -->
-  <path d="M16,16 H1150 L1184,50 V704 H66 L16,654 Z" fill="none" stroke="#1f5c54" stroke-width="2"/>
-  <!-- corner registration ticks + magenta -->
-  <path d="M16,70 V16 H70 M1184,650 V704 H1130" fill="none" stroke="#2dd4bf" stroke-width="3"/>
-  <rect x="16" y="700" width="1168" height="4" fill="#d6299e"/>
-
-  <!-- HUD top bar -->
+  <rect width="1200" height="766" fill="url(#bg)"/>
+  <rect width="1200" height="766" fill="url(#scan)"/>
+  <path d="M16,16 H1150 L1184,50 V750 H66 L16,700 Z" fill="none" stroke="#1f5c54" stroke-width="2"/>
+  <path d="M16,70 V16 H70 M1184,696 V750 H1130" fill="none" stroke="#2dd4bf" stroke-width="3"/>
+  <rect x="16" y="746" width="1168" height="4" fill="#d6299e"/>
   <text x="40" y="58" class="mono" font-size="14" letter-spacing="3" fill="#2dd4bf">/// VERITY.ENFORCEMENT.MODULE</text>
   <text x="1160" y="58" text-anchor="end" class="mono" font-size="14" letter-spacing="2" fill="#5b8a84">[ STATUS: ACTIVE ]</text>
-
-  <!-- title -->
   <text x="44" y="132" class="hv" font-size="56" letter-spacing="1" fill="#eafffb">A PROMPT <tspan fill="#7fb3ab">REQUESTS.</tspan></text>
   <text x="44" y="190" class="hv" font-size="56" letter-spacing="1" fill="#2dd4bf">VERITY ENFORCES.</text>
   <rect x="46" y="204" width="430" height="3" fill="#d6299e"/>
   <text x="44" y="234" class="nar" font-size="20" fill="#8fb8b1">LLMs are probabilistic — the harness, not the model, decides when discipline fires.</text>
-
-  <!-- left: prompt doctrine (dim) -->
   <text x="44" y="290" class="mono" font-size="13" letter-spacing="3" fill="#586872">&gt;&gt; PROMPT DOCTRINE // HOPES</text>
-  <g class="nar" font-size="17">
-    <g>
-      <path d="M44,304 H516 V356 L500,372 H44 Z" fill="#0c1217" stroke="#26323b"/>
-      <text x="62" y="332" class="mono" font-size="13" fill="#76858f">"verify before you act"</text>
-      <text x="62" y="354" fill="#5e6e78">may or may not. no backstop.</text>
-    </g>
-    <g>
-      <path d="M44,386 H516 V438 L500,454 H44 Z" fill="#0c1217" stroke="#26323b"/>
-      <text x="62" y="414" class="mono" font-size="13" fill="#76858f">"don't give up"</text>
-      <text x="62" y="436" fill="#5e6e78">quits at the first wall anyway.</text>
-    </g>
-    <g>
-      <path d="M44,468 H516 V520 L500,536 H44 Z" fill="#0c1217" stroke="#26323b"/>
-      <text x="62" y="496" class="mono" font-size="13" fill="#76858f">"reuse existing tools"</text>
-      <text x="62" y="518" fill="#5e6e78">reinvents from scratch when it forgets.</text>
-    </g>
-  </g>
-
-  <!-- right: verity gates -->
   <text x="640" y="290" class="mono" font-size="13" letter-spacing="3" fill="#2dd4bf">&gt;&gt; VERITY GATES // FIRE ON CODE CONDITIONS</text>
-  <g>
-    <!-- repeated angular HUD cards -->
-    <g class="nar" font-size="14.5">
-      <g><path d="M640,304 H1160 L1160,346 H656 L640,330 Z" fill="#0a1d1b" stroke="#1f6b60"/><rect x="640" y="304" width="6" height="42" fill="url(#tg)"/>
-        <text x="664" y="324" class="mono" font-size="13" fill="#5eead4">VERIFY_GATE</text>
-        <text x="664" y="340" fill="#86bfb6">every action adversarially checked — did it REALLY work?</text></g>
-      <g><path d="M640,356 H1160 L1160,398 H656 L640,382 Z" fill="#0a1d1b" stroke="#1f6b60"/><rect x="640" y="356" width="6" height="42" fill="url(#tg)"/>
-        <text x="664" y="376" class="mono" font-size="13" fill="#5eead4">CALIBRATION_GATE</text>
-        <text x="664" y="392" fill="#86bfb6">challenges every "done" → tags VERIFIED vs GUESS</text></g>
-      <g><path d="M640,408 H1160 L1160,450 H656 L640,434 Z" fill="#0a1d1b" stroke="#1f6b60"/><rect x="640" y="408" width="6" height="42" fill="url(#tg)"/>
-        <text x="664" y="428" class="mono" font-size="13" fill="#5eead4">PERSISTENCE_GATE</text>
-        <text x="664" y="444" fill="#86bfb6">refuses to abort — forces a different approach, N times</text></g>
-      <g><path d="M640,460 H1160 L1160,502 H656 L640,486 Z" fill="#0a1d1b" stroke="#1f6b60"/><rect x="640" y="460" width="6" height="42" fill="url(#tg)"/>
-        <text x="664" y="480" class="mono" font-size="13" fill="#5eead4">RESEARCH_ON_STUCK</text>
-        <text x="664" y="496" fill="#86bfb6">auto-searches GitHub/Reddit/HN/SO on the real error</text></g>
-      <g><path d="M640,512 H1160 L1160,554 H656 L640,538 Z" fill="#0a1d1b" stroke="#1f6b60"/><rect x="640" y="512" width="6" height="42" fill="url(#tg)"/>
-        <text x="664" y="532" class="mono" font-size="13" fill="#5eead4">REUSE_FIRST_DISCOVERY</text>
-        <text x="664" y="548" fill="#86bfb6">own tools → external → build; auto-fires on build tasks</text></g>
-    </g>
-  </g>
 
-  <!-- footer -->
-  <text x="44" y="612" class="hv" font-size="24" fill="#cdeee8">THE MODEL REASONS INSIDE RAILS IT CANNOT FALL OFF OF.</text>
-  <!-- barcode strip -->
+  <path d="M44,304 L498,304 L516,322 L516,356 L55,356 L44,345 Z" fill="#0c1217" stroke="#26323b" stroke-width="1.0"/>
+  <path d="M48,308 L497,308 L512,323 L512,352 L56,352 L48,344 Z" fill="none" stroke="#26323b" stroke-width="0.7" opacity="0.5"/>
+  <text x="62" y="332" class="mono" font-size="13" fill="#76858f" text-anchor="start">"verify before you act"</text>
+  <text x="62" y="354" class="nar" font-size="17" fill="#5e6e78" text-anchor="start">may or may not. no backstop.</text>
+  <path d="M44,386 L498,386 L516,404 L516,438 L55,438 L44,427 Z" fill="#0c1217" stroke="#26323b" stroke-width="1.0"/>
+  <path d="M48,390 L497,390 L512,405 L512,434 L56,434 L48,426 Z" fill="none" stroke="#26323b" stroke-width="0.7" opacity="0.5"/>
+  <text x="62" y="414" class="mono" font-size="13" fill="#76858f" text-anchor="start">"don't give up"</text>
+  <text x="62" y="436" class="nar" font-size="17" fill="#5e6e78" text-anchor="start">quits at the first wall anyway.</text>
+  <path d="M44,468 L498,468 L516,486 L516,520 L55,520 L44,509 Z" fill="#0c1217" stroke="#26323b" stroke-width="1.0"/>
+  <path d="M48,472 L497,472 L512,487 L512,516 L56,516 L48,508 Z" fill="none" stroke="#26323b" stroke-width="0.7" opacity="0.5"/>
+  <text x="62" y="496" class="mono" font-size="13" fill="#76858f" text-anchor="start">"reuse existing tools"</text>
+  <text x="62" y="518" class="nar" font-size="17" fill="#5e6e78" text-anchor="start">reinvents from scratch when it forgets.</text>
+  <path d="M640,300 L1146,300 L1160,314 L1160,342 L649,342 L640,333 Z" fill="#0a1d1b" stroke="#1f6b60" stroke-width="1.1"/>
+  <path d="M644,304 L1145,304 L1156,315 L1156,338 L650,338 L644,332 Z" fill="none" stroke="#1f6b60" stroke-width="0.7" opacity="0.4"/>
+  <rect x="644" y="303" width="5" height="30" fill="url(#tg)"/>
+  <text x="666" y="320" class="mono" font-size="13" fill="#5eead4" text-anchor="start">VERIFY_GATE</text>
+  <text x="666" y="336" class="nar" font-size="14.5" fill="#86bfb6" text-anchor="start">every action adversarially checked — did it REALLY work?</text>
+  <path d="M640,346 L1146,346 L1160,360 L1160,388 L649,388 L640,379 Z" fill="#0a1d1b" stroke="#1f6b60" stroke-width="1.1"/>
+  <path d="M644,350 L1145,350 L1156,361 L1156,384 L650,384 L644,378 Z" fill="none" stroke="#1f6b60" stroke-width="0.7" opacity="0.4"/>
+  <rect x="644" y="349" width="5" height="30" fill="url(#tg)"/>
+  <text x="666" y="366" class="mono" font-size="13" fill="#5eead4" text-anchor="start">CALIBRATION_GATE</text>
+  <text x="666" y="382" class="nar" font-size="14.5" fill="#86bfb6" text-anchor="start">challenges every "done" → tags VERIFIED vs GUESS</text>
+  <path d="M640,392 L1146,392 L1160,406 L1160,434 L649,434 L640,425 Z" fill="#0a1d1b" stroke="#1f6b60" stroke-width="1.1"/>
+  <path d="M644,396 L1145,396 L1156,407 L1156,430 L650,430 L644,424 Z" fill="none" stroke="#1f6b60" stroke-width="0.7" opacity="0.4"/>
+  <rect x="644" y="395" width="5" height="30" fill="url(#tg)"/>
+  <text x="666" y="412" class="mono" font-size="13" fill="#5eead4" text-anchor="start">PERSISTENCE_GATE</text>
+  <text x="666" y="428" class="nar" font-size="14.5" fill="#86bfb6" text-anchor="start">refuses to abort — forces a different approach, N times</text>
+  <path d="M640,438 L1146,438 L1160,452 L1160,480 L649,480 L640,471 Z" fill="#0a1d1b" stroke="#1f6b60" stroke-width="1.1"/>
+  <path d="M644,442 L1145,442 L1156,453 L1156,476 L650,476 L644,470 Z" fill="none" stroke="#1f6b60" stroke-width="0.7" opacity="0.4"/>
+  <rect x="644" y="441" width="5" height="30" fill="url(#tg)"/>
+  <text x="666" y="458" class="mono" font-size="13" fill="#5eead4" text-anchor="start">RESEARCH_ON_STUCK</text>
+  <text x="666" y="474" class="nar" font-size="14.5" fill="#86bfb6" text-anchor="start">auto-searches GitHub/Reddit/HN/SO on the real error</text>
+  <path d="M640,484 L1146,484 L1160,498 L1160,526 L649,526 L640,517 Z" fill="#0a1d1b" stroke="#1f6b60" stroke-width="1.1"/>
+  <path d="M644,488 L1145,488 L1156,499 L1156,522 L650,522 L644,516 Z" fill="none" stroke="#1f6b60" stroke-width="0.7" opacity="0.4"/>
+  <rect x="644" y="487" width="5" height="30" fill="url(#tg)"/>
+  <text x="666" y="504" class="mono" font-size="13" fill="#5eead4" text-anchor="start">REUSE_FIRST_DISCOVERY</text>
+  <text x="666" y="520" class="nar" font-size="14.5" fill="#86bfb6" text-anchor="start">own tools → external → build; auto-fires on build tasks</text>
+  <path d="M640,530 L1146,530 L1160,544 L1160,572 L649,572 L640,563 Z" fill="#0a1d1b" stroke="#d6299e" stroke-width="1.1"/>
+  <path d="M644,534 L1145,534 L1156,545 L1156,568 L650,568 L644,562 Z" fill="none" stroke="#d6299e" stroke-width="0.7" opacity="0.4"/>
+  <rect x="644" y="533" width="5" height="30" fill="url(#tg)"/>
+  <text x="666" y="550" class="mono" font-size="13" fill="#d6299e" text-anchor="start">OBJECTIVE_GATE</text>
+  <text x="666" y="566" class="nar" font-size="14.5" fill="#86bfb6" text-anchor="start">"done" rejected until a real test/build exits 0</text>
+  <text x="44" y="640" class="hv" font-size="24" fill="#cdeee8">THE MODEL REASONS INSIDE RAILS IT CANNOT FALL OFF OF.</text>
   <g fill="#2dd4bf" opacity="0.8">
-    <rect x="44" y="630" width="2" height="22"/><rect x="49" y="630" width="5" height="22"/><rect x="57" y="630" width="2" height="22"/><rect x="62" y="630" width="3" height="22"/><rect x="68" y="630" width="6" height="22"/><rect x="77" y="630" width="2" height="22"/><rect x="82" y="630" width="4" height="22"/><rect x="89" y="630" width="2" height="22"/>
+    <rect x="44" y="658" width="2" height="22"/><rect x="49" y="658" width="5" height="22"/><rect x="57" y="658" width="2" height="22"/><rect x="62" y="658" width="3" height="22"/><rect x="68" y="658" width="6" height="22"/><rect x="77" y="658" width="2" height="22"/><rect x="82" y="658" width="4" height="22"/><rect x="89" y="658" width="2" height="22"/>
   </g>
-  <text x="100" y="646" class="mono" font-size="12" letter-spacing="2" fill="#3f7d76">PROBABILISTIC CORE · DETERMINISTIC RAILS</text>
-  <!-- brand sig -->
-  <g transform="translate(1090,632)">
+  <text x="100" y="674" class="mono" font-size="12" letter-spacing="2" fill="#3f7d76">PROBABILISTIC CORE · DETERMINISTIC RAILS</text>
+  <g transform="translate(1090,660)">
     <path d="M0,-10 L9,10 L18,-10" fill="none" stroke="#b9c8c4" stroke-width="3" stroke-linejoin="round"/>
     <path d="M4,-1 L8,4 L15,-8" fill="none" stroke="#2dd4bf" stroke-width="2.6" stroke-linecap="round"/>
     <text x="28" y="6" class="hv" font-size="16" letter-spacing="3" fill="#eafffb">VERITY</text>

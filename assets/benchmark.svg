@@ -12,10 +12,13 @@
   <rect x="16" y="660" width="1168" height="4" fill="#d6299e"/>
 
   <text x="40" y="58" class="mono" font-size="14" letter-spacing="3" fill="#2dd4bf">/// VERITY.BENCHMARK // SMALL-SAMPLE · DIRECTIONAL · REPRODUCIBLE</text>
-  <text x="44" y="120" class="hv" font-size="46" fill="#eafffb">VERITY BEATS A NAIVE LOOP <tspan fill="#2dd4bf">— IN THE WINDOW IT CAN.</tspan></text>
-  <text x="44" y="152" class="nar" font-size="18" fill="#8fb8b1">Adversarial tasks: the obvious answer is wrong. Naive ships the bug; the gates catch it. Mechanically scored on the edge cases.</text>
+  <text x="44" y="104" class="hv" font-size="42" fill="#eafffb">VERITY BEATS A NAIVE LOOP</text>
+  <text x="44" y="148" class="hv" font-size="42" fill="#2dd4bf">— IN THE WINDOW IT CAN.</text>
+  <text x="44" y="180" class="nar" font-size="18" fill="#8fb8b1">Adversarial tasks: the obvious answer is wrong. Naive ships the bug; the gates catch it. Mechanically scored on the edge cases.</text>
 
   <text x="44" y="206" class="mono" font-size="14" letter-spacing="2" fill="#5eead4">&gt;&gt; SCAFFOLD vs NAIVE // BY MODEL TIER</text>
+  <path d="M34,226 L1132,226 L1166,260 L1166,482 L54,482 L34,462 Z" fill="none" stroke="#1f5c54" stroke-width="1.2"/>
+  <path d="M38,230 L1131,230 L1162,261 L1162,478 L55,478 L38,461 Z" fill="none" stroke="#1f5c54" stroke-width="0.6" opacity="0.3"/>
   <g class="mono" font-size="14">
     <!-- weak -->
     <text x="44" y="262" class="nar" font-size="17" fill="#8aa">LLAMA-3.1-8B <tspan fill="#5b6b75">[WEAK]</tspan></text>
@@ -31,8 +34,9 @@
     <path d="M300,440 H620 L608,462 H300 Z" fill="#2a6e64"/><text x="632" y="457" fill="#86bfb6">verity 3/3 — parity (rarely errs; gates rarely fire)</text>
   </g>
 
-  <rect x="44" y="500" width="500" height="2" fill="#1f5c54"/>
-  <text x="44" y="534" class="mono" font-size="13" letter-spacing="3" fill="#5eead4">[ HONEST READ ]</text>
+  <path d="M34,508 L1006,508 L1034,536 L1034,648 L50,648 L34,632 Z" fill="#0a1417" stroke="#1f6b60" stroke-width="1.2"/>
+  <path d="M38,512 L1005,512 L1030,537 L1030,644 L51,644 L38,631 Z" fill="none" stroke="#1f6b60" stroke-width="0.7" opacity="0.38"/>
+  <text x="44" y="540" class="mono" font-size="13" letter-spacing="3" fill="#5eead4">[ HONEST READ ]</text>
   <text x="44" y="562" class="nar" font-size="17" fill="#9fb3bb">The lift is real <tspan fill="#2dd4bf">in the value window</tspan> — capable-but-imperfect models (~32–70B). It can't make a weak model capable,</text>
   <text x="44" y="586" class="nar" font-size="17" fill="#9fb3bb">and a frontier model rarely needs it. Capability lives in the weights; VERITY governs how reliably it's applied.</text>
   <text x="44" y="622" class="mono" font-size="14" fill="#8fc7bf">$ python3 eval_adversarial.py   <tspan fill="#5b8a84"># small sample · single judge · re-run on your own suite</tspan></text>
