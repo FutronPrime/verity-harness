@@ -129,6 +129,19 @@ of this", the agent must execute EVERY stated goal **consecutively and autonomou
 not stop to re-ask for confirmation (wastes the user's time) — pausing only for genuinely destructive,
 ambiguous, or outward-facing actions. Every gate (Rule 0/6, Verify, Reuse-first, Calibrate) applies to EACH goal.
 
+### Universal coverage — the gates reach every agent class
+The injection mechanism is per-agent because each reads context differently; the gate CONTENT is identical:
+| Agent | How it gets the gates | Command |
+|---|---|---|
+| Claude Code/Desktop (Anthropic) | SessionStart hook → injects context | `verity autostart --claude-code` |
+| Codex (codex 5.5) | gates block in `~/.codex/AGENTS.md` (re-injected on each bootstrap regen) | `verity autostart --codex` |
+| Gemini CLI | gates block in `~/.gemini/GEMINI.md` | `verity autostart --gemini` |
+| Local / OSS / any OpenAI-API agent | route through the proxy — gates fire NATIVELY, no injection | `export OPENAI_BASE_URL=http://127.0.0.1:11500/v1` |
+| All of the above | — | `verity autostart --all` |
+
+So OpenAI-format agents (local Llama/Qwen/etc., LM Studio, Ollama-via-OpenAI-shim) get the FULL gate
+enforcement transparently through the proxy; Anthropic/Codex/Gemini get the same gates injected as context.
+
 ## Use as the executor behind another agent
 
 Run `python3 -m verity.server` for an OpenAI-compatible proxy on `:11500/v1`; point any
