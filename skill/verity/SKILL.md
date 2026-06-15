@@ -79,8 +79,15 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
 - **Persistence** — refuses to quit; on stuck, **auto-researches the error** (GitHub/Reddit/HN/SO) and forces a different approach
 - **Reuse-first** — checks your own tools, then existing open-source, before building from scratch.
   Includes **web access**: `system_web_tools()` surfaces installed scrape/search/browse CLIs
-  (futron-scrape, crawl4ai, browser-use, scrapy…) so the LLM uses a battle-tested cascade
-  instead of hand-rolling a CAPTCHA-prone scraper. `capabilities` leads with this box.
+  (futron-scrape, crawl4ai, browser-use, scrapy, **agent-reach**…) so the LLM uses a battle-tested
+  cascade instead of hand-rolling a CAPTCHA-prone scraper. `capabilities` leads with this box.
+- **Walled-platform reach (the Rule-6 fix in code)** — `fetch_tweet(url)` (alias `read_x`) reads
+  X/Twitter posts **and long-form Articles** with no API key (FxTwitter→oembed; for articles the
+  body lives in `article.content.blocks`, not `text` — auto-extracted). For Reddit / XiaoHongShu /
+  Bilibili / YouTube / LinkedIn / GitHub, install **Agent Reach** (github.com/Panniantong/Agent-Reach,
+  MIT) — a multi-backend router with `agent-reach doctor --json` showing the live backend per
+  platform. This exists because asserting "this site is unreadable / API-walled" after testing ONE
+  method is the premature negative Rule 6 forbids — free no-auth paths usually read it.
 - **QC self-heal** — `research()` drops garbage (CAPTCHA/empty/error) blocks instead of feeding
   the model noise, and `errorhandling.py` runs a 5-block root-cause protocol (What/Why/Impact/
   Fix/Prevention) + journals every failure, so the harness catches and corrects its own plumbing.

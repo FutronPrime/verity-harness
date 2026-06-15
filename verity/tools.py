@@ -204,14 +204,50 @@ def search_stackoverflow(query: str, n: int = 5) -> str:
 
 
 def fetch_tweet(url: str) -> str:
-    """Read an X/Twitter post WITHOUT an API key, via the public oembed endpoint
-    (same method futron-scrape uses). Works for public tweets."""
+    """Read an X/Twitter post WITHOUT an API key — incl. long-form ARTICLES. Tries the free
+    FxTwitter/FixTweet JSON mirror first (handles articles, where the tweet `text` is EMPTY and
+    the body lives in article.content.blocks), then falls back to the public oembed endpoint.
+
+    Lesson baked in (2026-06-15, after a real Rule-6 lapse): concluding "X is unreadable /
+    auth-walled" after only one method is the premature negative Rule 6 forbids — these free,
+    no-auth paths read public tweets AND articles. Accepts a URL or a bare tweet id."""
+    import json as _j
+    import re as _re
+    m = _re.search(r"(?:x|twitter)\.com/([^/]+)/status/(\d+)", url)
+    user, tid = (m.group(1), m.group(2)) if m else ("i", url if url.isdigit() else "")
+    if tid:
+        for host in ("api.fxtwitter.com", "api.vxtwitter.com"):
+            try:
+                req = urllib.request.Request(f"https://{host}/{user}/status/{tid}",
+                                             headers={"User-Agent": _UA})
+                d = _j.loads(urllib.request.urlopen(req, timeout=15).read())
+                t = d.get("tweet") or d  # vxtwitter is flatter
+                txt = (t.get("text") or "").strip()
+                art = t.get("article")
+                if (not txt) and isinstance(art, dict):
+                    blocks = (art.get("content") or {}).get("blocks", [])
+                    body = "\n".join(b.get("text", "").strip() for b in blocks if b.get("text"))
+                    if body:
+                        return f"[X ARTICLE] {art.get('title', '').strip()}\n\n{body}".strip()
+                if txt:
+                    return txt
+            except Exception:  # noqa: BLE001
+                continue
     try:
         u = "https://publish.twitter.com/oembed?omit_script=true&url=" + urllib.parse.quote(url)
         d = _json(u)
-        return html.unescape(_TAG.sub(" ", d.get("html", ""))).strip() or "[no tweet text]"
+        return (html.unescape(_TAG.sub(" ", d.get("html", ""))).strip()
+                or "[no tweet text — try Jina r.jina.ai/<url> or `agent-reach configure twitter`]")
     except Exception as e:  # noqa: BLE001
-        return f"[x/twitter error: {type(e).__name__} — try fetch() on a nitter mirror]"
+        return (f"[x/twitter error: {type(e).__name__} — FxTwitter+oembed both failed. Next: "
+                f"curl https://r.jina.ai/{url} , or `agent-reach configure twitter` (cookie). "
+                "Do NOT conclude 'unreadable' without trying these.]")
+
+
+# read_x: intuitive alias for fetch_tweet (one implementation, both names).
+def read_x(url_or_id: str, user: str = "") -> str:
+    """Alias of fetch_tweet — read an X/Twitter post or article without a key. See fetch_tweet."""
+    return fetch_tweet(url_or_id)
 
 
 def youtube_transcript(url_or_id: str, max_chars: int = 12000) -> str:
@@ -260,7 +296,19 @@ def system_web_tools() -> str:
     # canonical web-access command-name fragments, in rough preference order
     wanted = ("futron-scrape", "futron-mcp-search", "futron-local-researcher", "futron-cua-fetch",
               "futron-crawl4ai-scrape", "futron-claw", "futron-research", "crawl4ai", "scrapy",
-              "firecrawl", "jina", "trafilatura", "newspaper", "playwright", "browser-use")
+              "firecrawl", "jina", "trafilatura", "newspaper", "playwright", "browser-use",
+              # agent-reach: multi-backend router for walled platforms (Twitter/X, Reddit, XHS,
+              # Bilibili, YouTube, GitHub, LinkedIn) — `agent-reach doctor --json` shows the live
+              # backend per platform. The Rule-6 fix for "this site is unreadable" (2026-06-15).
+              "agent-reach",
+              # platform scrapers (music/chart/social) — verified working 2026-06-14:
+              "futron-pw-chart",       # Playwright JS-render: Shazam charts, generic url+css
+              "futron-dj-tiktok-id",   # TikTok trending → Shazam-FINGERPRINT real song (cracks mistagged "original sound") + Gemini dance ID
+              "futron-dj-viral-dig",   # multi-source viral aggregator: Shazam+TikTok(fp)+Reddit+Billboard+kworb, lib HAVE/NEW
+              "futron-tiktok-cookie",  # live TikTok session cookie from Chrome (enables cookie-auth/CUA)
+              "futron-tiktok-query",   # TikTok search/trending (flaky anti-bot; best-effort)
+              "futron-spotify",        # Spotify get/search/create (token cascade)
+              "futron-dj-crate-dig", "futron-dj-event-builder")  # multi-source crate-dig + radio scrape
     found = []
     seen = set()
     pathdirs = os.environ.get("PATH", "").split(os.pathsep)
@@ -396,7 +444,10 @@ You have a REAL SHELL (ShellExecutor). That means you can:
       sweeps GitHub (tools/forks) + Reddit + Hacker News + StackOverflow + web at once.
       Or target one: search_github / search_reddit / search_hackernews / search_stackoverflow.
       Use this to find uncommon/modified/open-source solutions others have shared.
-  • READ X/TWITTER (no key):  fetch_tweet('https://x.com/user/status/ID')
+  • READ X/TWITTER (no key, incl. long-form ARTICLES):  fetch_tweet('https://x.com/user/status/ID')
+      (alias: read_x). Tries FxTwitter then oembed; for articles the body is auto-extracted.
+      Walled platform (Reddit/XHS/Bilibili/YouTube/LinkedIn/GitHub)? `agent-reach doctor --json`
+      shows the live backend; agent-reach routes the read for you (Rule-6 fix for "unreadable").
   • POST TO X/TWITTER:  from verity.social_x import post_to_x; post_to_x(text, image_path=...)
       Uses the official API (OAuth 1.0a, browser-free, supports media) — set X_CONSUMER_KEY/
       X_CONSUMER_SECRET/X_ACCESS_TOKEN/X_ACCESS_SECRET (free at developer.x.com).
