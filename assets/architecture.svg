@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 1300" font-family="'Arial Narrow','Helvetica Neue',Arial,sans-serif" role="img" aria-labelledby="t d">
   <title id="t">VERITY architecture and control flow</title>
-  <desc id="d">A goal enters the sovereign router (cloud peer chain failing over to a local floor), then runs through the discipline layer — pre-flight, reuse-first discovery, a think/act/verify loop with persistence and QC self-heal, and a done-funnel of evidence, calibration and objective gates with hard stops and persistent memory — producing a verified result, exposed via an always-on proxy and injected into every agent class.</desc>
+  <desc id="d">A goal enters the sovereign router (cloud peer chain failing over to a local floor), then runs through the discipline layer — pre-flight, reuse-first discovery, a think/act/verify loop with persistence and QC self-heal, and a done-funnel of evidence, calibration and objective gates with hard stops and persistent memory — producing a verified result, exposed via an always-on proxy and injected into every agent class. Panels use AVANI UI DNA augmented-ui corner-cut geometry.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070a0d"/><stop offset="1" stop-color="#03060a"/></linearGradient>
     <pattern id="scan" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="1" fill="#0c1a1d" opacity="0.5"/></pattern>
@@ -10,7 +10,6 @@
       .mono{font-family:'SF Mono','Menlo','Consolas',monospace}
       .hv{font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;font-weight:900}
       .nar{font-family:'Arial Narrow',Arial,sans-serif}
-      .lbl{font-family:'SF Mono','Menlo',monospace;letter-spacing:2px}
     </style>
   </defs>
   <rect width="1280" height="1300" fill="url(#bg)"/>
@@ -19,101 +18,111 @@
   <path d="M16,70 V16 H70 M1264,1196 V1250 H1130" fill="none" stroke="#2dd4bf" stroke-width="3"/>
   <rect x="16" y="1246" width="1248" height="4" fill="#d6299e"/>
 
-  <!-- HUD -->
-  <text x="42" y="56" class="mono" font-size="13" letter-spacing="3" fill="#2dd4bf">/// VERITY.ARCHITECTURE</text>
-  <text x="1238" y="56" text-anchor="end" class="mono" font-size="13" letter-spacing="2" fill="#5b8a84">[ FABLE TELLS THE TALE · VERITY VERIFIES IT ]</text>
-  <text x="44" y="118" class="hv" font-size="46" fill="#eafffb">THE TRUTH HARNESS <tspan fill="#2dd4bf">· FLOW</tspan></text>
+  <text x="42" y="56" class="mono" font-size="13" fill="#2dd4bf" text-anchor="start" letter-spacing="3">/// VERITY.ARCHITECTURE</text>
+  <text x="1238" y="56" class="mono" font-size="13" fill="#5b8a84" text-anchor="end" letter-spacing="2">[ FABLE TELLS THE TALE · VERITY VERIFIES IT ]</text>
+  <text x="44" y="118" class="hv" font-size="46" fill="#eafffb" text-anchor="start">THE TRUTH HARNESS <tspan fill="#2dd4bf">· FLOW</tspan></text>
   <rect x="46" y="132" width="360" height="3" fill="#d6299e"/>
-  <text x="44" y="166" class="nar" font-size="19" fill="#8fb8b1">Don't let a vendor hold your AI hostage — or let a model proceed on a confident guess. Every gate below fires on a CODE condition, not the model's goodwill.</text>
-
-  <!-- INPUT -->
-  <rect x="500" y="196" width="280" height="46" rx="23" fill="#0a1417" stroke="#2dd4bf" stroke-width="2"/>
-  <text x="640" y="225" text-anchor="middle" class="hv" font-size="20" fill="#eafffb">GOAL / PROMPT</text>
+  <text x="44" y="166" class="nar" font-size="19" fill="#8fb8b1" text-anchor="start">Don't let a vendor hold your AI hostage — or let a model proceed on a confident guess. Every gate fires on a CODE condition, not the model's goodwill.</text>
+  <rect x="500.0" y="196" width="280" height="46" rx="23.0" fill="#0a1417" stroke="#2dd4bf" stroke-width="2"/>
+  <text x="640" y="225.0" class="hv" font-size="20" fill="#eafffb" text-anchor="middle">GOAL / PROMPT</text>
   <line x1="640" y1="242" x2="640" y2="282" stroke="#2dd4bf" stroke-width="2" marker-end="url(#ar)"/>
-
-  <!-- ① ROUTER -->
-  <rect x="60" y="288" width="1160" height="150" rx="6" fill="#081012" stroke="#1f5c54" stroke-width="1.5"/>
-  <text x="84" y="318" class="lbl" font-size="14" fill="#2dd4bf">① SOVEREIGN ROUTER</text>
-  <text x="1196" y="318" text-anchor="end" class="nar" font-size="15" fill="#5b8a84">capability-preserving failover · never a single point of failure</text>
-  <!-- tier 1 chain -->
-  <text x="84" y="350" class="nar" font-size="14" fill="#7fb3ab">TIER 1 — peer chain (each self-retries, then → next peer)</text>
-  <g>
-    <rect x="84" y="360" width="150" height="56" rx="4" fill="#0a1417" stroke="#1f5c54"/><text x="159" y="384" text-anchor="middle" class="hv" font-size="16" fill="#eafffb">Opus 4.8</text><text x="159" y="404" text-anchor="middle" class="nar" font-size="12" fill="#5b8a84">Anthropic</text>
-    <line x1="234" y1="388" x2="258" y2="388" stroke="#2dd4bf" stroke-width="2" marker-end="url(#ar)"/>
-    <rect x="262" y="360" width="150" height="56" rx="4" fill="#0a1417" stroke="#1f5c54"/><text x="337" y="384" text-anchor="middle" class="hv" font-size="16" fill="#eafffb">GPT-5.5</text><text x="337" y="404" text-anchor="middle" class="nar" font-size="12" fill="#5b8a84">OpenAI</text>
-    <line x1="412" y1="388" x2="436" y2="388" stroke="#2dd4bf" stroke-width="2" marker-end="url(#ar)"/>
-    <rect x="440" y="360" width="150" height="56" rx="4" fill="#0a1417" stroke="#1f5c54"/><text x="515" y="384" text-anchor="middle" class="hv" font-size="16" fill="#eafffb">Gemini 3.1</text><text x="515" y="404" text-anchor="middle" class="nar" font-size="12" fill="#5b8a84">Google</text>
-    <text x="600" y="392" class="nar" font-size="13" fill="#586872">…peers</text>
-  </g>
-  <!-- failover arrow to floor -->
-  <line x1="655" y1="388" x2="690" y2="388" stroke="#d6299e" stroke-width="2" marker-end="url(#arm)"/>
-  <text x="672" y="378" text-anchor="middle" class="nar" font-size="11" fill="#d6299e">all down</text>
-  <rect x="694" y="354" width="500" height="68" rx="4" fill="#0a1417" stroke="#2dd4bf" stroke-width="2"/>
-  <text x="714" y="382" class="hv" font-size="17" fill="#2dd4bf">TIER 0 — LOCAL FLOOR (Ollama, on YOUR disk)</text>
-  <text x="714" y="406" class="nar" font-size="14" fill="#8fb8b1">un-revocable open weights · last resort, never first · sovereignty</text>
+  <path d="M60,288 L1182,288 L1220,326 L1220,438 L82,438 L60,416 Z" fill="#0a1417" stroke="#2dd4bf" stroke-width="1.5"/>
+  <path d="M64,292 L1181,292 L1216,327 L1216,434 L83,434 L64,415 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="84" y="318" class="mono" font-size="14" fill="#2dd4bf" text-anchor="start" letter-spacing="2">① SOVEREIGN ROUTER</text>
+  <text x="1196" y="318" class="nar" font-size="15" fill="#5b8a84" text-anchor="end">capability-preserving failover · never a single point of failure</text>
+  <text x="84" y="350" class="nar" font-size="14" fill="#7fb3ab" text-anchor="start">TIER 1 — peer chain (each self-retries, then → next peer)</text>
+  <path d="M84,360 L220,360 L234,374 L234,416 L93,416 L84,407 Z" fill="#0c191c" stroke="#2dd4bf" stroke-width="1.2"/>
+  <path d="M88,364 L219,364 L230,375 L230,412 L94,412 L88,406 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="159" y="384" class="hv" font-size="16" fill="#eafffb" text-anchor="middle">Opus 4.8</text>
+  <text x="159" y="404" class="nar" font-size="12" fill="#5b8a84" text-anchor="middle">Anthropic</text>
+  <line x1="234" y1="388" x2="258" y2="388" stroke="#2dd4bf" stroke-width="2" marker-end="url(#ar)"/>
+  <path d="M262,360 L398,360 L412,374 L412,416 L271,416 L262,407 Z" fill="#0c191c" stroke="#2dd4bf" stroke-width="1.2"/>
+  <path d="M266,364 L397,364 L408,375 L408,412 L272,412 L266,406 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="337" y="384" class="hv" font-size="16" fill="#eafffb" text-anchor="middle">GPT-5.5</text>
+  <text x="337" y="404" class="nar" font-size="12" fill="#5b8a84" text-anchor="middle">OpenAI</text>
+  <line x1="412" y1="388" x2="436" y2="388" stroke="#2dd4bf" stroke-width="2" marker-end="url(#ar)"/>
+  <path d="M440,360 L576,360 L590,374 L590,416 L449,416 L440,407 Z" fill="#0c191c" stroke="#2dd4bf" stroke-width="1.2"/>
+  <path d="M444,364 L575,364 L586,375 L586,412 L450,412 L444,406 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="515" y="384" class="hv" font-size="16" fill="#eafffb" text-anchor="middle">Gemini 3.1</text>
+  <text x="515" y="404" class="nar" font-size="12" fill="#5b8a84" text-anchor="middle">Google</text>
+  <text x="628" y="392" class="nar" font-size="13" fill="#586872" text-anchor="start">…peers</text>
+  <line x1="690" y1="388" x2="726" y2="388" stroke="#d6299e" stroke-width="2" marker-end="url(#arm)"/>
+  <text x="708" y="378" class="nar" font-size="11" fill="#d6299e" text-anchor="middle">all down</text>
+  <path d="M730,354 L1186,354 L1206,374 L1206,422 L742,422 L730,410 Z" fill="#0a1417" stroke="#2dd4bf" stroke-width="2"/>
+  <path d="M734,358 L1185,358 L1202,375 L1202,418 L743,418 L734,409 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="750" y="382" class="hv" font-size="17" fill="#2dd4bf" text-anchor="start">TIER 0 — LOCAL FLOOR (Ollama, on YOUR disk)</text>
+  <text x="750" y="406" class="nar" font-size="13.5" fill="#8fb8b1" text-anchor="start">un-revocable open weights · last resort, never first · sovereignty</text>
   <line x1="640" y1="438" x2="640" y2="478" stroke="#2dd4bf" stroke-width="2" marker-end="url(#ar)"/>
-
-  <!-- ② DISCIPLINE LAYER -->
-  <rect x="60" y="484" width="1160" height="660" rx="6" fill="#081012" stroke="#1f5c54" stroke-width="1.5"/>
-  <text x="84" y="514" class="lbl" font-size="14" fill="#2dd4bf">② DISCIPLINE LAYER</text>
-  <text x="1196" y="514" text-anchor="end" class="nar" font-size="15" fill="#5b8a84">deterministic enforcers — the harness decides when discipline fires, not the model</text>
-
-  <!-- entry gates -->
-  <rect x="84" y="532" width="540" height="70" rx="4" fill="#0a1417" stroke="#1f5c54"/>
-  <text x="104" y="558" class="hv" font-size="15" fill="#eafffb">🧠 RULE 0 · METACOGNITIVE PRE-FLIGHT</text>
-  <text x="104" y="582" class="nar" font-size="13.5" fill="#8fb8b1">live-search the CURRENT best approach → inject it (may supersede stale training)</text>
-  <rect x="640" y="532" width="554" height="70" rx="4" fill="#0a1417" stroke="#1f5c54"/>
-  <text x="660" y="558" class="hv" font-size="15" fill="#eafffb">♻ REUSE-FIRST DISCOVERY</text>
-  <text x="660" y="582" class="nar" font-size="13.5" fill="#8fb8b1">your own tools → existing OSS → only then build (web-reach: x-read, agent-reach)</text>
+  <path d="M60,484 L1178,484 L1220,526 L1220,1144 L84,1144 L60,1120 Z" fill="#0a1417" stroke="#2dd4bf" stroke-width="1.5"/>
+  <path d="M64,488 L1177,488 L1216,527 L1216,1140 L85,1140 L64,1119 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="84" y="514" class="mono" font-size="14" fill="#2dd4bf" text-anchor="start" letter-spacing="2">② DISCIPLINE LAYER</text>
+  <text x="1196" y="514" class="nar" font-size="15" fill="#5b8a84" text-anchor="end">deterministic enforcers — the harness decides when discipline fires, not the model</text>
+  <path d="M84,532 L604,532 L624,552 L624,602 L96,602 L84,590 Z" fill="#0a1417" stroke="#2dd4bf" stroke-width="1.3"/>
+  <path d="M88,536 L603,536 L620,553 L620,598 L97,598 L88,589 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="104" y="558" class="hv" font-size="15" fill="#eafffb" text-anchor="start">🧠 RULE 0 · METACOGNITIVE PRE-FLIGHT</text>
+  <text x="104" y="582" class="nar" font-size="13.5" fill="#8fb8b1" text-anchor="start">live-search the CURRENT best approach → inject it (may supersede stale training)</text>
+  <path d="M640,532 L1174,532 L1194,552 L1194,602 L652,602 L640,590 Z" fill="#0a1417" stroke="#2dd4bf" stroke-width="1.3"/>
+  <path d="M644,536 L1173,536 L1190,553 L1190,598 L653,598 L644,589 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="660" y="558" class="hv" font-size="15" fill="#eafffb" text-anchor="start">♻ REUSE-FIRST DISCOVERY</text>
+  <text x="660" y="582" class="nar" font-size="13.5" fill="#8fb8b1" text-anchor="start">your own tools → existing OSS → only then build (web-reach: x-read, agent-reach)</text>
   <line x1="354" y1="602" x2="354" y2="634" stroke="#2dd4bf" stroke-width="2" marker-end="url(#ar)"/>
-
-  <!-- the loop -->
-  <rect x="84" y="640" width="760" height="300" rx="6" fill="#0a1417" stroke="#2dd4bf" stroke-width="1.5"/>
-  <text x="104" y="668" class="lbl" font-size="13" fill="#2dd4bf">VERIFIED LOOP  ·  think → act → VERIFY → recover</text>
-  <!-- think act verify row -->
-  <rect x="104" y="684" width="200" height="58" rx="4" fill="#0c191c" stroke="#1f5c54"/><text x="204" y="709" text-anchor="middle" class="hv" font-size="15" fill="#eafffb">THINK</text><text x="204" y="729" text-anchor="middle" class="nar" font-size="12" fill="#5b8a84">plan one minimal step</text>
+  <path d="M84,640 L804,640 L844,680 L844,940 L108,940 L84,916 Z" fill="#0a1417" stroke="#fcee0a" stroke-width="1.6"/>
+  <path d="M88,644 L803,644 L840,681 L840,936 L109,936 L88,915 Z" fill="none" stroke="#fcee0a" stroke-width="0.7" opacity="0.38"/>
+  <text x="104" y="668" class="mono" font-size="13" fill="#fcee0a" text-anchor="start" letter-spacing="1">VERIFIED LOOP  ·  think → act → VERIFY → recover</text>
+  <path d="M104,684 L290,684 L304,698 L304,742 L113,742 L104,733 Z" fill="#0c191c" stroke="#2dd4bf" stroke-width="1.1"/>
+  <path d="M108,688 L289,688 L300,699 L300,738 L114,738 L108,732 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="204" y="709" class="hv" font-size="15" fill="#eafffb" text-anchor="middle">THINK</text>
+  <text x="204" y="729" class="nar" font-size="12" fill="#5b8a84" text-anchor="middle">plan one minimal step</text>
   <line x1="304" y1="713" x2="328" y2="713" stroke="#2dd4bf" stroke-width="2" marker-end="url(#ar)"/>
-  <rect x="332" y="684" width="200" height="58" rx="4" fill="#0c191c" stroke="#1f5c54"/><text x="432" y="709" text-anchor="middle" class="hv" font-size="15" fill="#eafffb">ACT</text><text x="432" y="729" text-anchor="middle" class="nar" font-size="12" fill="#5b8a84">real shell command</text>
+  <path d="M332,684 L518,684 L532,698 L532,742 L341,742 L332,733 Z" fill="#0c191c" stroke="#2dd4bf" stroke-width="1.1"/>
+  <path d="M336,688 L517,688 L528,699 L528,738 L342,738 L336,732 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="432" y="709" class="hv" font-size="15" fill="#eafffb" text-anchor="middle">ACT</text>
+  <text x="432" y="729" class="nar" font-size="12" fill="#5b8a84" text-anchor="middle">real shell command</text>
   <line x1="532" y1="713" x2="556" y2="713" stroke="#2dd4bf" stroke-width="2" marker-end="url(#ar)"/>
-  <rect x="560" y="684" width="260" height="58" rx="4" fill="#0c191c" stroke="#2dd4bf"/><text x="690" y="709" text-anchor="middle" class="hv" font-size="15" fill="#2dd4bf">VERIFY</text><text x="690" y="729" text-anchor="middle" class="nar" font-size="12" fill="#8fb8b1">adversarial · cheap separate tier · maker≠checker</text>
-  <!-- ok path -->
-  <text x="724" y="768" text-anchor="middle" class="mono" font-size="12" fill="#2dd4bf">✓ OK → next step ↺</text>
-  <!-- fail recovery cycle -->
-  <rect x="104" y="784" width="716" height="58" rx="4" fill="#10090d" stroke="#d6299e" stroke-width="1.5"/>
-  <text x="124" y="809" class="hv" font-size="14" fill="#d6299e">✗ FAIL →</text>
-  <text x="214" y="809" class="nar" font-size="14" fill="#eafffb">QC self-heal (drop CAPTCHA/empty/error)</text>
-  <text x="124" y="829" class="nar" font-size="13.5" fill="#8fb8b1">PERSISTENCE: auto-research the obstacle (GitHub/Reddit/HN/SO) → force a DIFFERENT approach</text>
+  <path d="M560,684 L804,684 L820,700 L820,742 L570,742 L560,732 Z" fill="#0c191c" stroke="#2dd4bf" stroke-width="1.6"/>
+  <path d="M564,688 L803,688 L816,701 L816,738 L571,738 L564,731 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="690" y="709" class="hv" font-size="15" fill="#2dd4bf" text-anchor="middle">VERIFY</text>
+  <text x="690" y="729" class="nar" font-size="12" fill="#8fb8b1" text-anchor="middle">adversarial · separate cheap tier · maker≠checker</text>
+  <text x="724" y="768" class="mono" font-size="12" fill="#2dd4bf" text-anchor="middle">✓ OK → next step ↺</text>
+  <path d="M104,784 L804,784 L820,800 L820,842 L114,842 L104,832 Z" fill="#10090d" stroke="#d6299e" stroke-width="1.5"/>
+  <path d="M108,788 L803,788 L816,801 L816,838 L115,838 L108,831 Z" fill="none" stroke="#d6299e" stroke-width="0.7" opacity="0.38"/>
+  <text x="124" y="809" class="hv" font-size="14" fill="#d6299e" text-anchor="start">✗ FAIL →</text>
+  <text x="214" y="809" class="nar" font-size="14" fill="#eafffb" text-anchor="start">QC self-heal (drop CAPTCHA/empty/error)</text>
+  <text x="124" y="829" class="nar" font-size="13.5" fill="#8fb8b1" text-anchor="start">PERSISTENCE: auto-research the obstacle (GitHub/Reddit/HN/SO) → force a DIFFERENT approach</text>
   <path d="M104,813 H92 V713 H100" fill="none" stroke="#d6299e" stroke-width="2" marker-end="url(#arm)"/>
-  <text x="104" y="878" class="nar" font-size="13" fill="#586872">No head-bumping: refuses to quit on one failed approach; no reasoning over garbage output.</text>
-  <text x="104" y="912" class="nar" font-size="13" fill="#586872">PLAN-ONLY by default · allowlisted / full shell opt-in · destructive ops blocked.</text>
-
-  <!-- DONE FUNNEL (right column inside discipline) -->
-  <text x="884" y="668" class="lbl" font-size="13" fill="#2dd4bf">"DONE" PASSES 3 GATES</text>
-  <rect x="884" y="682" width="310" height="44" rx="4" fill="#0c191c" stroke="#1f5c54"/><text x="900" y="709" class="nar" font-size="14" fill="#eafffb">① EVIDENCE — no "done" w/o verified proof</text>
+  <text x="104" y="878" class="nar" font-size="13" fill="#586872" text-anchor="start">No head-bumping: refuses to quit on one failed approach; never reasons over garbage output.</text>
+  <text x="104" y="912" class="nar" font-size="13" fill="#586872" text-anchor="start">PLAN-ONLY by default · allowlisted / full shell opt-in · destructive ops blocked.</text>
+  <text x="884" y="668" class="mono" font-size="13" fill="#2dd4bf" text-anchor="start" letter-spacing="1">"DONE" PASSES 3 GATES</text>
+  <path d="M884,682 L1180,682 L1194,696 L1194,726 L893,726 L884,717 Z" fill="#0c191c" stroke="#2dd4bf" stroke-width="1.2"/>
+  <path d="M888,686 L1179,686 L1190,697 L1190,722 L894,722 L888,716 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="900" y="709" class="nar" font-size="14" fill="#eafffb" text-anchor="start">① EVIDENCE — no "done" w/o proof</text>
   <line x1="1039" y1="726" x2="1039" y2="742" stroke="#2dd4bf" stroke-width="1.5" marker-end="url(#ar)"/>
-  <rect x="884" y="746" width="310" height="44" rx="4" fill="#0c191c" stroke="#1f5c54"/><text x="900" y="773" class="nar" font-size="14" fill="#eafffb">② CALIBRATION — challenge overconfidence</text>
+  <path d="M884,746 L1180,746 L1194,760 L1194,790 L893,790 L884,781 Z" fill="#0c191c" stroke="#2dd4bf" stroke-width="1.2"/>
+  <path d="M888,750 L1179,750 L1190,761 L1190,786 L894,786 L888,780 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="900" y="773" class="nar" font-size="14" fill="#eafffb" text-anchor="start">② CALIBRATION — kill overconfidence</text>
   <line x1="1039" y1="790" x2="1039" y2="806" stroke="#2dd4bf" stroke-width="1.5" marker-end="url(#ar)"/>
-  <rect x="884" y="810" width="310" height="44" rx="4" fill="#0c191c" stroke="#d6299e"/><text x="900" y="837" class="nar" font-size="14" fill="#eafffb">③ OBJECTIVE GATE — test/build exits 0</text>
+  <path d="M884,810 L1180,810 L1194,824 L1194,854 L893,854 L884,845 Z" fill="#0c191c" stroke="#d6299e" stroke-width="1.4"/>
+  <path d="M888,814 L1179,814 L1190,825 L1190,850 L894,850 L888,844 Z" fill="none" stroke="#d6299e" stroke-width="0.7" opacity="0.38"/>
+  <text x="900" y="837" class="nar" font-size="14" fill="#eafffb" text-anchor="start">③ OBJECTIVE GATE — test exits 0</text>
   <line x1="1039" y1="854" x2="1039" y2="884" stroke="#d6299e" stroke-width="2" marker-end="url(#arm)"/>
-  <rect x="884" y="888" width="310" height="44" rx="4" fill="#0a1417" stroke="#2dd4bf" stroke-width="2"/><text x="1039" y="916" text-anchor="middle" class="hv" font-size="15" fill="#2dd4bf">✓ ACCEPT "DONE"</text>
-
-  <!-- hard stops + memory strip -->
-  <rect x="84" y="958" width="556" height="64" rx="4" fill="#0a1417" stroke="#1f5c54"/>
-  <text x="104" y="982" class="hv" font-size="14" fill="#eafffb">⏱ HARD STOPS</text>
-  <text x="104" y="1004" class="nar" font-size="13.5" fill="#8fb8b1">max_steps · --deadline (wall-clock) · goal reanchor — a loop can't run until it burns the bill</text>
-  <rect x="656" y="958" width="538" height="64" rx="4" fill="#0a1417" stroke="#1f5c54"/>
-  <text x="676" y="982" class="hv" font-size="14" fill="#eafffb">🗄 PERSISTENT MEMORY</text>
-  <text x="676" y="1004" class="nar" font-size="13.5" fill="#8fb8b1">recall prior verified outcomes · remember only what passed (~/.verity-harness)</text>
-  <text x="84" y="1058" class="lbl" font-size="13" fill="#5b8a84">+ QC SELF-HEAL · 5-BLOCK ERROR PROTOCOL (What/Why/Impact/Fix/Prevention) · DECISION LEDGER → `verity proof`</text>
-  <text x="84" y="1086" class="lbl" font-size="13" fill="#5b8a84">+ AUTONOMY: on "proceed", chain EVERY goal to completion; pause only for destructive/ambiguous/outward acts</text>
+  <path d="M884,888 L1178,888 L1194,904 L1194,932 L894,932 L884,922 Z" fill="#0a1417" stroke="#2dd4bf" stroke-width="2"/>
+  <path d="M888,892 L1177,892 L1190,905 L1190,928 L895,928 L888,921 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="1039" y="916" class="hv" font-size="15" fill="#2dd4bf" text-anchor="middle">✓ ACCEPT "DONE"</text>
+  <path d="M84,958 L622,958 L640,976 L640,1022 L95,1022 L84,1011 Z" fill="#0a1417" stroke="#2dd4bf" stroke-width="1.3"/>
+  <path d="M88,962 L621,962 L636,977 L636,1018 L96,1018 L88,1010 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="104" y="982" class="hv" font-size="14" fill="#eafffb" text-anchor="start">⏱ HARD STOPS</text>
+  <text x="104" y="1004" class="nar" font-size="13.5" fill="#8fb8b1" text-anchor="start">max_steps · --deadline (wall-clock) · goal reanchor — a loop can't run until it burns the bill</text>
+  <path d="M656,958 L1176,958 L1194,976 L1194,1022 L667,1022 L656,1011 Z" fill="#0a1417" stroke="#2dd4bf" stroke-width="1.3"/>
+  <path d="M660,962 L1175,962 L1190,977 L1190,1018 L668,1018 L660,1010 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="676" y="982" class="hv" font-size="14" fill="#eafffb" text-anchor="start">🗄 PERSISTENT MEMORY</text>
+  <text x="676" y="1004" class="nar" font-size="13.5" fill="#8fb8b1" text-anchor="start">recall prior verified outcomes · remember only what passed (~/.verity-harness)</text>
+  <text x="84" y="1058" class="mono" font-size="13" fill="#5b8a84" text-anchor="start" letter-spacing="1">+ QC SELF-HEAL · 5-BLOCK ERROR PROTOCOL (What/Why/Impact/Fix/Prevention) · LEDGER → `verity proof`</text>
+  <text x="84" y="1086" class="mono" font-size="13" fill="#5b8a84" text-anchor="start" letter-spacing="1">+ AUTONOMY: on "proceed", chain EVERY goal to completion; pause only for destructive/ambiguous acts</text>
   <line x1="640" y1="1144" x2="640" y2="1170" stroke="#2dd4bf" stroke-width="2" marker-end="url(#ar)"/>
-
-  <!-- OUTPUT -->
-  <rect x="360" y="1108" width="560" height="40" rx="20" fill="#0a1417" stroke="#2dd4bf" stroke-width="2"/>
-  <text x="640" y="1134" text-anchor="middle" class="hv" font-size="16" fill="#eafffb">VERIFIED RESULT  +  auditable proof ledger</text>
-
-  <!-- ③ DISTRIBUTION -->
-  <rect x="60" y="1176" width="1160" height="56" rx="6" fill="#081012" stroke="#1f5c54" stroke-width="1.5"/>
-  <text x="84" y="1199" class="lbl" font-size="13" fill="#2dd4bf">③ ALWAYS-ON · UNIVERSAL</text>
-  <text x="84" y="1221" class="nar" font-size="14" fill="#8fb8b1">Proxy :11500 (OpenAI-compatible — any client inherits gates + failover)   ·   injected into → Claude Code · Codex · Gemini CLI · local/OSS models</text>
+  <rect x="360.0" y="1108" width="560" height="40" rx="20.0" fill="#0a1417" stroke="#2dd4bf" stroke-width="2"/>
+  <text x="640" y="1134.0" class="hv" font-size="16" fill="#eafffb" text-anchor="middle">VERIFIED RESULT  +  auditable proof ledger</text>
+  <path d="M60,1176 L1198,1176 L1220,1198 L1220,1232 L73,1232 L60,1219 Z" fill="#0a1417" stroke="#2dd4bf" stroke-width="1.5"/>
+  <path d="M64,1180 L1197,1180 L1216,1199 L1216,1228 L74,1228 L64,1218 Z" fill="none" stroke="#2dd4bf" stroke-width="0.7" opacity="0.38"/>
+  <text x="84" y="1199" class="mono" font-size="13" fill="#2dd4bf" text-anchor="start" letter-spacing="2">③ ALWAYS-ON · UNIVERSAL</text>
+  <text x="84" y="1221" class="nar" font-size="14" fill="#8fb8b1" text-anchor="start">Proxy :11500 (OpenAI-compatible — any client inherits gates + failover)   ·   injected into → Claude Code · Codex · Gemini CLI · local/OSS models</text>
 </svg>
