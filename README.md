@@ -6,6 +6,16 @@
 
 > **Fable tells the tale. Verity verifies it.**
 
+### The open-source, model-agnostic Fable killer.
+
+Make the models you **own** — a local 8B *or* a frontier flagship — verify, self-correct, and punch
+above their weight. Anthropic's **Fable** and **Mythos** can be banned, suspended, or priced out
+overnight; VERITY puts that *kind* of disciplined capability into weights **you** control, today.
+Measured: it took **Opus 4.8 from 25% → 100%** on current-info tasks, and a **4B from 33% → 67%** on
+reasoning traps — by forcing one rule: *check your work on a separate model before you're allowed to
+say "done."* (Honest counter-point kept throughout: on tasks a model already aces one-shot, the lift
+is ~0 — VERITY helps where a model **needs** help, not where it doesn't.)
+
 **Don't let any single vendor hold your AI hostage — and don't let any model
 proceed on confident guesses.** A zero-dependency harness that (1) survives a
 vendor vanishing overnight by failing over to open weights you own, and (2)
@@ -27,6 +37,25 @@ stop my agent from confidently shipping wrong answers?"
 
 **1. Sovereignty** — automatic, silent failover from cloud → local open weights.
 **2. A discipline layer** — verify · evidence-gate · **calibration / anti-overconfidence** · configurable guardrail. This is the differentiator: almost nothing else has an anti-overconfidence gate that makes a model *prove it's not guessing*.
+
+## Autonomy with a spine
+
+VERITY agents don't just *answer* — they **work**, and they **don't give up**:
+
+- **Research before acting** — live-search the current best approach for the exact goal (find, don't
+  recall). Stale weights stop being the ceiling.
+- **Verify on a *separate* model** — no self-grading. "Done" must clear an evidence gate, a calibration
+  / anti-overconfidence gate, and (opt-in) an **objective test** that has to exit 0.
+- **Self-correct & persist** — on a wall, they research the *obstacle itself* (GitHub / Reddit / X /
+  StackOverflow) and force a **different** approach instead of quitting or head-bumping.
+- **Automate through blockers** — drive a browser / automation to get past what stops a one-shot call,
+  so long, multi-step tasks actually *finish*. ("It's impossible / only a human can" is a **forbidden
+  conclusion** until they've actually read the logs, tried the repair, and searched for the fix —
+  enforced mechanically by a Stop-hook + a server-side guard, not the model's goodwill.)
+- **Multi-agent swarm** — `verity swarm` fans out research + execution, runs an adversarial critic, and
+  synthesizes — every step gated.
+
+This isn't a personality prompt asking the model to be diligent; it's enforced on **code conditions**.
 
 ## 100% self-contained
 
