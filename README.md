@@ -12,9 +12,11 @@ Make the models you **own** — a local 8B *or* a frontier flagship — verify, 
 above their weight. Anthropic's **Fable** and **Mythos** can be banned, suspended, or priced out
 overnight; VERITY puts that *kind* of disciplined capability into weights **you** control, today.
 Measured: it took **Opus 4.8 from 25% → 100%** on current-info tasks, and a **4B from 33% → 67%** on
-reasoning traps — by forcing one rule: *check your work on a separate model before you're allowed to
-say "done."* (Honest counter-point kept throughout: on tasks a model already aces one-shot, the lift
-is ~0 — VERITY helps where a model **needs** help, not where it doesn't.)
+reasoning traps — by forcing one rule: *check your work, adversarially, before you're allowed to say
+"done."* (That check can run on a separate/cheaper model, or — for a single-model or local-only setup —
+the **same** model in a fresh discrimination-mode pass; the bias-free separate model is an opt-in
+upgrade, not a requirement. Honest counter-point kept throughout: on tasks a model already aces
+one-shot, the lift is ~0 — VERITY helps where a model **needs** help, not where it doesn't.)
 
 **Don't let any single vendor hold your AI hostage — and don't let any model
 proceed on confident guesses.** A zero-dependency harness that (1) survives a
@@ -44,8 +46,10 @@ VERITY agents don't just *answer* — they **work**, and they **don't give up**:
 
 - **Research before acting** — live-search the current best approach for the exact goal (find, don't
   recall). Stale weights stop being the ceiling.
-- **Verify on a *separate* model** — no self-grading. "Done" must clear an evidence gate, a calibration
-  / anti-overconfidence gate, and (opt-in) an **objective test** that has to exit 0.
+- **Verify in discrimination mode** — re-checked adversarially by a *separate*/cheaper model, or (single-
+  model & local-only setups) the **same** model in a fresh "did this REALLY work? prove it" pass — never
+  self-grading in generation mode. "Done" must clear an evidence gate, a calibration / anti-overconfidence
+  gate, and (opt-in) an **objective test** that has to exit 0.
 - **Self-correct & persist** — on a wall, they research the *obstacle itself* (GitHub / Reddit / X /
   StackOverflow) and force a **different** approach instead of quitting or head-bumping.
 - **Automate through blockers** — drive a browser / automation to get past what stops a one-shot call,

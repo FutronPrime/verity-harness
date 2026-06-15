@@ -483,6 +483,10 @@ def system_web_tools() -> str:
     wanted = ("futron-scrape", "futron-mcp-search", "futron-local-researcher", "futron-cua-fetch",
               "futron-crawl4ai-scrape", "futron-claw", "futron-research", "crawl4ai", "scrapy",
               "firecrawl", "jina", "trafilatura", "newspaper", "playwright", "browser-use",
+              # AGENTIC AUTOMATION (click/fill/navigate/login — the 'automate through blockers' arsenal):
+              # browser-use (pip, agentic browser actions), openclick (npm, a11y-driven clicking),
+              # avani-cua/futron-claw (CUA). The agent PREFERS these over hand-driving a brittle scraper.
+              "openclick", "avani-cua",
               # agent-reach: multi-backend router for walled platforms (Twitter/X, Reddit, XHS,
               # Bilibili, YouTube, GitHub, LinkedIn) — `agent-reach doctor --json` shows the live
               # backend per platform. The Rule-6 fix for "this site is unreadable" (2026-06-15).

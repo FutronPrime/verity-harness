@@ -74,9 +74,23 @@ def _cmd_web_setup():
         print("[web-setup] pip install failed — see output above.", file=sys.stderr); sys.exit(1)
     print("[web-setup] downloading Chromium (one-time, ~170MB; shared across installs) …")
     subprocess.run([py, "-m", "playwright", "install", "chromium"], check=False)
-    print("[web-setup] done ✅  Auth-walled X Articles now read via your logged-in browser:")
-    print('    python3 -m verity x-read "https://x.com/i/article/<id>"')
+    # AGENTIC AUTOMATION (the 'automate through blockers' arsenal): browser-use drives a real browser
+    # to click/fill/navigate/log-in so long, multi-step tasks finish — the open-source CUA the discipline
+    # gates tell the agent to reach for. Best-effort; the reader path above works without it.
+    print("[web-setup] installing browser-use (agentic browser automation) …")
+    subprocess.run([py, "-m", "pip", "install", "-q", "browser-use"], check=False)
+    import shutil as _sh
+    if _sh.which("npm"):
+        print("[web-setup] installing openclick (accessibility-driven clicking, npm) …")
+        subprocess.run(["npm", "install", "-g", "openclick"], check=False)
+    else:
+        print("[web-setup] (npm not found — skip openclick; browser-use covers agentic automation)")
+    print("[web-setup] done ✅")
+    print("  • Read walled X Articles:  python3 -m verity x-read \"https://x.com/i/article/<id>\"")
     print("    (be logged into x.com in Chrome — the cookie is auto-decrypted, never uploaded)")
+    print("  • Agentic automation now available to the agent: browser-use (drive a browser to click/")
+    print("    fill/login & get past blockers), plus openclick if npm was present. `verity capabilities`")
+    print("    surfaces these so the agent USES them instead of giving up on an interactive page.")
 
 
 def main(argv: list[str]) -> None:

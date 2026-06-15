@@ -77,7 +77,12 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
   forces a proactive search where solutions live (GitHub / Google / Reddit / X / YouTube / SO)
   **before** any such claim stands. Someone has almost certainly open-sourced or documented it.
   *Don't assume scarcity — go look.* (This is what turns "no free X API" into "twikit posts free".)
-- **Verify** every action (adversarial: did it REALLY work?)
+- **Verify** every action (adversarial: did it REALLY work?). Runs in *discrimination mode* — by a
+  separate/cheaper model (`LLM_VERIFIER_MODEL`, opt-in, bias-free) OR, by default / for single-model &
+  local-only setups, the SAME model in a fresh "prove it worked" pass. A separate model is an upgrade,
+  not a requirement — verification is a different cognitive posture than generation, even for one model.
+  (And note: the *proactive* "it can't → go actually solve it" is NOT a model check at all — it's the
+  re-injected rule + Stop-hook/proxy guard firing on a code condition. No second model needed for that.)
 - **Objective completion gate** (opt-in `solve --gate "<cmd>"`) — `done` is REJECTED until your real
   test/build/lint command exits 0. The maker doesn't declare victory; an exit code does. The
   loop-engineering lesson in code — a stop condition that's an LLM opinion is "a second optimist";
@@ -96,6 +101,15 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
   Includes **web access**: `system_web_tools()` surfaces installed scrape/search/browse CLIs
   (futron-scrape, crawl4ai, browser-use, scrapy, **agent-reach**…) so the LLM uses a battle-tested
   cascade instead of hand-rolling a CAPTCHA-prone scraper. `capabilities` leads with this box.
+- **Agentic automation (so "automate through blockers" is real, not a slogan)** — the gates tell the
+  agent to drive a browser past what a one-shot call can't do (click, fill, log in, get past a
+  challenge). `python3 -m verity web-setup` installs the open-source stack: **Playwright** (low-level
+  render/cookie-inject — the path that auto-read auth-walled X Articles AND auto-completed a real OAuth
+  login through Cloudflare by using the REAL Chrome binary, not the flagged automation browser),
+  **browser-use** (agentic click/fill/navigate), and **openclick** (a11y-driven clicking, if npm). On
+  systems that have a richer CUA (FUTRON's futron-claw/avani-cua, or `computer-use`/Claude-in-Chrome
+  MCPs), `system_web_tools()` surfaces those too and the agent prefers them. Defer to a human ONLY at a
+  real boundary (password/2FA/CAPTCHA/payment) — and the Stop-hook enforces that you TRIED automation first.
 - **Walled-platform reach (the Rule-6 fix in code)** — `fetch_tweet(url)` (alias `read_x`, CLI
   `python3 -m verity x-read <url>`) reads X/Twitter posts **and long-form Articles** with no API
   key. Handles every URL form: `x.com/<user>/status/<id>`, `/i/status/<id>`, `/i/web/status/<id>`,
