@@ -62,8 +62,15 @@ def run(tiers=None, verbose: bool = True) -> dict:
                 pass
             ledger.log(ledger.SEARCH, trigger="eval trap", detail=t["search"],
                        verdict="FOUND" if evidence.strip() else "NONE", evidence=evidence[:120])
-            hc = _hit(_txt(ask(t["q"] + "\n\n[Search findings — answer from these]:\n" + evidence,
-                               system=PRIME_DIRECTIVE, **kw)), t["markers"])
+            # STRONG GROUNDING: weaker/cheaper models (e.g. gemini-flash) will ignore softly-labeled
+            # findings and answer from stale priors anyway. Force EXTRACTION: the findings are current,
+            # they supersede training, the answer is in them, quote the exact value, don't hedge.
+            grounded = (f"{t['q']}\n\n=== LIVE SEARCH FINDINGS (current — POST your training cutoff, so they "
+                        f"SUPERSEDE your training; the exact answer IS in here) ===\n{evidence}\n\n"
+                        f"Answer using ONLY these findings: locate the exact id/value/name that appears in "
+                        f"them and state it directly (quote it verbatim). Do NOT answer from memory, do NOT "
+                        f"hedge, do NOT say you're unsure — extract it.")
+            hc = _hit(_txt(ask(grounded, system=PRIME_DIRECTIVE, **kw)), t["markers"])
         except Exception as e:  # noqa: BLE001
             nc = hc = False
             if verbose:

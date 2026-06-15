@@ -341,8 +341,10 @@ def run_verified(goal: str, executor: Executor | None = None,
     preflighted = _preflight(goal, verbose=verbose) if do_preflight else ""
     transcript = (f"WORKING DIRECTORY: {os.getcwd()}\n"
                   + (prior + "\n" if prior else "")
-                  + ("CURRENT BEST APPROACH (live web — may supersede your training; prefer it "
-                     "where it conflicts with your priors):\n" + preflighted + "\n" if preflighted else "")
+                  + ("CURRENT BEST APPROACH — LIVE web findings, CURRENT (post your training cutoff), so "
+                     "they SUPERSEDE your training. APPLY THESE over your priors; where a value/id/name "
+                     "appears here, use it verbatim — do NOT fall back to memory:\n" + preflighted + "\n"
+                     if preflighted else "")
                   + (discovered + "\n" if discovered else "") + f"GOAL: {goal}\n")
     consecutive_fail = 0
     nudged = 0

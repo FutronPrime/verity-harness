@@ -261,7 +261,7 @@ python3 -m verity doctor    # → READY / MARGINAL / BELOW THRESHOLD
 
 <p align="center"><img src="assets/eval-proof.svg" alt="verity eval — same model 0/4 → 4/4 on current-info traps" width="100%"/></p>
 
-<p align="center"><sub>Live multi-model run — current-info assumption traps, each model vs itself (only change: the harness forces a search first): <b>gpt-4o-mini +2, llama-3.3-70b +3, gemini-flash +0</b> (aggregate 17%→58%). Reported straight: the lift <b>generalizes to 2 of 3</b>, gemini didn't benefit this run, and n=4 is noisy. A benchmark that only prints good news is the "second optimist" VERITY exists to kill. Reproducible: <code>python3 -m verity eval --models "a,b,c"</code>.</sub></p>
+<p align="center"><sub>Live multi-model run — current-info assumption traps, each model vs itself (only change: the harness forces a search first): <b>gpt-4o-mini +2, gemini-2.5-flash +3, llama-3.3-70b +3</b> — all <b>3 of 3 models lifted</b>, aggregate <b>25% → 92%</b>. (Honest footnote, because the process is the point: a first run showed gemini "+0" — investigating it found a <b>404 from a wrong model id</b>, i.e. the model never ran, not a harness miss; the correct id lifted +3. Diagnosing instead of assuming caught it. n=4 is still small.) Reproducible: <code>python3 -m verity eval --models "a,b,c"</code>.</sub></p>
 
 <p align="center"><img src="assets/benchmark.svg" alt="Benchmark — scaffold vs naive by model tier" width="100%"/></p>
 
