@@ -28,6 +28,9 @@ from .router import chat, AllTiersFailed
 from .guardrail import classify, CAPABILITY_DIRECTIVE, SAFETY_DIRECTIVE
 
 _MODE = os.environ.get("VERITY_GUARDRAIL_MODE", "off").lower()
+# Overconfidence guard is a RELIABILITY feature (not content-safety) → its own toggle, ON by default.
+# It re-prompts a flagged giveup once, server-side. Set VERITY_OVERCONFIDENCE_GUARD=off to disable.
+_OC_GUARD = os.environ.get("VERITY_OVERCONFIDENCE_GUARD", "on").lower() != "off"
 
 # LIFECYCLE: don't linger. Track last real use; a watchdog exits the process after this many idle
 # minutes so a stray proxy never eats RAM after your agent closes. 0 disables. Default 15 min.
@@ -105,7 +108,7 @@ class Handler(BaseHTTPRequestHandler):
         # server-side, forcing investigation — no opt-out, fires for ANY model routed here. Off when
         # guardrail mode is off. Capped at one re-prompt (no latency/loop blowup).
         guarded = ""
-        if _MODE != "off":
+        if _OC_GUARD:
             from .guard import flag, CORRECTIVE
             if flag(reply.text):
                 try:
