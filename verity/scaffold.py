@@ -346,6 +346,7 @@ def run_verified(goal: str, executor: Executor | None = None,
                   + (discovered + "\n" if discovered else "") + f"GOAL: {goal}\n")
     consecutive_fail = 0
     nudged = 0
+    giveup_nudged = 0
     persisted = 0
     calibrated_once = False
     _kw = {"tiers": tiers} if tiers else {}
@@ -367,6 +368,23 @@ def run_verified(goal: str, executor: Executor | None = None,
         action = str(step.get("action", "")).strip()
 
         if step.get("done") or not action:
+            # ANTI-GIVEUP GATE (BOTH METHODS, together): the deterministic guard fires INSIDE the loop,
+            # alongside the model-based verify/evidence/calibration gates below. It kills the LLM
+            # Dunning-Kruger move — concluding "it's impossible / can't be done / only a human can"
+            # WITHOUT investigating. No model judges this; it's a code condition (guard.flag = regex on
+            # the conclusion). On a hit, re-inject the corrective (read logs → repair → search → automate)
+            # and force another pass. This is exactly what drove this session: re-injected rules, not a
+            # second model, turned every premature "can't" into a real fix.
+            _draft0 = str(step.get("summary", step.get("thought", "")))
+            if giveup_nudged < 2:
+                from .guard import flag as _flag, CORRECTIVE as _CORR
+                if _flag(_draft0):
+                    giveup_nudged += 1
+                    transcript += f"\n{_CORR}\n"
+                    if verbose:
+                        print(f"[anti-giveup] premature 'can't/impossible/only-a-human' caught at step {n} "
+                              f"(nudge {giveup_nudged}/2) → forcing investigation, not surrender")
+                    continue
             # EVIDENCE GATE: reject a "done" that rests on ZERO verified evidence.
             # Forces the model to SHOW ITS WORK on fact-questions, producing an
             # auditable trail. (Real lesson: the trail also catches when the

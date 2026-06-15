@@ -25,7 +25,7 @@ t(40,56,"/// VERITY.EVAL // SAME MODEL · OPPOSITE RESULT · REPRODUCIBLE",13,CY
 t(44,110,"FORCE THE SEARCH,",42,INK,"hv"); t(44,156,"FLIP THE ANSWER.",42,CYAN,"hv")
 S.append(f'<rect x="46" y="170" width="300" height="3" fill="{MAG}"/>')
 t(44,200,f"A/B on assumption-trap questions (correct answer is post-training-cutoff → the model can't "
-         f"know it). Same model: {d['model']}. Bare prompt vs. the harness forcing a live search first.",16,GRY)
+         f"know it). Models: {d['model']}. Same model + same prompts each — only change: the harness forces a live search first.",16,GRY)
 
 # the two big bars
 bx, bw, by = 90, 920, 250

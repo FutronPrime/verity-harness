@@ -80,6 +80,13 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
   forces a proactive search where solutions live (GitHub / Google / Reddit / X / YouTube / SO)
   **before** any such claim stands. Someone has almost certainly open-sourced or documented it.
   *Don't assume scarcity — go look.* (This is what turns "no free X API" into "twikit posts free".)
+- **Anti-Dunning-Kruger — BOTH methods, in the same loop** (the lever against "confidently wrong + quit"):
+  inside `run_verified`, the deterministic **anti-giveup gate** (`guard.flag`, a code condition — NO model)
+  fires *alongside* the model-based verify/evidence/calibration gates. If a conclusion is a premature
+  "it's impossible / can't be done / only a human can" WITHOUT investigation, it re-injects the corrective
+  (read logs → repair → search → automate) and forces another pass — capped, never looping. The verify
+  gates catch *wrong*; the guard catches *quitting*. The re-injected rule (not a second model) is the
+  bigger lever — it's what turned every premature "can't" in this session into a real fix.
 - **Verify** every action (adversarial: did it REALLY work?). Runs in *discrimination mode* — by a
   separate/cheaper model (`LLM_VERIFIER_MODEL`, opt-in, bias-free) OR, by default / for single-model &
   local-only setups, the SAME model in a fresh "prove it worked" pass. A separate model is an upgrade,
