@@ -249,6 +249,9 @@ def _x_cookies() -> tuple[str, str] | None:
             return at, ct0
     except Exception:  # noqa: BLE001
         pass
+    cc = _x_chrome_cookies()                      # decrypt straight from Chrome (ALL profiles)
+    if cc:
+        return cc
     try:
         import rookiepy  # type: ignore
         for attr in ("chrome", "brave", "arc", "edge", "firefox", "chromium"):
@@ -264,6 +267,162 @@ def _x_cookies() -> tuple[str, str] | None:
     except Exception:  # noqa: BLE001
         pass
     return None
+
+
+def _x_chrome_cookies() -> tuple[str, str] | None:
+    """Decrypt the X auth cookie (auth_token+ct0) directly from Chrome — scanning EVERY profile,
+    not just Default (the lesson from 2026-06-15: the logged-in session was in 'Profile 1', so a
+    Default-only probe wrongly reported 'not logged in'). macOS v10 scheme: key = PBKDF2(Keychain
+    'Chrome Safe Storage' pw, 'saltysalt', 1003, 16); AES-128-CBC, IV=16 spaces. Optional deps
+    (`cryptography`) — returns None if absent or no profile holds a live session. Linux/Windows
+    use a different key source, so this is best-effort macOS; env/agent-reach config cover the rest."""
+    import os
+    import sys
+    if sys.platform != "darwin":
+        return None
+    try:
+        import glob
+        import hashlib
+        import shutil
+        import sqlite3
+        import subprocess
+        import tempfile
+        from cryptography.hazmat.backends import default_backend
+        from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+    except Exception:  # noqa: BLE001 — cryptography not installed; that's fine
+        return None
+    try:
+        pw = subprocess.run(["security", "find-generic-password", "-wa", "Chrome",
+                             "-s", "Chrome Safe Storage"], capture_output=True, text=True,
+                            timeout=10).stdout.strip().encode()
+        if not pw:
+            return None
+        key = hashlib.pbkdf2_hmac("sha1", pw, b"saltysalt", 1003, 16)
+
+        def _dec(buf: bytes) -> str:
+            if not buf or buf[:3] != b"v10":
+                return ""
+            dctx = Cipher(algorithms.AES(key), modes.CBC(b" " * 16),
+                          backend=default_backend()).decryptor()
+            pt = dctx.update(buf[3:]) + dctx.finalize()
+            pt = pt[:-pt[-1]]                       # strip PKCS7 padding
+            if len(pt) >= 32:                       # newer Chrome prefixes a 32-byte domain hash
+                try:
+                    pt[:32].decode("ascii")
+                except Exception:  # noqa: BLE001
+                    pt = pt[32:]
+            return pt.decode("utf-8", "ignore")
+
+        base = os.path.expanduser("~/Library/Application Support/Google/Chrome")
+        profiles = ["Default"] + [os.path.basename(p) for p in glob.glob(os.path.join(base, "Profile *"))]
+        for prof in profiles:
+            for sub in ("Cookies", "Network/Cookies"):
+                src = os.path.join(base, prof, sub)
+                if not os.path.exists(src):
+                    continue
+                tmp = tempfile.mktemp(suffix=".db")
+                try:
+                    shutil.copy2(src, tmp)
+                    con = sqlite3.connect(tmp)
+                    rows = con.execute("SELECT name,encrypted_value FROM cookies WHERE "
+                                       "host_key LIKE '%x.com%' AND name IN ('auth_token','ct0')").fetchall()
+                    con.close()
+                    ck = {n: _dec(v) for n, v in rows}
+                    if ck.get("auth_token") and ck.get("ct0"):
+                        return ck["auth_token"], ck["ct0"]
+                except Exception:  # noqa: BLE001
+                    continue
+                finally:
+                    try:
+                        os.unlink(tmp)
+                    except OSError:
+                        pass
+    except Exception:  # noqa: BLE001
+        return None
+    return None
+
+
+def _playwright_python() -> str | None:
+    """Find a python interpreter that can actually run Playwright (the package importable AND a
+    browser installed). VERITY's own interpreter often can't (PEP-668 blocks the install, or it's
+    a fresh Homebrew python), so we look outward: env override → common venvs → our own. Returns
+    the interpreter path, or None if none can render. Keeps VERITY's core stdlib-only — the render
+    is an optional, out-of-process capability."""
+    import os
+    import shutil
+    import subprocess
+    import sys
+    cands = []
+    if (e := os.environ.get("VERITY_PLAYWRIGHT_PYTHON")):
+        cands.append(e)
+    cands += [os.path.expanduser("~/.agent-reach-venv/bin/python"),
+              os.path.expanduser("~/.verity-harness/venv/bin/python"), sys.executable]
+    if (w := shutil.which("python3")):
+        cands.append(w)
+    seen = set()
+    for c in cands:
+        if not c or c in seen or not os.path.exists(c):
+            continue
+        seen.add(c)
+        try:
+            r = subprocess.run([c, "-c", "import playwright.sync_api"],
+                               capture_output=True, timeout=15)
+            if r.returncode == 0:
+                return c
+        except Exception:  # noqa: BLE001
+            continue
+    return None
+
+
+_X_RENDER_SCRIPT = r'''
+import sys, json
+from playwright.sync_api import sync_playwright
+url, at, ct0, ua = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+with sync_playwright() as p:
+    b = p.chromium.launch(headless=True)
+    ctx = b.new_context(user_agent=ua)
+    ctx.add_cookies([{"name":"auth_token","value":at,"domain":".x.com","path":"/"},
+                     {"name":"ct0","value":ct0,"domain":".x.com","path":"/"}])
+    pg = ctx.new_page()
+    pg.goto(url, wait_until="domcontentloaded", timeout=30000)
+    pg.wait_for_timeout(6000)
+    sys.stdout.write(pg.inner_text("body"))
+    b.close()
+'''
+
+
+def _x_render_article(url: str, at: str, ct0: str, max_chars: int = 16000) -> str | None:
+    """Render an auth-walled X article in a cookie-injected headless browser and return the
+    cleaned article text — the durable read for the bare /i/article/<id> permalink (no rotating
+    GraphQL hash). Runs the render OUT OF PROCESS via a python that has Playwright (see
+    _playwright_python), so it works regardless of VERITY's own interpreter. Returns None if no
+    Playwright-capable python exists, so the caller falls back to an honest message. Verified
+    end-to-end 2026-06-15 (16K-char article read through a logged-in Chrome cookie)."""
+    import subprocess
+    py = _playwright_python()
+    if not py:
+        return None
+    try:
+        r = subprocess.run([py, "-c", _X_RENDER_SCRIPT, url, at, ct0, _UA],
+                           capture_output=True, text=True, timeout=90)
+        txt = r.stdout
+    except Exception:  # noqa: BLE001
+        return None
+    if not txt or not txt.strip():
+        return None
+    flat = _WS.sub("\n", txt).strip()
+    # trim the X nav-chrome prefix (everything up to the article, which starts after a long
+    # left-rail menu ending in "More"/"Post") and the reply/footer tail.
+    for marker in ("\nMore\nPost\n", "\nMore\n", "keyboard shortcuts\n"):
+        i = flat.find(marker)
+        if i != -1:
+            flat = flat[i + len(marker):]
+            break
+    for tail in ("\nPost your reply", "\nDiscover more", "\nWho to follow", "\nMore Tweets"):
+        j = flat.find(tail)
+        if j != -1:
+            flat = flat[:j]
+    return flat.strip()[:max_chars] or None
 
 
 def fetch_tweet(url: str) -> str:
@@ -285,28 +444,20 @@ def fetch_tweet(url: str) -> str:
         aid = am.group(1)
         ck = _x_cookies()
         if ck:
-            # cookie present → drive the installed twitter-cli (reuse-first) if it can read articles
-            import shutil
-            import subprocess
-            if shutil.which("twitter"):
-                import os
-                env = {**os.environ, "TWITTER_AUTH_TOKEN": ck[0], "TWITTER_CT0": ck[1]}
-                for sub in ("article", "tweet"):
-                    try:
-                        r = subprocess.run(["twitter", sub, url], capture_output=True,
-                                            text=True, timeout=40, env=env)
-                        if r.returncode == 0 and r.stdout.strip():
-                            return r.stdout.strip()[:16000]
-                    except Exception:  # noqa: BLE001
-                        continue
-            return (f"[x article {aid}: cookie found but twitter-cli couldn't read it. Install the "
-                    "article-capable client: `pipx install twitter-cli` (v0.8.5+) or `agent-reach "
-                    "install --channels=twitter`, then retry. Or paste the article's status URL.]")
+            # cookie found (env / agent-reach cfg / auto-decrypted from Chrome, ALL profiles) →
+            # render the article in a cookie-injected headless browser (durable, no rotating hash).
+            body = _x_render_article(url, ck[0], ck[1])
+            if body and len(body) > 200:
+                return f"[X ARTICLE] {body}"
+            # cookie OK but Playwright missing → tell the agent how to enable the render path.
+            return (f"[x article {aid}: a live X session was found, but the headless renderer isn't "
+                    "installed. Run once: `pip install playwright && playwright install chromium`, "
+                    "then retry — it will read the article. Or paste the article's status URL.]")
         return (f"[x article {aid}: bare /i/article permalinks have NO no-auth read path (the "
                 "article id isn't a tweet id). Two autonomous fixes: (1) paste the SAME article's "
                 "status URL — x.com/<author>/status/<id> — which I read FULLY with zero auth; or "
-                "(2) one-time cookie: log into x.com in Chrome, then `agent-reach configure "
-                "twitter-cookies --from-browser chrome` (or set TWITTER_AUTH_TOKEN+TWITTER_CT0). "
+                "(2) one-time login: be logged into x.com in Chrome (any profile — the reader "
+                "auto-decrypts the cookie) or set TWITTER_AUTH_TOKEN+TWITTER_CT0. "
                 "Do NOT conclude 'unreadable'.]")
     # ---- status / bare-id forms ----
     m = (_re.search(r"(?:x|twitter)\.com/([^/]+)/status/(\d+)", url)

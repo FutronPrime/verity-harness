@@ -90,11 +90,16 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
       body — it lives in `article.content.blocks`, not `text`) → vxtwitter → oembed. Autonomous.
     - `x.com/i/article/<id>` → the article id is NOT a tweet id and has **no** no-auth resolver
       (verified across 7 backends 2026-06-15: fxtwitter/vxtwitter 404, syndication CDN + guest-token
-      GraphQL return the article object but the body is auth-gated). The reader uses a one-time X
-      cookie (env `TWITTER_AUTH_TOKEN`+`TWITTER_CT0`, `~/.agent-reach/config.json`, or a logged-in
-      browser via rookiepy) to drive `twitter-cli`; with no cookie it returns an **honest,
-      actionable** next step — paste the same article's *status* URL (reads fully, zero auth) or
-      run `agent-reach configure twitter-cookies --from-browser chrome` — never the lazy "unreadable".
+      GraphQL return the article object but the body is auth-gated). So the reader uses your EXISTING
+      logged-in session, fully automatically: it finds an X cookie from env (`TWITTER_AUTH_TOKEN`+
+      `TWITTER_CT0`), `~/.agent-reach/config.json`, **or auto-decrypts it from Chrome scanning EVERY
+      profile** (macOS v10/Keychain; the 2026-06-15 lesson — a logged-in session lived in 'Profile 1',
+      so a Default-only probe falsely reported 'not logged in'), then renders the article in a
+      cookie-injected headless browser **out-of-process** via any Playwright-capable python
+      (`VERITY_PLAYWRIGHT_PYTHON` → `~/.agent-reach-venv` → `python3`), so VERITY's own stdlib-only
+      interpreter needn't carry the dep. Verified end-to-end (full 16K-char article through a live
+      Chrome cookie). With no session reachable it returns an **honest, actionable** next step (paste
+      the *status* URL — reads fully, zero auth — or log into x.com in Chrome), never "unreadable".
   For Reddit / XiaoHongShu / Bilibili / YouTube / LinkedIn / GitHub, install **Agent Reach**
   (github.com/Panniantong/Agent-Reach, MIT) — a multi-backend router; `agent-reach doctor --json`
   shows the live backend per platform. All of this exists because asserting "this site is unreadable /
