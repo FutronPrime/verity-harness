@@ -51,8 +51,11 @@ REPO="{REPO}"
 (
   # 1. quiet self-sync (stay current; ignore if offline / not a git checkout)
   [ -d "$REPO/.git" ] && git -C "$REPO" pull -q --rebase --autostash >/dev/null 2>&1
-  # 2. start the proxy floor only if it isn't already answering
+  # 2. start the proxy floor only if it isn't already answering.
+  #    Source an OPTIONAL key/chain file first so the proxy boots with a MULTI-MODEL keyed Tier1
+  #    (+ local floor) — no single expired token/provider can take the reasoning layer down.
   if ! curl -s -m 1 http://127.0.0.1:11500/health >/dev/null 2>&1; then
+    [ -f "$HOME/.verity-harness/proxy.env" ] && set -a && . "$HOME/.verity-harness/proxy.env" && set +a
     ( cd "$REPO" && nohup python3 -m verity.server >/dev/null 2>&1 & )
   fi
 ) >/dev/null 2>&1 &

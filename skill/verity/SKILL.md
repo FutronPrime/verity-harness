@@ -137,6 +137,11 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
     - **Codex / Gemini:** the injected gate block carries the same rule as standing context; route
       them through `:11500` for the daemon-enforced version. (For Claude Code 100%-enforcement, point
       `ANTHROPIC_BASE_URL` at a VERITY Anthropic-format proxy — on the roadmap.)
+- **No single point of failure** — Tier 1 is a CHAIN of models (set `LLM_TIER1_MODELS=` to several),
+  each self-retrying, then it drops to the local floor. `autostart` sources an optional
+  `~/.verity-harness/proxy.env` so the proxy ALWAYS boots with keyed multi-model Tier1 + local Tier0 —
+  one expired token or down provider can never take the reasoning layer down (the failure mode that
+  motivated this: a single expired OAuth shim collapsed everything; now it's one tier among several).
 - **Sovereign failover** — cloud → local open weights you own
 
 ## Prove it's actually being used (and that it helps)
