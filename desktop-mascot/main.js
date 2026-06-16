@@ -98,11 +98,17 @@ ipcMain.on('move-window', (_e, dx, dy) => { if (win) { const [x, y] = win.getPos
 // Right-click the MASCOT → pop the same menu the tray has, at the cursor.
 ipcMain.on('show-menu', () => { if (tray) trayMenu().popup(); });
 
-app.whenReady().then(() => {
-  const cfg = loadCfg();
-  buildTray();
-  if (!cfg.configured) openSetup();                // first run → onboarding picker
-  else createWindow(cfg);
-  if (app.dock) app.dock.hide();
-});
+// Single-instance lock: so VERITY's startup can always try to launch the mascot without stacking —
+// a second launch just quits (and surfaces the existing one).
+if (!app.requestSingleInstanceLock()) { app.quit(); }
+else {
+  app.on('second-instance', () => { if (win) { win.show(); win.focus(); } else if (setupWin) setupWin.focus(); });
+  app.whenReady().then(() => {
+    const cfg = loadCfg();
+    buildTray();
+    if (!cfg.configured) openSetup();              // first run → onboarding picker
+    else createWindow(cfg);
+    if (app.dock) app.dock.hide();
+  });
+}
 app.on('window-all-closed', () => {});             // stay alive in the tray

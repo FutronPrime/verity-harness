@@ -58,6 +58,13 @@ REPO="{REPO}"
     [ -f "$HOME/.verity-harness/proxy.env" ] && set -a && . "$HOME/.verity-harness/proxy.env" && set +a
     ( cd "$REPO" && nohup python3 -m verity.server >/dev/null 2>&1 & )
   fi
+  # 3. DESKTOP MASCOT — if the user opted in (verity mascot / setup picked one), bring it up WITH
+  #    VERITY so it signals the harness is on. Only when configured, not 'none', deps installed, npm
+  #    present. The app holds a single-instance lock, so this never stacks a second copy.
+  MCFG="$HOME/.verity-harness/mascot.json"
+  if [ -f "$MCFG" ] && command -v npm >/dev/null 2>&1 && [ -d "$REPO/desktop-mascot/node_modules" ] && grep -q '"configured":[[:space:]]*true' "$MCFG" && ! grep -q '"mascot":[[:space:]]*"none"' "$MCFG"; then
+    ( cd "$REPO/desktop-mascot" && nohup npm start >/dev/null 2>&1 & )
+  fi
 ) >/dev/null 2>&1 &
 exit 0
 """
