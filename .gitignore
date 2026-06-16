@@ -5,5 +5,6 @@
 .venv/
 __pycache__/
 _preview.html
+assets/mascot-*-sheet-clean.png
 demo-out/
 venv/

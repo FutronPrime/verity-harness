@@ -3,9 +3,9 @@
 </p>
 
 <p align="center">
-  <img src="assets/logo.png" alt="VERITY logo" height="130"/>
-  &nbsp;&nbsp;
-  <img src="assets/mascot-hawk-anim.gif" alt="The Truth Hawk — VERITY's silent verification mascot" height="130"/>
+  <img src="assets/logo.png" alt="VERITY logo" height="140"/>
+  &nbsp;&nbsp;&nbsp;
+  <img src="assets/mascot-hawk-anim.gif" alt="The Truth Hawk — VERITY's silent verification mascot" height="150"/>
 </p>
 
 # VERITY · The Truth Harness
@@ -386,10 +386,12 @@ just *sits there.* VERITY has the **Truth Hawk** — a silent, low-poly verifica
 it nods on a verified result, side-eyes a confident guess, and goes heads-down when there's logic to
 refactor. (A warm **Sun** variant ships too — same energy, softer mood — interchangeable per vibe.)
 
-<p align="center"><img src="assets/mascot-hawk.png" alt="Truth Hawk mascot sprite sheet — success, confused, error, refactoring states" width="100%"/></p>
-<p align="center"><img src="assets/mascot-sun.png" alt="Sun mascot sprite sheet — the soft/cutesy interchangeable variant" width="100%"/></p>
+<table align="center"><tr>
+  <td align="center" width="50%"><img src="assets/mascot-hawk.png" alt="Truth Hawk" height="200"/><br/><b>The Truth Hawk</b><br/><sub>sharp · teal · the default</sub></td>
+  <td align="center" width="50%"><img src="assets/mascot-sun.png" alt="VERI the Sun" height="200"/><br/><b>“VERI” the Sun</b><br/><sub>warm · soft · the variant</sub></td>
+</tr></table>
 
-<p align="center"><sub>A minimalist, silent verification agent — expressive but swift. Same teal/magenta/amber palette as the harness. Use it in the repo, the launch posts, and the video.</sub></p>
+<p align="center"><sub>A minimalist, silent verification agent — expressive but swift. Pick the one that matches your vibe; both ship. Same palette as the harness. Use them in the repo, the launch posts, and the video.</sub></p>
 
 ## License
 
