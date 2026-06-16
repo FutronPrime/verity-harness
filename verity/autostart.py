@@ -112,6 +112,10 @@ GATES
 # corrections. Built by `verity playbook --inject`. Refresh it opportunistically so it stays current.
 [ -f "$HOME/.verity-harness/playbook.md" ] && {{ echo; cat "$HOME/.verity-harness/playbook.md"; }}
 ( cd "{REPO}" && python3 -m verity playbook --inject >/dev/null 2>&1 & )   # refresh for next session
+# MEMORY: inject the bounded membank block — durable prefs/decisions + recent project memory, capped
+# to a fixed char budget so it NEVER grows past the window no matter how much is stored (the infinite
+# store lives behind `verity memory recall`). This is how memory stops being a context problem.
+( cd "{REPO}" && python3 -m verity memory session-start 2>/dev/null )
 curl -s -m 1 http://127.0.0.1:11500/health >/dev/null 2>&1 || ( cd "{REPO}" && nohup python3 -m verity.server >/dev/null 2>&1 & )
 exit 0
 """

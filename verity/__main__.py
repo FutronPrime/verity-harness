@@ -122,6 +122,32 @@ def main(argv: list[str]) -> None:
             print(_res.fetch_list(rest[1]))
         else:
             print(_res.search(" ".join(rest)))
+    elif cmd == "memory":
+        # Bounded-context persistent memory (membank): infinite store behind a fixed-budget injection.
+        #   memory capture "<text>" [--scope decision|preference|lesson|project|fact|error]
+        #   memory recall "<query>"        memory get <ids>        memory session-start
+        #   memory stats                   memory lint <path-to-MEMORY.md|CLAUDE.md>
+        from . import membank as _mb
+        sub = rest[0] if rest else "stats"
+        argrest = rest[1:]
+        if sub == "capture":
+            scope = "fact"
+            if "--scope" in argrest:
+                i = argrest.index("--scope"); scope = argrest[i + 1] if i + 1 < len(argrest) else "fact"
+                argrest = argrest[:i] + argrest[i + 2:]
+            print(_mb.capture(" ".join(argrest), scope=scope))
+        elif sub == "recall":
+            print(_mb.recall(" ".join(argrest)))
+        elif sub == "get":
+            print(_mb.get(" ".join(argrest)))
+        elif sub in ("session-start", "session_start", "inject"):
+            print(_mb.session_start())
+        elif sub == "lint":
+            if not argrest:
+                print("usage: memory lint <path-to-MEMORY.md|CLAUDE.md|AGENTS.md>", file=sys.stderr); sys.exit(2)
+            print(_mb.bootstrap_lint(argrest[0]))
+        else:
+            print(_mb.stats())
     elif cmd in ("models", "registry"):
         # AUTHORITATIVE model lookup — read the live OpenRouter registry instead of guessing current
         # model ids from stale training. The right way to answer 'what's the newest X model'.
