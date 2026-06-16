@@ -289,6 +289,18 @@ def run_swarm(goal: str, executor=None, tiers=None, max_subtasks: int = 4,
                evidence=f"{len(subtasks)} sub-tasks, {repaired[0]} repaired")
     if verbose:
         print("[swarm] SYNTHESIZE → final answer ready")
+    # APM-style HANDOFF: persist a structured record so a future run (next turn-limit, next session)
+    # RESUMES with this context instead of starting cold. The load side is automatic — `_context_pack`
+    # already recalls project-scope memory into every spawn (incl. the planner), so the next related
+    # swarm sees this handoff. Bounded + best-effort; never lets a memory hiccup fail the swarm.
+    try:
+        from . import membank
+        from .handles import boundify
+        handoff = (f"SWARM HANDOFF · goal: {goal}\nsub-tasks: {'; '.join(subtasks)}\n"
+                   f"repaired: {repaired[0]}\nresult: {boundify(str(final), threshold=1200, preview_chars=900)}")
+        membank.capture(handoff, scope="project")
+    except Exception:  # noqa: BLE001
+        pass
     return SwarmResult(goal=goal, final=final, subtasks=subtasks, results=results, repaired=repaired[0])
 
 
