@@ -76,6 +76,12 @@ VERITY agents don't just *answer* — they **work**, and they **don't give up**:
   and the fixes that *worked*, and distills an injectable playbook that `autostart` re-feeds **every
   session**. So the model starts each run pre-loaded with its own proven discipline and gets sharper the
   more you use it — *the harness that checks the work also learns from it.*
+- **Self-EVOLVING — and it can only get better, never corrupt itself.** `verity evolve` closes the loop:
+  it distills a candidate playbook (ledger lessons + recall-promoted memories) and adopts it **only if it
+  passes a non-regression gate** — every high-confidence lesson preserved, within budget, valid — with the
+  eval suite as an optional held-out fitness check. Candidates are git-archived (rollback without erasure);
+  it evolves **playbook text only, never its own code, never the eval**. That gate is the line between
+  self-improving and self-*corrupting* — the thing most "self-improving agent" demos skip.
 - **Unbounded memory, bounded context** — `verity memory` is a zero-dependency persistent store (stdlib
   SQLite+FTS5) with one guarantee: the block injected each session stays a **fixed budget no matter how
   much you've stored**. Proven, not claimed — injection holds **~270 chars flat from 10 → 10,000 memories**
