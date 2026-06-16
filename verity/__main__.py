@@ -159,12 +159,39 @@ def main(argv: list[str]) -> None:
             _eval()
     elif cmd == "tasks":
         # GAIA/Seal-0-shaped GOAL benchmark: multi-step goals via the full agentic harness.
-        from .eval_tasks import run as _tasks
-        _tasks(harness_exec="--exec" in rest)
+        # --swarm = run the harness arm through the multi-agent SWARM (coordination proof).
+        # --models "a,b,c" = per-model A/B table.
+        sw = "--swarm" in rest
+        if "--models" in rest:
+            i = rest.index("--models")
+            ms = [m.strip() for m in (rest[i+1] if i+1 < len(rest) else "").split(",") if m.strip()]
+            from .eval_tasks import run_models as _tm
+            _tm(ms or None, harness_exec="--exec" in rest, use_swarm=sw)
+        else:
+            from .eval_tasks import run as _tasks
+            _tasks(harness_exec="--exec" in rest, use_swarm=sw)
     elif cmd == "swebench":
         # SWE-Bench-style: test-scored bug fixing (the coding axis Fable 5 is ranked on).
-        from .eval_swebench import run as _swe
-        _swe()
+        # --models "a,b,c" = per-model A/B table.
+        if "--models" in rest:
+            i = rest.index("--models")
+            ms = [m.strip() for m in (rest[i+1] if i+1 < len(rest) else "").split(",") if m.strip()]
+            from .eval_swebench import run_models as _sm
+            _sm(ms or None)
+        else:
+            from .eval_swebench import run as _swe
+            _swe()
+    elif cmd in ("research-eval", "trending"):
+        # RESEARCH benchmark: force the model to read the COMMUNITY (Reddit/X/GitHub/HN) for
+        # trending/real-world knowledge it can't recall. --models "a,b,c" for a per-model table.
+        if "--models" in rest:
+            i = rest.index("--models")
+            ms = [m.strip() for m in (rest[i+1] if i+1 < len(rest) else "").split(",") if m.strip()]
+            from .eval_research import run_models as _rm
+            _rm(ms or None)
+        else:
+            from .eval_research import run as _re
+            _re()
     elif cmd == "autostart":
         # Wire VERITY to silently start with your agent (sync + proxy floor), no UI.
         from .autostart import main as _auto

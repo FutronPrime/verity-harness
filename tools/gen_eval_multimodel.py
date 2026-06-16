@@ -75,9 +75,13 @@ def proof_svg(data):
     t(S,rx,by-2,">> AGGREGATE",13,CYAN,"mono","start",1)
     t(S,rx,by+58,f"{n/tot:.0%}",52,"#3a5660","hv"); t(S,rx,by+84,"naive — from memory",13,DIM)
     t(S,rx,by+162,f"{h/tot:.0%}",72,CYAN,"hv"); t(S,rx,by+190,"with VERITY",14,GRY)
-    t(S,rx,by+232,f"across {len(data)} current models, every one +12..+14:",12.5,GRY)
-    t(S,rx,by+252,"gpt-4o-mini · gemini-2.5-flash · llama-3.3",11.5,FAINT,"mono")
-    t(S,rx,by+269,"· qwen3.5-flash · gemma-4-31b",11.5,FAINT,"mono")
+    lifts = [r["lift"] for r in data]
+    lrange = f"+{min(lifts)}" if min(lifts)==max(lifts) else f"+{min(lifts)}..+{max(lifts)}"
+    names = [short(r["model"]) for r in data]
+    half = (len(names)+1)//2
+    t(S,rx,by+232,f"across {len(data)} models, every one {lrange}:",12.5,GRY)
+    t(S,rx,by+252," · ".join(names[:half]),11.5,FAINT,"mono")
+    t(S,rx,by+269," · ".join(names[half:]),11.5,FAINT,"mono")
     # ── aggregate panel (full width, below) ──
     ay = by + len(data)*rh + 8
     panel(S,60,ay,1080,96,26,15,MAG,"#10090d",1.6)
@@ -157,9 +161,17 @@ def iterations_svg(data):
     return frame(W,H,S)
 
 if __name__ == "__main__":
+    # usage: gen_eval_multimodel.py [results.json] [proof_basename]
+    #   1 arg  → writes eval-proof.svg + eval-iterations.svg (default current-model run)
+    #   2 args → writes <proof_basename>.svg only (e.g. eval-proof-flagship), no iterations chart
     src = sys.argv[1] if len(sys.argv) > 1 else "/tmp/verity_eval_results.json"
     data = json.load(open(src))
     out = os.path.expanduser("~/repos/verity-harness/assets")
-    open(os.path.join(out,"eval-proof.svg"),"w").write(proof_svg(data))
-    open(os.path.join(out,"eval-iterations.svg"),"w").write(iterations_svg(data))
-    print("wrote assets/eval-proof.svg + assets/eval-iterations.svg from", len(data), "models")
+    base = sys.argv[2] if len(sys.argv) > 2 else None
+    if base:
+        open(os.path.join(out, base + ".svg"), "w").write(proof_svg(data))
+        print(f"wrote assets/{base}.svg from", len(data), "models")
+    else:
+        open(os.path.join(out,"eval-proof.svg"),"w").write(proof_svg(data))
+        open(os.path.join(out,"eval-iterations.svg"),"w").write(iterations_svg(data))
+        print("wrote assets/eval-proof.svg + assets/eval-iterations.svg from", len(data), "models")

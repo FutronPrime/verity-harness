@@ -279,9 +279,15 @@ python3 -m verity doctor    # → READY / MARGINAL / BELOW THRESHOLD
 
 ## Honest status
 
-<p align="center"><img src="assets/eval-proof.png" alt="verity eval — same model 1/16 → 15/16 on current-info traps, 5 models, +67 aggregate lift" width="100%"/></p>
+### Test 1 — Accuracy (current-knowledge), on the models enterprises actually deploy
 
-<p align="center"><sub>Live <b>5-model</b> A/B on <b>16</b> assumption-traps whose answers are post-training-cutoff (the model can't recall them). Same model + prompts each — the only change: the harness reads the authoritative source first. <b>Every model lifted +12 to +14</b> (gpt-4o-mini, gemini-2.5-flash, llama-3.3-70b, qwen3.5-flash, gemma-4-31b); aggregate <b>8% → 91%</b> (6/80 → 73/80, <b>+67</b>). Deterministic: <code>temp=0</code> + ground-truth registry lookup (not flaky web snippets), so it reproduces. <code>python3 -m verity eval</code>.</sub></p>
+<p align="center"><img src="assets/eval-proof-flagship.png" alt="verity eval flagship — Opus 4.8, GPT-5.5, Gemini 3.1 Pro, Kimi K2.7, naive vs harness, +43 aggregate" width="100%"/></p>
+
+<p align="center"><sub>The enterprise proof — <b>Opus 4.8, GPT-5.5, Gemini 3.1 Pro, Kimi K2.7</b> on 16 assumption-traps whose answers postdate each model's training cutoff. Same model + prompts; the only change is the harness reads the authoritative registry first. Aggregate <b>20% → 88%</b> (13/64 → 56/64, <b>+43</b>); every model <b>+8 to +12</b>. The honest signal: even a frontier model gets ~80% of <i>current</i> facts wrong from memory — reality moved past its cutoff. <code>python3 -m verity eval --flagship</code></sub></p>
+
+<p align="center"><img src="assets/eval-proof.png" alt="verity eval — 5 accessible models, +67 aggregate lift" width="100%"/></p>
+
+<p align="center"><sub>And on models anyone can run cheaply — <b>every one +12 to +14</b>, aggregate <b>8% → 91%</b> (+67). Deterministic: <code>temp=0</code> + ground-truth registry lookup (not flaky web snippets), so it reproduces. <code>python3 -m verity eval</code>.</sub></p>
 
 <p align="center"><img src="assets/eval-iterations.png" alt="how the eval was hardened across three iterations" width="100%"/></p>
 

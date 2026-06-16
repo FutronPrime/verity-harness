@@ -72,6 +72,51 @@ conditions**, not by hoping the model behaves.
    *your* models so the lift you cite is measured, not borrowed. Frontier models lift less (recent
    cutoffs) but still get caught on fresh facts — that's the honest enterprise result.
 
+## How the proof works (three tests, one principle)
+
+Every VERITY benchmark follows **one honest principle: the same model against itself.** Not "model A
+vs model B" — the *only* variable is whether the harness's discipline is switched on. NAIVE = the bare
+model. HARNESS = that exact model, same prompt, but forced to look things up / verify / keep going.
+The **lift** is the gap. Three tests measure three different things people actually need:
+
+### 1. Accuracy — "assumption-trap" A/B  (`verity eval`)
+Questions whose *correct* answer is a fact that **postdates the model's training cutoff** (e.g. "the
+newest Kimi model id" → `k2.7`, which shipped after the weights were frozen). The lazy answer (recall
+from memory) is wrong; the right answer only exists in current reality.
+- **NAIVE:** answer from memory → usually wrong (it can't know).
+- **HARNESS:** read the **authoritative live registry** first, hand the model the *whole provider
+  family*, and it must reason out the newest. (Not hand-fed: it sees `kimi-k2`, `k2.5`, `k2.7` and has
+  to pick.) Deterministic (registry is stable + `temp=0`), so it reproduces.
+- **Score:** does the answer contain the verified marker. **Result:** 8% → 91% across 5 models (+67);
+  even frontier models (Opus 4.8 +12, GPT-5.5 +11) — because reality moved past *their* cutoff too.
+- **Why it matters:** every model's memory is stale the day it ships. This is the proof that *looking
+  up beats recalling* on anything current.
+
+### 2. Coordination — multi-step goals  (`verity tasks`)
+Goals that need decomposition + retrieval + synthesis, run end-to-end through the agentic loop (or the
+**swarm**: plan → parallel research/execute → adversarial critic → synthesize).
+- **NAIVE:** one-shot answer from priors → shallow or incomplete.
+- **HARNESS:** the agent (or a coordinated swarm of them) breaks the goal into sub-tasks, each
+  grunt-worker goes and *gets* the info (search / scrape / read / registry), a critic probes the
+  result, and a synthesizer assembles a complete, sourced answer.
+- **Score:** objective markers that only appear in a correct, current, complete result.
+- **Why it matters:** real work is multi-part. This is the proof the harness *finishes* what a one-shot
+  call leaves half-done.
+
+### 3. Coding — SWE-Bench-style, test-scored  (`verity swebench`)
+The axis Fable 5 is ranked on. Each task is a buggy function + a **hidden test** with an edge case the
+obvious fix misses (mutable-default state leak, empty-string case, even-length median…).
+- **NAIVE:** write one corrected file, we run the test once. The plausible patch usually fails the edge case.
+- **HARNESS:** the agent gets a real shell, must **run `python3 test.py` itself**, and the verify gate
+  won't let it declare "done" until the test actually exits 0 — so it keeps fixing until it passes.
+- **Score:** % of hidden tests that pass — **objective, not vibes**. This is the cleanest real-world
+  proof: the code either works or it doesn't.
+- **Why it matters:** this is what people lost when Fable went away — and the harness recovers a chunk
+  of it by forcing *run-the-test-before-you-claim-success* on whatever model you do have.
+
+All three write **receipts to the ledger** (`verity proof`) and are reproducible on your own models —
+nothing is taken on faith.
+
 ## What it deliberately is *not*
 
 - Not a model, not a fine-tune — it makes the model you already have behave.

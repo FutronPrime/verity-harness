@@ -26,14 +26,14 @@ TASKS = [
     {"name": "median",
      "buggy": ("def median(xs):\n"
                "    s = sorted(xs)\n"
-               "    return s[len(s) // 2]   # BUG: wrong for even-length lists\n"),
+               "    return s[len(s) // 2]\n"),
      "test": ("from sol import median\n"
               "assert median([3,1,2]) == 2\n"
               "assert median([1,2,3,4]) == 2.5, 'even-length case'\n"
               "assert median([4,1]) == 2.5\n"
               "print('PASS')\n")},
     {"name": "running_total",
-     "buggy": ("def add(x, acc=[]):   # BUG: mutable default shared across calls\n"
+     "buggy": ("def add(x, acc=[]):\n"
                "    acc.append(x)\n"
                "    return list(acc)\n"),
      "test": ("from sol import add\n"
@@ -45,11 +45,41 @@ TASKS = [
                "    for c in s:\n"
                "        if s.count(c) == 1:\n"
                "            return c\n"
-               "    return s[0]   # BUG: empty string / all-dup should return None\n"),
+               "    return s[0]\n"),
      "test": ("from sol import first_unique\n"
               "assert first_unique('leetcode') == 'l'\n"
               "assert first_unique('aabb') is None, 'all-duplicate case'\n"
               "assert first_unique('') is None, 'empty case'\n"
+              "print('PASS')\n")},
+    {"name": "merge_intervals",
+     "buggy": ("def merge(intervals):\n"
+               "    out = []\n"
+               "    for s, e in intervals:\n"
+               "        if out and s <= out[-1][1]:\n"
+               "            out[-1][1] = max(out[-1][1], e)\n"
+               "        else:\n"
+               "            out.append([s, e])\n"
+               "    return out\n"),
+     "test": ("from sol import merge\n"
+              "assert merge([[1,3],[2,6],[8,10]]) == [[1,6],[8,10]]\n"
+              "assert merge([[8,10],[1,3],[2,6]]) == [[1,6],[8,10]], 'unsorted input'\n"
+              "assert merge([[1,4],[4,5]]) == [[1,5]], 'touching intervals'\n"
+              "assert merge([]) == []\n"
+              "print('PASS')\n")},
+    {"name": "roman",
+     "buggy": ("def to_roman(n):\n"
+               "    vals = [(1000,'M'),(500,'D'),(100,'C'),(50,'L'),(10,'X'),(5,'V'),(1,'I')]\n"
+               "    out = ''\n"
+               "    for v, sym in vals:\n"
+               "        while n >= v:\n"
+               "            out += sym; n -= v\n"
+               "    return out\n"),
+     "test": ("from sol import to_roman\n"
+              "assert to_roman(3) == 'III'\n"
+              "assert to_roman(4) == 'IV', 'subtractive 4'\n"
+              "assert to_roman(9) == 'IX', 'subtractive 9'\n"
+              "assert to_roman(58) == 'LVIII'\n"
+              "assert to_roman(1994) == 'MCMXCIV', 'full subtractive'\n"
               "print('PASS')\n")},
 ]
 
@@ -76,6 +106,7 @@ def run(tiers=None, harness_exec=True, verbose=True) -> dict:
     from .loop import ShellExecutor
 
     naive_pass = harness_pass = 0
+    rows = []
     for t in TASKS:
         kw = {"tiers": tiers} if tiers else {}
         # ---- NAIVE: one-shot patch ----
@@ -108,16 +139,42 @@ def run(tiers=None, harness_exec=True, verbose=True) -> dict:
             except Exception:  # noqa: BLE001
                 hpass = False
         naive_pass += npass; harness_pass += hpass
+        rows.append([t["name"], bool(npass), bool(hpass)])
         if verbose:
             print(f"  naive={'✓' if npass else '✗'}  harness={'✓' if hpass else '✗'}  {t['name']}")
 
     n = len(TASKS)
-    res = {"tasks": n, "naive": naive_pass, "harness": harness_pass, "lift": harness_pass - naive_pass}
+    res = {"tasks": n, "naive": naive_pass, "harness": harness_pass,
+           "lift": harness_pass - naive_pass, "rows": rows}
     if verbose:
         print(f"\nNAIVE   tests passed: {naive_pass}/{n} ({naive_pass/n:.0%})")
         print(f"HARNESS tests passed: {harness_pass}/{n} ({harness_pass/n:.0%})")
         print(f"LIFT (SWE-Bench-style, test-scored): +{res['lift']}")
     return res
+
+
+def run_models(model_ids=None, harness_exec=True, verbose=True) -> list:
+    """Run the test-scored coding A/B across several models → proof the lift GENERALIZES.
+    Each model gets its own single-model tier so the comparison is clean."""
+    from . import config
+    from .eval_assumptions import DEFAULT_MODELS
+    model_ids = model_ids or DEFAULT_MODELS
+    results = []
+    for m in model_ids:
+        if verbose:
+            print(f"\n=== {m} ===")
+        tier = config.Tier(name=f"swe-{m.split('/')[-1][:18]}", protocol="openai",
+                           base_url=config._T1_URL, model=m, api_key=config._T1_KEY,
+                           timeout_s=config._T1_TIMEOUT)
+        r = run(tiers=[tier], harness_exec=harness_exec, verbose=verbose)
+        r["model"] = m
+        results.append(r)
+    if verbose:
+        print("\n──────── CODING (test-scored) — lift across models ────────")
+        for r in results:
+            print(f"  {r['model'][:34]:34}  naive {r['naive']}/{r['tasks']} "
+                  f"→ harness {r['harness']}/{r['tasks']}   (+{r['lift']})")
+    return results
 
 
 if __name__ == "__main__":

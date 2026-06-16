@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 856" font-family="'Arial Narrow','Helvetica Neue',Arial,sans-serif" role="img">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070a0d"/><stop offset="1" stop-color="#03060a"/></linearGradient><pattern id="scan" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="1" fill="#0c1a1d" opacity="0.5"/></pattern><style>.mono{font-family:'SF Mono','Menlo',monospace}.hv{font-family:'Arial Black',Arial,sans-serif;font-weight:900}.nar{font-family:'Arial Narrow',Arial,sans-serif}</style></defs><rect width="1200" height="856" fill="url(#bg)"/><rect width="1200" height="856" fill="url(#scan)"/><path d="M16,16 H1150 L1184,50 V840 H66 L16,790 Z" fill="none" stroke="#1f5c54" stroke-width="2"/>
+<text x="40" y="54" class="mono" font-size="13" fill="#2dd4bf" text-anchor="start" letter-spacing="2">/// VERITY.EVAL // SAME MODEL · OPPOSITE RESULT · REPRODUCIBLE</text>
+<text x="44" y="104" class="hv" font-size="40" fill="#eafffb" text-anchor="start">FORCE THE LOOKUP,</text>
+<text x="44" y="148" class="hv" font-size="40" fill="#2dd4bf" text-anchor="start">FLIP THE ANSWER.</text>
+<rect x="46" y="162" width="300" height="3" fill="#d6299e"/>
+<text x="44" y="192" class="nar" font-size="15.5" fill="#8fb8b1" text-anchor="start">A/B on 16 assumption-traps whose answers are POST training-cutoff (the model can't know them). Same model + prompts each —</text>
+<text x="44" y="213" class="nar" font-size="15.5" fill="#8fb8b1" text-anchor="start">the only change: the harness reads the authoritative source first.</text>
+<text x="60" y="238" class="mono" font-size="12" fill="#586872" text-anchor="start">naive ▁  vs  harness ▔   (per model)</text>
+<text x="60" y="260" class="hv" font-size="16" fill="#eafffb" text-anchor="start">claude-opus-4.8</text>
+<rect x="60" y="268" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="60" y="268" width="101" height="18" rx="2" fill="#3a5660"/>
+<rect x="60" y="290" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<path d="M60,290 L558,290 L566,298 L566,308 L65,308 L60,303 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="612" y="281" class="hv" font-size="13" fill="#5b8a84" text-anchor="start">3/16</text>
+<text x="612" y="304" class="hv" font-size="14" fill="#2dd4bf" text-anchor="start">15/16</text>
+<text x="666" y="295" class="hv" font-size="22" fill="#d6299e" text-anchor="start">+12</text>
+<text x="60" y="342" class="hv" font-size="16" fill="#eafffb" text-anchor="start">gpt-5.5</text>
+<rect x="60" y="350" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="60" y="350" width="101" height="18" rx="2" fill="#3a5660"/>
+<rect x="60" y="372" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<path d="M60,372 L524,372 L532,380 L532,390 L65,390 L60,385 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="612" y="363" class="hv" font-size="13" fill="#5b8a84" text-anchor="start">3/16</text>
+<text x="612" y="386" class="hv" font-size="14" fill="#2dd4bf" text-anchor="start">14/16</text>
+<text x="666" y="377" class="hv" font-size="22" fill="#d6299e" text-anchor="start">+11</text>
+<text x="60" y="424" class="hv" font-size="16" fill="#eafffb" text-anchor="start">gemini-3.1-pro-preview</text>
+<rect x="60" y="432" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="60" y="432" width="67" height="18" rx="2" fill="#3a5660"/>
+<rect x="60" y="454" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<path d="M60,454 L524,454 L532,462 L532,472 L65,472 L60,467 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="612" y="445" class="hv" font-size="13" fill="#5b8a84" text-anchor="start">2/16</text>
+<text x="612" y="468" class="hv" font-size="14" fill="#2dd4bf" text-anchor="start">14/16</text>
+<text x="666" y="459" class="hv" font-size="22" fill="#d6299e" text-anchor="start">+12</text>
+<text x="60" y="506" class="hv" font-size="16" fill="#eafffb" text-anchor="start">kimi-k2.7-code</text>
+<rect x="60" y="514" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="60" y="514" width="168" height="18" rx="2" fill="#3a5660"/>
+<rect x="60" y="536" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<path d="M60,536 L490,536 L498,544 L498,554 L65,554 L60,549 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="612" y="527" class="hv" font-size="13" fill="#5b8a84" text-anchor="start">5/16</text>
+<text x="612" y="550" class="hv" font-size="14" fill="#2dd4bf" text-anchor="start">13/16</text>
+<text x="666" y="541" class="hv" font-size="22" fill="#d6299e" text-anchor="start">+8</text>
+<path d="M750,242 V648" stroke="#1f3a3a" stroke-width="1"/>
+<text x="772" y="266" class="mono" font-size="13" fill="#2dd4bf" text-anchor="start" letter-spacing="1">>> AGGREGATE</text>
+<text x="772" y="326" class="hv" font-size="52" fill="#3a5660" text-anchor="start">20%</text>
+<text x="772" y="352" class="nar" font-size="13" fill="#5b8a84" text-anchor="start">naive — from memory</text>
+<text x="772" y="430" class="hv" font-size="72" fill="#2dd4bf" text-anchor="start">88%</text>
+<text x="772" y="458" class="nar" font-size="14" fill="#8fb8b1" text-anchor="start">with VERITY</text>
+<text x="772" y="500" class="nar" font-size="12.5" fill="#8fb8b1" text-anchor="start">across 4 models, every one +8..+12:</text>
+<text x="772" y="520" class="mono" font-size="11.5" fill="#586872" text-anchor="start">claude-opus-4.8 · gpt-5.5</text>
+<text x="772" y="537" class="mono" font-size="11.5" fill="#586872" text-anchor="start">gemini-3.1-pro-preview · kimi-k2.7-code</text>
+<path d="M60,604 L1114,604 L1140,630 L1140,700 L75,700 L60,685 Z" fill="#10090d" stroke="#d6299e" stroke-width="1.6"/>
+<path d="M64,608 L1113,608 L1136,631 L1136,696 L76,696 L64,684 Z" fill="none" stroke="#d6299e" stroke-width="0.7" opacity="0.38"/>
+<text x="86" y="648" class="hv" font-size="32" fill="#3a5660" text-anchor="start">13/64</text>
+<text x="86" y="682" class="nar" font-size="13" fill="#5b8a84" text-anchor="start">naive (answers from memory)</text>
+<text x="300" y="648" class="hv" font-size="30" fill="#8fb8b1" text-anchor="start">→</text>
+<text x="350" y="648" class="hv" font-size="32" fill="#2dd4bf" text-anchor="start">56/64</text>
+<text x="350" y="682" class="nar" font-size="13" fill="#8fb8b1" text-anchor="start">harness (reads ground truth)</text>
+<text x="720" y="644" class="hv" font-size="52" fill="#d6299e" text-anchor="start">+43</text>
+<text x="830" y="644" class="hv" font-size="15" fill="#eafffb" text-anchor="start">TOTAL LIFT</text>
+<text x="830" y="668" class="nar" font-size="12.5" fill="#8fb8b1" text-anchor="start">same models · opposite result · reproducible</text>
+<text x="44" y="824" class="mono" font-size="14" fill="#8fc7bf" text-anchor="start">$ python3 -m verity eval --models</text>
+<text x="372" y="824" class="mono" font-size="13" fill="#586872" text-anchor="start"># deterministic (temp=0, registry ground truth) · run it on your own suite</text>
+<rect x="16" y="836" width="1168" height="4" fill="#d6299e"/>
+</svg>
