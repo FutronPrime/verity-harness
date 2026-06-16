@@ -67,6 +67,14 @@ python3 -m verity proof                  # the receipt: which gates fired, what 
 python3 -m verity eval                   # A/B naive-vs-harness lift on assumption traps
 python3 -m verity failover-test          # prove cloud-down → local floor answers
 python3 -m verity capabilities           # what the agent can reach (web/search/install)
+python3 -m verity autostart --universal  # GATE ANY AGENT: writes rules to Claude/Codex/Gemini/Cursor/
+                                         #   Windsurf/Aider/Cline/opencode/Zed + generic AGENTS.md,
+                                         #   installs hooks where supported, + the skill to every skills dir
+```
+
+Universal scrape (built-in, zero-dep — the public futron-scrape):
+```python
+from verity.tools import scrape          # URL → readable fetch→JS-render fallback; query → multi-platform sweep
 ```
 
 ```python

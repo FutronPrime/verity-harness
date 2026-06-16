@@ -712,6 +712,28 @@ def browse(url: str, screenshot: str | None = None, wait_ms: int = 4000,
         return f"[browse error: {type(e).__name__}: {e}]"
 
 
+def scrape(target: str, max_chars: int = 8000) -> str:
+    """Universal scrape cascade — the public, zero-dependency 'futron-scrape' equivalent so a fresh
+    clone has the full reach without any private tooling. Auto-routes:
+      • a URL  → readable fetch(); if thin/blocked, fall back to a real JS-render browse().
+      • a query → multi-platform research() sweep (web + GitHub + Reddit + HN + StackOverflow).
+    If a richer installed scraper exists (a *-scrape CLI), system_web_tools()/research() already
+    prefer it; this is the always-available floor. Returns content or an honest empty signal."""
+    t = (target or "").strip()
+    is_url = t.startswith(("http://", "https://")) or (
+        " " not in t and "." in t.split("/")[0] and "/" in t.rstrip("/") + "/")
+    if is_url:
+        if not t.startswith(("http://", "https://")):
+            t = "https://" + t
+        out = fetch(t, max_chars=max_chars)
+        if len(out.strip()) < 200 or out.lstrip().startswith("[fetch"):   # thin/blocked → JS render
+            b = browse(t, max_chars=max_chars)
+            if not b.lstrip().startswith("[") and len(b.strip()) > len(out.strip()):
+                return b
+        return out
+    return research(t)
+
+
 def capabilities_guide() -> str:
     _own = system_web_tools()
     _reuse = (("\n⭐ REUSE-FIRST — " + _own + "\n") if _own else
@@ -738,6 +760,11 @@ You have a REAL SHELL (ShellExecutor). That means you can:
       sweeps GitHub (tools/forks) + Reddit + Hacker News + StackOverflow + web at once.
       Or target one: search_github / search_reddit / search_hackernews / search_stackoverflow.
       Use this to find uncommon/modified/open-source solutions others have shared.
+  • UNIVERSAL SCRAPE (one call, auto-routes — the built-in zero-dep scrape cascade):
+      python3 -c "from verity.tools import scrape; print(scrape('https://url-or-a-search-query'))"
+      A URL → readable fetch, falling back to a real JS-render browser if the page is thin/blocked;
+      a query → the multi-platform research() sweep. Always reaches SOMETHING. (If a richer *-scrape
+      CLI is installed it's preferred automatically; this is the always-available floor.)
   • DEEP SOURCE-GROUNDED RESEARCH (NotebookLM) — synthesis WITH citations over many docs/videos,
     for what a flat search can't do (onboard a codebase, decode legacy code + its git history,
     compress a long issue/PR thread into problem→options→decision):

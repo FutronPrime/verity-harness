@@ -279,6 +279,61 @@ def wire_gemini() -> str:
     return "Gemini: " + _ensure_md_block(pathlib.Path(os.path.expanduser("~/.gemini/GEMINI.md")))
 
 
+# Every coding agent reads SOME instructions file + most support a skills dir. To FUTURE-PROOF — gate
+# any model/agent no matter how it ships — wire the gates into the whole known ecosystem (only touching
+# config dirs that already exist, so we don't litter), plus a generic AGENTS.md (the emerging cross-agent
+# standard). New agent next year? Add one line here, or it already reads AGENTS.md and is covered.
+_OPTIONAL_RULES = [
+    ("~/.cursor/rules/verity-gates.md", "Cursor"),
+    ("~/.codeium/windsurf/memories/verity-gates.md", "Windsurf"),
+    ("~/.config/aider/CONVENTIONS.md", "Aider"),
+    ("~/.clinerules", "Cline/Roo"),
+    ("~/.config/opencode/AGENTS.md", "opencode"),
+    ("~/.config/zed/AGENTS.md", "Zed"),
+]
+_SKILL_TARGETS = ["~/.claude/skills/verity", "~/.agents/skills/verity", "~/.config/verity/skill"]
+
+
+def install_skill_everywhere() -> str:
+    """Install the VERITY skill for ALL agents that read a skills dir: Claude Code (~/.claude/skills),
+    Codex & the open 'agent skills' standard (~/.agents/skills), plus a generic fallback. Same SKILL.md."""
+    import shutil as _sh
+    src = pathlib.Path(REPO) / "skill" / "verity" / "SKILL.md"
+    if not src.exists():
+        return "[skill] source SKILL.md not found in repo — skipped."
+    done = []
+    for t in _SKILL_TARGETS:
+        d = pathlib.Path(os.path.expanduser(t)); d.mkdir(parents=True, exist_ok=True)
+        _sh.copy2(src, d / "SKILL.md"); done.append(t.replace(os.path.expanduser("~"), "~"))
+    return "[skill] installed → " + ", ".join(done)
+
+
+def wire_universal() -> str:
+    """ONE command to gate ANY agent (now + future): rules files across the ecosystem + active hooks
+    where supported + the skill in every skills dir + the proxy floor. Idempotent; only creates rules
+    files for agents whose config dir already exists (won't litter), plus a generic AGENTS.md."""
+    out = ["VERITY — UNIVERSAL wiring (gate every agent, however it ships):"]
+    # Core agents: rules + active enforcement hooks.
+    out.append("  " + wire_claude_code().splitlines()[0])
+    for ln in wire_codex().splitlines():
+        out.append("    " + ln)
+    out.append("  [Gemini] " + _ensure_md_block(pathlib.Path(os.path.expanduser("~/.gemini/GEMINI.md"))))
+    # Other agents: only if installed (parent dir exists) — don't create config for tools you don't use.
+    for rel, label in _OPTIONAL_RULES:
+        p = pathlib.Path(os.path.expanduser(rel))
+        if p.exists() or p.parent.exists():
+            out.append(f"  [{label}] " + _ensure_md_block(p))
+    # Generic AGENTS.md fallback — the cross-agent standard; any AGENTS-aware tool inherits the gates.
+    out.append("  [generic] " + _ensure_md_block(pathlib.Path(os.path.expanduser("~/.config/agents/AGENTS.md"))))
+    out.append("  " + install_skill_everywhere())
+    out.append("  [proxy] export OPENAI_BASE_URL=http://127.0.0.1:11500/v1  — any OpenAI chat/completions "
+               "agent inherits failover + gates transparently (Codex uses the Responses API → gated via "
+               "its AGENTS.md + hooks instead).")
+    out.append("  → Future-proof: a new agent that reads AGENTS.md or ~/.agents/skills is ALREADY covered; "
+               "otherwise add one line to _OPTIONAL_RULES.")
+    return "\n".join(out)
+
+
 def wire_daemon() -> str:
     """Install an ALWAYS-ON proxy daemon (macOS launchd KeepAlive) so the gate layer is never down —
     it can't be bypassed by being offline, survives crashes, and boots with the multi-provider chain
@@ -331,11 +386,8 @@ def main(target: str) -> None:
         print(wire_gemini())
     elif target == "--shell":
         print(wire_shell())
-    elif target == "--all":
-        print(wire_claude_code()); print(wire_codex()); print(wire_gemini())
-        print("\nLocal / open-source / any OpenAI-API agent: no injection needed — point it at the")
-        print("proxy and it inherits failover + ALL gates transparently:")
-        print("  export OPENAI_BASE_URL=http://127.0.0.1:11500/v1")
+    elif target in ("--all", "--universal"):
+        print(wire_universal())
     else:
         write_script()
         print("VERITY background-harness startup script written to:\n  " + str(SCRIPT) + "\n")

@@ -85,6 +85,16 @@ anything over. Point OpenClaw, Hermes, Pi, Paperclip, or your own orchestrator/d
 (or don't); the gates inject into agent config files *additively*; the only port it claims is `:11500`
 (configurable). It sits alongside your stack as a discipline layer, not a replacement for it.
 
+**Future-proof — gates ANY agent, however it ships.** `python3 -m verity autostart --universal` wires
+the gates into the whole known ecosystem at once — Claude Code (rules + Stop hook), Codex (`~/.codex/
+AGENTS.md` + `hooks.json` Stop hook; Codex speaks the Responses API so it's gated by rules+hooks, not
+the proxy), Gemini, Cursor, Windsurf, Aider, Cline/Roo, opencode, Zed — plus a generic `AGENTS.md`
+fallback (the emerging cross-agent standard) and the **skill installed to every skills dir**
+(`~/.claude/skills`, `~/.agents/skills`, …). A new agent next year that reads `AGENTS.md` or
+`~/.agents/skills` is *already* covered; otherwise it's a one-line add. Three enforcement layers —
+the rules file (always-on doctrine), hooks (mechanical Stop-gate where supported), and the proxy
+floor — so the discipline lands no matter how a given model or vendor exposes itself.
+
 **A supercharger, not a stopgap — useful even after Fable comes back.** VERITY's value isn't "be smart
 for you"; it's the *innate discipline* it forces on **any** model: the multi-agent swarm, adversarial
 verification, making the model check its own work, and proactively searching / trend-scanning /
