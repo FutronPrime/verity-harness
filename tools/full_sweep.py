@@ -21,21 +21,19 @@ MODELS = [
     ("gpt-5.5", "openai/gpt-5.5", False),
     ("gemini-3.1-pro", "google/gemini-3.1-pro-preview", False),
     ("glm-5.1", "z-ai/glm-5.1", False),
+    ("kimi-k2.7-code", "moonshotai/kimi-k2.7-code", False),       # registry-corrected slug
     ("gpt-4o-mini", "openai/gpt-4o-mini", False),
     ("gemini-2.5-flash", "google/gemini-2.5-flash", False),
     ("llama-3.3-70b", "meta-llama/llama-3.3-70b-instruct", False),
     ("gemma-4-31b", "google/gemma-4-31b-it", False),
+    ("qwen3-coder-flash", "qwen/qwen3-coder-flash", False),       # registry-corrected slug
     ("local-qwen-4b", "huihui_ai/qwen3.5-abliterated:4b", True),
 ]
-# which axes per model (cost-bounded): A=accuracy C=coding M=memory R=research X=coordination(swarm)
-PLAN = {
-    # cost-bounded: A/C/M are cheap-ish across models; the EXPENSIVE axes (R=research tool-calls,
-    # X=multi-agent swarm) run ONLY on cheap gpt-4o-mini as the representative — so the overnight run
-    # can't burn hours/$$ on a flagship swarm. Coordination/research lift also has prior verified runs.
-    "claude-opus-4.8": "ACM", "gpt-5.5": "ACM", "gemini-3.1-pro": "ACM", "glm-5.1": "AC",
-    "gpt-4o-mini": "ACMRX", "gemini-2.5-flash": "A", "llama-3.3-70b": "AC",
-    "gemma-4-31b": "A", "local-qwen-4b": "ACM",
-}
+# FULL sweep (DJ: ALL results for ALL models, cost/time accepted): every cloud model runs ALL FIVE axes
+# A=accuracy C=coding M=memory R=research X=coordination(swarm). Local 4B gets ACM only — multi-agent
+# swarm/research on a 4B just errors/times out slowly (not a realistic swarm model); cell() bounds it anyway.
+PLAN = {m[0]: "ACMRX" for m in MODELS}
+PLAN["local-qwen-4b"] = "ACM"
 
 
 def tier(slug, local):
