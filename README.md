@@ -71,6 +71,11 @@ VERITY agents don't just *answer* — they **work**, and they **don't give up**:
 - **Multi-agent swarm** — `verity swarm` fans out research + execution, runs an adversarial critic, and
   synthesizes — every step gated, **every sub-agent the same caliber as the lead and bound by the same
   gates** (can't quit, can't confabulate model facts). ([details below](#multi-agent-swarm-the-mythosfable-shape--self-contained))
+- **Self-improving — it learns from its own track record.** Every gate logs to a decision ledger;
+  `verity playbook` mines it for the assumptions the harness *caught being wrong*, the tools it *found*,
+  and the fixes that *worked*, and distills an injectable playbook that `autostart` re-feeds **every
+  session**. So the model starts each run pre-loaded with its own proven discipline and gets sharper the
+  more you use it — *the harness that checks the work also learns from it.*
 
 This isn't a personality prompt asking the model to be diligent; it's enforced on **code conditions**.
 
