@@ -22,6 +22,7 @@ MODELS = [
     ("gemini-3.1-pro", "google/gemini-3.1-pro-preview", False),
     ("glm-5.1", "z-ai/glm-5.1", False),
     ("kimi-k2.7-code", "moonshotai/kimi-k2.7-code", False),       # registry-corrected slug
+    ("nex-n2-pro", "nex-agi/nex-n2-pro:free", False),             # 397B MoE, Apache-2.0, agentic, FREE — registry-verified reachable 2026-06-16
     ("gpt-4o-mini", "openai/gpt-4o-mini", False),
     ("gemini-2.5-flash", "google/gemini-2.5-flash", False),
     ("llama-3.3-70b", "meta-llama/llama-3.3-70b-instruct", False),
