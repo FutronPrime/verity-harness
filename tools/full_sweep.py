@@ -44,13 +44,23 @@ def tier(slug, local):
     return Tier(name="cloud", protocol="openai", base_url=OR, model=slug, api_key=KEY, timeout_s=90)
 
 
+def _pick(r, *keys):
+    for k in keys:
+        if k in r:
+            return r[k]
+    return 0
+
+
 def cell(fn, t, **kw):
     try:
         r = fn(tiers=[t], verbose=False, **kw)
-        return {"naive": r.get("naive_correct", r.get("naive_pass", 0)),
-                "harness": r.get("harness_correct", r.get("harness_pass", 0)),
-                "total": r.get("traps", r.get("tasks", r.get("total", 0))),
-                "lift": r.get("lift", 0)}
+        # eval modules use different key names: assumptions/research → naive_correct/harness_correct/traps;
+        # swebench/tasks → naive/harness/tasks. Handle all.
+        naive = _pick(r, "naive_correct", "naive", "naive_pass")
+        harness = _pick(r, "harness_correct", "harness", "harness_pass")
+        return {"naive": naive, "harness": harness,
+                "total": _pick(r, "traps", "tasks", "total"),
+                "lift": r.get("lift", harness - naive)}
     except Exception as e:  # noqa: BLE001
         return {"error": f"{type(e).__name__}: {e}"[:120]}
 
