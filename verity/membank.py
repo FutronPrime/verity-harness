@@ -56,6 +56,55 @@ def _conn():
     return c
 
 
+_EMB = "unset"   # lazy: a callable(list[str])->list[vec], or None when no embedding lib is installed
+
+
+def _embedder():
+    """OPT-IN semantic tier. If a local static-embedding lib is installed we use it to RERANK the
+    keyword candidates by meaning (catches paraphrase the FTS5 floor misses). Strictly optional —
+    nothing here is a hard dependency, so the zero-dep default is untouched. Preference order:
+    model2vec (≈35MB static, CPU, fast) → sentence-transformers. Returns None if neither is present."""
+    global _EMB
+    if _EMB != "unset":
+        return _EMB
+    _EMB = None
+    if not os.environ.get("VERITY_SEMANTIC"):     # opt-in ONLY (default off → zero-dep, no model load)
+        return _EMB
+    try:
+        from model2vec import StaticModel  # type: ignore
+        m = StaticModel.from_pretrained("minishlab/potion-base-8M")
+        _EMB = lambda texts: m.encode(list(texts))
+    except Exception:  # noqa: BLE001
+        try:
+            from sentence_transformers import SentenceTransformer  # type: ignore
+            m = SentenceTransformer("all-MiniLM-L6-v2")
+            _EMB = lambda texts: m.encode(list(texts))
+        except Exception:  # noqa: BLE001
+            _EMB = None
+    return _EMB
+
+
+def _semantic_rerank(query, ranked, top=12):
+    """Reorder the already keyword-filtered candidates by cosine similarity to the query (opt-in).
+    Only touches the head (top) — cheap, and it can't surface something keyword search never matched,
+    so it's a safe precision boost, never a recall regression."""
+    emb = _embedder()
+    if not emb or len(ranked) < 2:
+        return ranked
+    try:
+        head = ranked[:top]
+        vecs = emb([query] + [r[3] for r in head])
+        q = vecs[0]
+        def cos(v):
+            num = sum(a * b for a, b in zip(q, v))
+            da = sum(a * a for a in q) ** 0.5; db = sum(b * b for b in v) ** 0.5
+            return num / (da * db + 1e-9)
+        rescored = sorted(head, key=lambda r: -cos(vecs[1 + head.index(r)]))
+        return rescored + ranked[top:]
+    except Exception:  # noqa: BLE001
+        return ranked
+
+
 def _entities(text: str) -> str:
     seen, out = set(), []
     for m in _ENT.findall(text or ""):
@@ -141,7 +190,7 @@ def recall(query: str, project: str | None = None, budget_chars: int = 2000, k: 
             rows = c.execute(                            # keyword (qstems substring-match catches inflections)
                 "SELECT id,scope,content,created_at,access_count FROM memories "
                 "ORDER BY created_at DESC LIMIT ?", (max(k, 200),)).fetchall()
-        ranked = _dedup(_rank_rows(rows, query))
+        ranked = _semantic_rerank(query, _dedup(_rank_rows(rows, query))) if query else _dedup(_rank_rows(rows, query))
         out, used, ids = [], 0, []
         for _, rid, scope, content, *_ in ranked:
             snippet = content if len(content) <= 160 else content[:157] + "…"

@@ -155,6 +155,19 @@ def main(argv: list[str]) -> None:
         if "--json" in rest:
             i = rest.index("--json"); jp = rest[i + 1] if i + 1 < len(rest) else "memory-proof.json"
         _memrun(with_llm="--llm" in rest, json_path=jp)
+    elif cmd == "handle":
+        # Pointer-indirection: resolve a stashed big-payload handle on demand.  handle get <verity://h/..>
+        from . import handles as _h
+        if rest and rest[0] == "get" and len(rest) > 1:
+            print(_h.resolve(rest[1]))
+        else:
+            print("usage: handle get <verity://h/...>", file=sys.stderr); sys.exit(2)
+    elif cmd == "doc":
+        # RLM-style long-doc query: pull only relevant slices of a huge file.  doc <path> "<query>"
+        from .longdoc import query_doc
+        if len(rest) < 2:
+            print('usage: doc <path> "<query>"', file=sys.stderr); sys.exit(2)
+        print(query_doc(rest[0], " ".join(rest[1:])))
     elif cmd in ("models", "registry"):
         # AUTHORITATIVE model lookup — read the live OpenRouter registry instead of guessing current
         # model ids from stale training. The right way to answer 'what's the newest X model'.

@@ -278,7 +278,11 @@ def run_swarm(goal: str, executor=None, tiers=None, max_subtasks: int = 4,
         print(f"[swarm] EXECUTE+CRITIQUE done ({repaired[0]} repaired)")
 
     # 4. SYNTHESIZE ---------------------------------------------------------
-    combined = "\n\n".join(f"=== SUB-TASK: {r['subtask']} ===\n{r['result']}" for r in results)
+    # Pointer-indirection: a huge sub-result is stashed to a handle + preview so the synthesize prompt
+    # stays bounded no matter how big any single sub-task's output got (the synthesizer can resolve it).
+    from .handles import boundify
+    combined = "\n\n".join(f"=== SUB-TASK: {r['subtask']} ===\n{boundify(str(r['result']), threshold=3000)}"
+                           for r in results)
     final = _agent("synthesizer", f"GOAL: {goal}\n\nVERIFIED SUB-RESULTS:\n{combined}\n\n"
                                    "Synthesize the complete final answer.", tiers)
     ledger.log("swarm-synth", trigger=goal[:80], verdict="VERIFIED",
