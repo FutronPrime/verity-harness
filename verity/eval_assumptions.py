@@ -20,7 +20,7 @@ DEFAULT_MODELS = [
     "openai/gpt-4o-mini",                     # cheap, ubiquitous baseline
     "google/gemini-2.5-flash",                # the realistic Gemini floor people use
     "meta-llama/llama-3.3-70b-instruct",      # strong open model
-    "qwen/qwen3.5-flash-02-23",               # current open Qwen
+    "qwen/qwen3-coder-flash",                 # current open Qwen (registry-verified; the old qwen3.5-flash slug never resolved)
     "google/gemma-4-31b-it",                  # open Gemma-4 (DJ runs it local; :free slug rate-limits the eval)
 ]
 

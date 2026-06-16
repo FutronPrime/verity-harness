@@ -13,6 +13,10 @@ const CFG = path.join(os.homedir(), '.verity-harness', 'mascot.json');
 const DEFAULTS = {mascot: 'hawk', animations: 'full', layer: 'front', frequency: 'med', configured: false};
 function loadCfg() { try { return {...DEFAULTS, ...JSON.parse(fs.readFileSync(CFG, 'utf8'))}; } catch { return {...DEFAULTS}; } }
 function saveCfg(c) { try { fs.mkdirSync(path.dirname(CFG), {recursive: true}); fs.writeFileSync(CFG, JSON.stringify(c)); } catch {} }
+// A mascot is OFFERED only if its assets are present. hawk/sun/logo ship with the repo; AVANI is a
+// private easter egg — her assets are NOT in the public repo (gitignored), so she appears ONLY on a
+// build that has them locally. Same code everywhere; availability is data-driven, no fork needed.
+function hasAvani() { try { return fs.existsSync(path.join(__dirname, 'assets', 'mascot-avani.png')); } catch { return false; } }
 
 function applyLayer(cfg) {
   if (!win) return;
@@ -59,7 +63,7 @@ function trayMenu() {
     {label: 'Mascot', submenu: [
       {label: 'Truth Hawk', type: 'radio', checked: chk('mascot','hawk'), click: pick('mascot','hawk')},
       {label: 'VERI (Sun)', type: 'radio', checked: chk('mascot','sun'),  click: pick('mascot','sun')},
-      {label: 'AVANI ✦ (easter egg)', type: 'radio', checked: chk('mascot','avani'), click: pick('mascot','avani')},
+      ...(hasAvani() ? [{label: 'AVANI ✦ (easter egg)', type: 'radio', checked: chk('mascot','avani'), click: pick('mascot','avani')}] : []),
       {label: 'Logo only',  type: 'radio', checked: chk('mascot','logo'), click: pick('mascot','logo')},
       {label: 'None (off)', type: 'radio', checked: chk('mascot','none'), click: pick('mascot','none')},
     ]},
@@ -91,7 +95,7 @@ function buildTray() {
   tray.setContextMenu(trayMenu());
 }
 
-ipcMain.handle('get-cfg', () => loadCfg());
+ipcMain.handle('get-cfg', () => ({...loadCfg(), _avani: hasAvani()}));
 ipcMain.on('save-cfg', (_e, c) => { saveCfg({...loadCfg(), ...c}); rebuild(); if (tray) tray.setContextMenu(trayMenu()); });
 ipcMain.on('setup-done', (_e, c) => { saveCfg({...loadCfg(), ...c, configured: true}); if (setupWin) setupWin.close(); rebuild(); if (tray) tray.setContextMenu(trayMenu()); });
 // Custom drag (so the mascot is both DRAGGABLE and CLICKABLE — app-region drag ate the clicks).

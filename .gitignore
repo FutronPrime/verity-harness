@@ -9,3 +9,9 @@ assets/mascot-*-sheet-clean.png
 demo-out/
 desktop-mascot/node_modules
 venv/
+
+# AVANI mascot — private easter egg, kept local only (not shipped in the public repo)
+desktop-mascot/assets/anim/avani-*.webp
+desktop-mascot/assets/mascot-avani.png
+desktop-mascot/themes/avani/
+petdex/avani/

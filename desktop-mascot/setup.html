@@ -50,6 +50,17 @@
 
   <script>
     const sel = {mascot:'hawk', animations:'full', layer:'front', frequency:'med'};
+    // AVANI is a private easter egg — only offered when her assets are present locally (not in the
+    // public repo). Hide the option + its note otherwise.
+    (async () => {
+      try {
+        const c = window.verity && window.verity.getCfg ? await window.verity.getCfg() : {};
+        if (!c._avani) {
+          document.querySelectorAll('#mascot .opt[data-v="avani"]').forEach(e => e.remove());
+          document.querySelectorAll('.note').forEach(n => { if (n.textContent.includes('AVANI')) n.remove(); });
+        }
+      } catch {}
+    })();
     document.querySelectorAll('.row').forEach(row => {
       row.addEventListener('click', e => {
         const o = e.target.closest('.opt'); if (!o) return;
