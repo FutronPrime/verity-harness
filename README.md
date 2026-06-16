@@ -2,6 +2,12 @@
   <img src="assets/banner.png" alt="VERITY — The Truth Harness" width="100%"/>
 </p>
 
+<p align="center">
+  <img src="assets/logo.png" alt="VERITY logo" height="130"/>
+  &nbsp;&nbsp;
+  <img src="assets/mascot-hawk-anim.gif" alt="The Truth Hawk — VERITY's silent verification mascot" height="130"/>
+</p>
+
 # VERITY · The Truth Harness
 
 > **Fable tells the tale. Verity verifies it.**
@@ -371,6 +377,19 @@ real, not before. Receipts over hype.
 | `VERITY_CLASSIFIER_CMD` | external (e.g. model-based) sensitivity classifier |
 | `VERITY_TRIPWIRE_CMD` | external validation hook |
 | `LLM_VERIFIER_MODEL` | cheap model id for verify/calibration calls |
+
+## Meet the mascot — the Truth Hawk 🦅
+
+Claude Code has **Clawd**, the friendly 8-bit crab that waves hello in your terminal. Cute. But a crab
+just *sits there.* VERITY has the **Truth Hawk** — a silent, low-poly verification agent with a built-in
+`V` chevron, who **never talks; it just watches your model's work and checks it.** Expressive but swift:
+it nods on a verified result, side-eyes a confident guess, and goes heads-down when there's logic to
+refactor. (A warm **Sun** variant ships too — same energy, softer mood — interchangeable per vibe.)
+
+<p align="center"><img src="assets/mascot-hawk.png" alt="Truth Hawk mascot sprite sheet — success, confused, error, refactoring states" width="100%"/></p>
+<p align="center"><img src="assets/mascot-sun.png" alt="Sun mascot sprite sheet — the soft/cutesy interchangeable variant" width="100%"/></p>
+
+<p align="center"><sub>A minimalist, silent verification agent — expressive but swift. Same teal/magenta/amber palette as the harness. Use it in the repo, the launch posts, and the video.</sub></p>
 
 ## License
 

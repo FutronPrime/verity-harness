@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 200" font-family="'Arial Black',Arial,sans-serif" role="img" aria-label="VERITY — The Truth Harness">
+  <defs>
+    <linearGradient id="teal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5ff6e4"/><stop offset="1" stop-color="#1fb8a6"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3.2" result="b"/><feMerge>
+        <feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="560" height="200" fill="#070a0d"/>
+  <!-- HUD frame (augmented-ui corner cut) -->
+  <path d="M14,14 H150 L168,32 V168 L150,186 H14 Z" fill="none" stroke="#1f5c54" stroke-width="1.4" opacity="0.7"/>
+  <!-- the mark: an angular V chevron that resolves into a verify checkmark (truth = verified) -->
+  <g filter="url(#glow)">
+    <!-- left wing of the V -->
+    <path d="M40,46 L92,150 L80,150 L36,58 Z" fill="url(#teal)"/>
+    <!-- right wing of the V, extended up-right into a checkmark tick -->
+    <path d="M144,46 L92,150 L104,150 L150,58 Z" fill="url(#teal)"/>
+    <path d="M120,96 L150,40 L162,46 L126,118 Z" fill="#5ff6e4"/>
+    <!-- inner inlay line (DNA aesthetic) -->
+    <path d="M58,62 L92,130 L126,62" fill="none" stroke="#070a0d" stroke-width="3" opacity="0.45"/>
+  </g>
+  <!-- wordmark -->
+  <text x="196" y="104" font-size="62" fill="#eafffb" letter-spacing="3">VERITY</text>
+  <rect x="198" y="118" width="232" height="3" fill="#d6299e"/>
+  <text x="198" y="146" font-size="17" fill="#8fb8b1" font-family="'SF Mono','Menlo',monospace" letter-spacing="3">THE&#160;TRUTH&#160;HARNESS</text>
+  <text x="198" y="170" font-size="12.5" fill="#586872" font-family="'SF Mono',monospace" letter-spacing="1">veritas&#160;·&#160;open-source&#160;·&#160;model-agnostic</text>
+</svg>
