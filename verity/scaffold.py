@@ -298,6 +298,12 @@ def _preflight(goal: str, verbose: bool = False) -> str:
         rh = registry_hint(goal)
         if rh:
             findings = rh + ("\n\n" + findings if findings.strip() else "")
+        # REUSE-FIRST: if the goal looks like building/finding something, surface curated existing
+        # tools/awesome-lists so the model checks them BEFORE reinventing (VERITY's core thesis).
+        from .resources import reuse_hint
+        uh = reuse_hint(goal)
+        if uh:
+            findings = uh + ("\n\n" + findings if findings.strip() else "")
     except Exception:  # noqa: BLE001 — never let preflight failure break the run
         findings = ""
     ledger.log(ledger.SEARCH, trigger="preflight: current best approach",

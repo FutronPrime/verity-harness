@@ -112,6 +112,16 @@ def main(argv: list[str]) -> None:
     elif cmd == "capabilities":
         from .tools import capabilities_guide
         print(capabilities_guide())
+    elif cmd == "resources":
+        # REUSE-FIRST resource library — curated awesome-lists + frameworks the agents consult
+        # before reinventing. `resources <query>` searches; `resources --fetch <name>` opens a list live.
+        from . import resources as _res
+        if rest and rest[0] == "--fetch":
+            if len(rest) < 2:
+                print("usage: resources --fetch <name-or-url>", file=sys.stderr); sys.exit(2)
+            print(_res.fetch_list(rest[1]))
+        else:
+            print(_res.search(" ".join(rest)))
     elif cmd in ("models", "registry"):
         # AUTHORITATIVE model lookup — read the live OpenRouter registry instead of guessing current
         # model ids from stale training. The right way to answer 'what's the newest X model'.
