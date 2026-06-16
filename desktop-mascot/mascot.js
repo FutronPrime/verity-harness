@@ -8,11 +8,11 @@ const SPRITES = {hawk: 'assets/mascot-hawk.png', sun: 'assets/mascot-sun.png', l
 let cfg = {mascot: 'hawk', animations: 'full', frequency: 'med'};
 const FREQ = {low: {flourish: 18000, chance: 0.10}, med: {flourish: 9000, chance: 0.25}, high: {flourish: 4500, chance: 0.55}};
 
-// STATE MACHINE: each state can have a real animated GIF at assets/anim/<mascot>-<state>.gif (generated
+// STATE MACHINE: each state can have a real animated WebP (transparent) at assets/anim/<mascot>-<state>.webp (generated
 // via Ludo/Higgsfield). If a state's GIF is missing for a mascot, we gracefully fall back to the static
 // sprite + a CSS micro-reaction — so partially-animated mascots still work. (clawd-on-desk model.)
 const STATES = ['idle', 'success', 'error', 'thinking', 'building'];
-function gifFor(state) { return `assets/anim/${cfg.mascot}-${state}.gif`; }
+function gifFor(state) { return `assets/anim/${cfg.mascot}-${state}.webp`; }
 
 function setState(state) {
   const want = gifFor(state);
