@@ -20,6 +20,11 @@ Design (distilled, zero-dep):
     ONLY thing loaded at session start; never grows past budget.
   • bootstrap_lint(): the markdown tier — keep an always-loaded MEMORY.md/CLAUDE.md O(categories).
 No LLM call anywhere — summarization, if wanted, is the agent's own job at capture time.
+
+SAFETY (enforced by design, not promise): this CANNOT erase/overwrite/corrupt the user's data. Its store
+is a SEPARATE sandbox (~/.verity-harness/membank.db); capture is ADD-ONLY (no DELETE/overwrite path);
+recall/get/session_start/stats are read-only; bootstrap_lint only READS+reports (never auto-edits your
+CLAUDE.md/MEMORY.md); local-only (no upload). Uninstall = `rm -rf ~/.verity-harness`; your files are untouched.
 """
 from __future__ import annotations
 
@@ -258,7 +263,8 @@ def stats() -> str:
         size = os.path.getsize(DB) if os.path.exists(DB) else 0
         return (f"VERITY membank: {n} memories · {size//1024} KB · {DB}\n"
                 + ("  " + " · ".join(f"{s}:{ct}" for s, ct in by) if by else "  (empty)")
-                + f"\n  FTS5: {'on' if _fts(c) else 'LIKE-fallback'}")
+                + f"\n  FTS5: {'on' if _fts(c) else 'LIKE-fallback'}"
+                + "\n  SAFE: add-only · own sandbox (~/.verity-harness) · never edits/deletes your files · local-only")
     finally:
         c.close()
 

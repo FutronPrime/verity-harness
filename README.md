@@ -338,6 +338,22 @@ verity memory lint MEMORY.md                       # flags the O(memories) anti-
 No LLM call anywhere in the store — summarization, if you want it, is the agent's own job. Run it on your
 own machine: `python3 -m verity eval-memory` (add `--llm` for the A/B against a local model).
 
+> ### 🔒 Your existing memory is never touched — it can only be *added to*
+> VERITY's memory **cannot erase, overwrite, or corrupt your data.** This is enforced by design, not
+> promised by politeness — [verify it in the source](verity/membank.py):
+> - **Its own sandbox.** Everything lives in a separate store (`~/.verity-harness/`). VERITY reads **none**
+>   of your existing files or memory, and stores nothing you didn't explicitly hand it.
+> - **Add-only.** `capture` only ever *inserts* a new entry — there is no code path that overwrites or
+>   deletes one. No `DELETE`, no `DROP` of your data, anywhere.
+> - **Read-only on your files.** `verity memory lint` only *reads and reports*; VERITY **never auto-edits**
+>   your `CLAUDE.md`/`MEMORY.md`. The bounded-index restructure is guidance **you** choose to apply.
+> - **Additive, reversible config.** Autostart appends a clearly-marked `<!-- VERITY-GATES -->` block and
+>   idempotent hooks; your existing content is preserved and removal is just deleting that block.
+> - **Local-first.** Nothing is uploaded. No cloud, no account, no exfiltration.
+>
+> In short: VERITY memory only **assists, enhances, and extends** how long and how well your agent works.
+> Uninstalling is `rm -rf ~/.verity-harness` — and your own files are exactly as you left them.
+
 ## Invisible, always-on (proxy daemon)
 
 Point any OpenAI-compatible client (Claude Code, Cursor, an SDK) at the proxy and
