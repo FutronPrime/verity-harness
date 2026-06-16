@@ -1,0 +1,117 @@
+{
+  "generated_at": "2026-06-16T03:34:58",
+  "pass": 4,
+  "total": 4,
+  "results": [
+    {
+      "name": "boundedness",
+      "pass": true,
+      "budget": 1500,
+      "rows": [
+        {
+          "memories": 10,
+          "injected_chars": 266,
+          "naive_flat_index_chars": 600,
+          "bounded": true
+        },
+        {
+          "memories": 100,
+          "injected_chars": 267,
+          "naive_flat_index_chars": 6000,
+          "bounded": true
+        },
+        {
+          "memories": 1000,
+          "injected_chars": 269,
+          "naive_flat_index_chars": 60000,
+          "bounded": true
+        },
+        {
+          "memories": 10000,
+          "injected_chars": 271,
+          "naive_flat_index_chars": 600000,
+          "bounded": true
+        }
+      ],
+      "headline": "injection stayed \u22641500 across 10\u219210000 memories (naive flat-index hit 600,000 chars = ~150,000 tokens, OVER the window)"
+    },
+    {
+      "name": "retrieval",
+      "pass": true,
+      "precision": 1.0,
+      "rows": [
+        {
+          "query": "how do we deploy the gateway",
+          "surfaced_gold": true
+        },
+        {
+          "query": "what tts engine for voice",
+          "surfaced_gold": true
+        },
+        {
+          "query": "transparent animation export",
+          "surfaced_gold": true
+        },
+        {
+          "query": "how does DJ want responses",
+          "surfaced_gold": true
+        },
+        {
+          "query": "which model id for kimi",
+          "surfaced_gold": true
+        }
+      ],
+      "headline": "5/5 gold facts surfaced in the bounded block despite 300 distractors (the store grew; the right memory still came back)"
+    },
+    {
+      "name": "resources",
+      "pass": true,
+      "precision": 0.8571428571428571,
+      "rows": [
+        {
+          "goal": "build a terminal TUI dashboard in python",
+          "expected": "textual",
+          "surfaced": true
+        },
+        {
+          "goal": "create a multi-agent swarm with roles",
+          "expected": "agency-swarm",
+          "surfaced": true
+        },
+        {
+          "goal": "set up a project manager agent with handoffs",
+          "expected": "agentic-project-management",
+          "surfaced": true
+        },
+        {
+          "goal": "add async sql database access",
+          "expected": "databases",
+          "surfaced": true
+        },
+        {
+          "goal": "scan code for security vulnerabilities",
+          "expected": "codeql",
+          "surfaced": false
+        },
+        {
+          "goal": "find a free public api for data",
+          "expected": "public-apis",
+          "surfaced": true
+        },
+        {
+          "goal": "implement a design pattern for this architecture",
+          "expected": "awesome-design-patterns",
+          "surfaced": true
+        }
+      ],
+      "headline": "6/7 build-goals surfaced the right existing tool BEFORE building (reuse-first actually fires on the goals that matter)"
+    },
+    {
+      "name": "continuity-llm",
+      "pass": true,
+      "without_memory_had_answer": false,
+      "with_memory_had_answer": true,
+      "headline": "without memory: did NOT know the token; with injected memory: KNEW it (proves the bounded injection carries real, usable knowledge across sessions)"
+    }
+  ]
+}
