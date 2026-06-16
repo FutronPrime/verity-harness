@@ -2,10 +2,10 @@ html, body { margin: 0; width: 200px; height: 200px; background: transparent; ov
   user-select: none; -webkit-user-select: none; }
 
 #stage { position: relative; width: 200px; height: 200px;
-  -webkit-app-region: drag;            /* drag the pet around the desktop */
-  display: flex; align-items: center; justify-content: center; }
+  display: flex; align-items: center; justify-content: center; cursor: grab; }
+#stage:active { cursor: grabbing; }
 
-#mascot { width: 150px; height: auto; -webkit-user-drag: none;
+#mascot { width: 150px; height: auto; -webkit-user-drag: none; pointer-events: none;
   filter: drop-shadow(0 4px 10px rgba(0,0,0,.5));
   animation: idle 3.2s ease-in-out infinite; }
 

@@ -49,8 +49,24 @@ function idleFlourish() {
     playReaction({cls: 'react-think', glyph: '·'});
 }
 
-// Click the mascot → a friendly reaction (works in every mode).
-stage.addEventListener('click', () => playReaction({cls: 'react-success', glyph: '✓'}));
+// Custom drag + click + right-click. (app-region drag ate the clicks, so we do it ourselves: track
+// movement on press; if barely moved → it's a CLICK → react; otherwise move the window via IPC.)
+let down = false, moved = false, lastX = 0, lastY = 0;
+stage.addEventListener('mousedown', (e) => {
+  if (e.button !== 0) return;          // left only; right-click handled below
+  down = true; moved = false; lastX = e.screenX; lastY = e.screenY;
+});
+window.addEventListener('mousemove', (e) => {
+  if (!down) return;
+  const dx = e.screenX - lastX, dy = e.screenY - lastY;
+  if (Math.abs(dx) + Math.abs(dy) > 2) { moved = true; if (window.verity && window.verity.moveWindow) window.verity.moveWindow(dx, dy); lastX = e.screenX; lastY = e.screenY; }
+});
+window.addEventListener('mouseup', () => {
+  if (down && !moved) playReaction({cls: 'react-success', glyph: '✓'});   // it was a click → react
+  down = false;
+});
+// Right-click the mascot → the options menu (switch / hide / position / frequency / setup).
+stage.addEventListener('contextmenu', (e) => { e.preventDefault(); if (window.verity && window.verity.showMenu) window.verity.showMenu(); });
 
 let flourishTimer = null;
 function startLoops() {

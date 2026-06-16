@@ -55,6 +55,12 @@
         o.classList.add('sel'); sel[row.id] = o.dataset.v;
       });
     });
-    document.getElementById('go').onclick = () => window.verity.setupDone({...sel, configured:true});
+    function finish() {
+      const c = {...sel, configured: true};
+      if (window.verity && window.verity.setupDone) window.verity.setupDone(c);
+      else alert('VERITY mascot: bridge not loaded — relaunch with `npm start`.');
+    }
+    document.getElementById('go').onclick = finish;
+    document.addEventListener('keydown', (e) => { if (e.key === 'Enter') finish(); });
   </script>
 </body></html>

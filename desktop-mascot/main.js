@@ -25,7 +25,7 @@ function createWindow(cfg) {
   const {width, height} = screen.getPrimaryDisplay().workAreaSize;
   win = new BrowserWindow({
     width: SIZE, height: SIZE, x: width - SIZE - 24, y: height - SIZE - 24,
-    frame: false, transparent: true, resizable: false, skipTaskbar: true, hasShadow: false, focusable: false,
+    frame: false, transparent: true, resizable: false, skipTaskbar: true, hasShadow: false,
     webPreferences: {preload: path.join(__dirname, 'preload.js'), contextIsolation: true},
   });
   win.setVisibleOnAllWorkspaces(true, {visibleOnFullScreen: true});
@@ -35,7 +35,7 @@ function createWindow(cfg) {
 
 function openSetup() {
   if (setupWin) { setupWin.focus(); return; }
-  setupWin = new BrowserWindow({width: 460, height: 560, resizable: false, title: 'VERITY mascot',
+  setupWin = new BrowserWindow({width: 470, height: 680, resizable: true, title: 'VERITY mascot',
     webPreferences: {preload: path.join(__dirname, 'preload.js'), contextIsolation: true}});
   setupWin.loadFile('setup.html');
   setupWin.on('closed', () => { setupWin = null; });
@@ -91,6 +91,10 @@ function buildTray() {
 ipcMain.handle('get-cfg', () => loadCfg());
 ipcMain.on('save-cfg', (_e, c) => { saveCfg({...loadCfg(), ...c}); rebuild(); if (tray) tray.setContextMenu(trayMenu()); });
 ipcMain.on('setup-done', (_e, c) => { saveCfg({...loadCfg(), ...c, configured: true}); if (setupWin) setupWin.close(); rebuild(); if (tray) tray.setContextMenu(trayMenu()); });
+// Custom drag (so the mascot is both DRAGGABLE and CLICKABLE — app-region drag ate the clicks).
+ipcMain.on('move-window', (_e, dx, dy) => { if (win) { const [x, y] = win.getPosition(); win.setPosition(Math.round(x + dx), Math.round(y + dy)); } });
+// Right-click the MASCOT → pop the same menu the tray has, at the cursor.
+ipcMain.on('show-menu', () => { if (tray) trayMenu().popup(); });
 
 app.whenReady().then(() => {
   const cfg = loadCfg();

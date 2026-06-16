@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld('verity', {
   saveCfg: (c) => ipcRenderer.send('save-cfg', c),
   setupDone: (c) => ipcRenderer.send('setup-done', c),
   onCfg: (cb) => ipcRenderer.on('cfg', (_e, c) => cb(c)),
+  moveWindow: (dx, dy) => ipcRenderer.send('move-window', dx, dy),
+  showMenu: () => ipcRenderer.send('show-menu'),
   // Tail the newest ledger file; return the latest event verdict so the mascot can react.
   latestLedgerEvent: () => {
     try {
