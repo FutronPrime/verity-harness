@@ -109,6 +109,15 @@ scraping / automating / taking CUA actions like a human would to actually finish
 **supercharges those too** — *a frontier model + VERITY beats the same frontier model alone.* It's a
 permanent force-multiplier on whatever the best available model is.
 
+**Dogfooded — built by its own discipline, and it improves itself.** This repo was largely *built and
+hardened by an AI agent running under VERITY's own gates* — every feature added, tested, and corrected
+with the same search-before-concluding / verify-before-done / read-the-registry discipline it ships. The
+mascot app, the benchmarks, the registry lookup, the swarm — VERITY building VERITY. And it has a real
+**self-improving loop**: `verity playbook` mines the harness's own decision ledger (the assumptions it
+caught, the tools it found, the fixes that worked) and distills an injectable playbook that `autostart`
+re-feeds every session — so each run starts pre-loaded with its *own* proven disciplined behavior, and
+the system gets sharper the more it's used. The harness that checks the work also learns from it.
+
 > **The discipline layer for the meta-harness era.** The hard lesson of 2026 (sharpened by the Fable
 > ban): *the harness matters as much as the model — maybe more.* "Meta-harnesses" now orchestrate
 > several agents together (one implements, another reviews). VERITY is the **reliability layer that
