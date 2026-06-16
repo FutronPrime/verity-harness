@@ -155,6 +155,18 @@ def main(argv: list[str]) -> None:
         if "--json" in rest:
             i = rest.index("--json"); jp = rest[i + 1] if i + 1 < len(rest) else "memory-proof.json"
         _memrun(with_llm="--llm" in rest, json_path=jp)
+    elif cmd == "evolve":
+        # Closed-loop self-evolution of the playbook, gated so it can only improve (never self-corrupt).
+        #   evolve            → dry run (show the gate verdict + candidate)
+        #   evolve --apply    → promote the candidate if it passes the non-regression safety gate
+        #   evolve --eval     → also score champion-vs-candidate on a held-out trap split (costs API)
+        from . import evolve as _evo
+        r = _evo.evolve(apply="--apply" in rest, use_eval="--eval" in rest)
+        print(f"[evolve] cycle {r['cycle']} · gate {'PASS' if r['gate_pass'] else 'REJECT'} — {r['gate']}")
+        for k in ("dev_candidate", "dev_champion", "test_candidate", "test_champion", "eval_score", "eval_error"):
+            if k in r:
+                print(f"  {k}: {r[k]}")
+        print(f"  promoted: {r['promoted']}" + ("" if r["promoted"] else "  (dry run — add --apply to adopt)"))
     elif cmd == "handle":
         # Pointer-indirection: resolve a stashed big-payload handle on demand.  handle get <verity://h/..>
         from . import handles as _h

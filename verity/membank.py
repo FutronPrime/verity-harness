@@ -260,6 +260,28 @@ def session_start(project: str | None = None, budget_chars: int = 1500) -> str:
         c.close()
 
 
+def promote_block(min_access: int = 2, scopes=("lesson", "error", "decision"), n: int = 12) -> str:
+    """RECURRING high-confidence lessons — the access_count-driven promotion (MemOS L1→L2). A memory
+    that's been RECALLED repeatedly (access_count≥min_access) has proven useful → surface it as a
+    high-confidence block for the playbook/evolution loop. Read-only; older than 24h to exclude noise."""
+    c = _conn()
+    try:
+        cutoff = time.time() - 86400
+        ph = ",".join("?" * len(scopes))
+        rows = c.execute(
+            f"SELECT scope,content,access_count FROM memories WHERE scope IN ({ph}) "
+            f"AND access_count>=? AND created_at<? ORDER BY access_count DESC, created_at DESC LIMIT ?",
+            (*scopes, min_access, cutoff, n)).fetchall()
+        if not rows:
+            return ""
+        lines = ["=== RECURRING HIGH-CONFIDENCE LESSONS (auto-promoted by recall frequency) ==="]
+        for scope, content, ac in rows:
+            lines.append(f"  • [{scope}·×{ac}] {content[:160]}")
+        return "\n".join(lines)
+    finally:
+        c.close()
+
+
 def stats() -> str:
     c = _conn()
     try:
