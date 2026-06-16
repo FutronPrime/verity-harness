@@ -283,6 +283,12 @@ python3 -m verity doctor    # → READY / MARGINAL / BELOW THRESHOLD
 
 <p align="center"><sub><b>Four axes, one rule: the same model against itself</b> — the only change is the discipline. Accuracy <b>20%→88%</b> (enterprise models), Research <b>44%→100%</b> (forced to read Reddit/X/GitHub), Coding <b>60%→93%</b> (run the test before "done"), Coordination <b>20%→100%</b> (multi-agent swarm). Honest note baked into the last row: the <i>generic</i> agentic loop actually <i>regressed</i> on weak models — it was the <b>swarm</b> (registry-aware grunt-workers + critic) that hit 100%. Every number is a live, ledger-logged run, reproducible on your own models.</sub></p>
 
+### The vibe check — build a real game, raw vs harnessed
+
+<p align="center"><img src="assets/demo-tetris-comparison.png" alt="Same model builds Tetris — naive ships a broken board, VERITY runs it and fixes it to actually play" width="100%"/></p>
+
+<p align="center"><sub><code>python3 -m verity demo</code> gives the <b>same model</b> a real build task (Tetris), once raw and once through the harness, then <b>actually runs and plays both in a headless browser</b>. Above: qwen3.5-flash. The naive one-shot <i>looks</i> finished — full UI, 8/8 features, zero load errors — but after 40 moves the board is empty: <b>it doesn't play.</b> The harness ran it, caught the breakage during play, and forced <b>1 fix</b> → pieces fall, lock, and stack. Same model; the difference is that VERITY <b>never lets it ship a game that doesn't run.</b> (On strong models the one-shot already works and VERITY verifies it in 0 fixes; on models too weak to fix it, VERITY refuses to call the broken build "done" rather than lie.)</sub></p>
+
 ### Test 1 — Accuracy (current-knowledge), on the models enterprises actually deploy
 
 <p align="center"><img src="assets/eval-proof-flagship.png" alt="verity eval flagship — Opus 4.8, GPT-5.5, Gemini 3.1 Pro, Kimi K2.7, naive vs harness, +43 aggregate" width="100%"/></p>

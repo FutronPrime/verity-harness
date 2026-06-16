@@ -24,6 +24,7 @@ conditions**, not by hoping the model behaves.
 | `verity swarm "..."` | **Multi-agent**: plan → parallel research/execute → adversarial critic → synthesize. Every sub-agent is the same caliber as the lead and bound by the same gates. |
 | `verity models <provider>` | Read the **live OpenRouter registry** — current model ids, not stale guesses. |
 | `verity eval [--flagship]` | The reproducible A/B proof: same model, naive vs harness, on current-info traps. |
+| `verity demo ["<build task>"]` | The vibe check: same model builds a real app (Tetris) raw vs harnessed, then **runs + plays both in a headless browser** and fixes what doesn't work. Artifacts + screenshots in `./demo-out/`. |
 | `verity proof` | The receipts — which gates fired and what they corrected (from the ledger). |
 | `verity playbook --inject` | Distill this harness's own verified history into an injectable "think like the best run" playbook. |
 | `verity autostart [--daemon]` | Wire the gates into Claude Code / Codex / Gemini + (optionally) the always-on proxy. |

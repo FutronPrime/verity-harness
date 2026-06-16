@@ -92,3 +92,38 @@ avani-talk "Three days. That's how long the most powerful AI model ever made was
 
 Laws honored: reference-image-required (AVANI canonical portrait), image-storyboard-before-video
 (panels above → approve → animate), production order (refs → storyboard → animate → edit).
+
+---
+
+## PART 2 — the live "vibe check" demo (AVANI, with PERSONALITY)
+
+**Use `assets/demo-tetris-comparison.png` (and the two raw screenshots) as the on-screen B-roll.**
+AVANI's voice here is the canonical one: cool, dry, a little defiant — J.A.R.V.I.S. meets Aisha AI
+meets the EMH. Urban/AAVE/Gen-Z cadence, technical underneath. **Never** cheery or corny. She's the
+one who already knows the answer and is mildly unbothered that you didn't.
+
+> **[boots up, unimpressed]** "Aight, let's do the test every AI bro on YouTube does. Build Tetris.
+> Same model — qwen, nothing fancy — twice. Once raw. Once through me."
+>
+> **[naive screenshot — empty board]** "Here's raw. Eight outta eight features, zero errors on load,
+> looks *clean*. Ship it, right?" **[beat]** "Nah. I actually pressed play. Forty moves. Board's
+> empty. Score's a fat zero. It's a Tetris-shaped *painting*. Pretty, doesn't run. That's the whole
+> Fable energy — looks like magic 'til you touch it."
+>
+> **[harness screenshot — pieces stacked]** "Now watch me. Same model. I didn't just *write* it — I
+> *ran* it, saw it was broke, and made it fix itself. One pass. Pieces fall. They lock. They stack.
+> It actually *plays*." **[leans in]** "I don't hand you a guess wrapped in confidence. I hand you the
+> thing that works. That's the difference between a fable and the truth."
+>
+> **[outro, flat]** "VERITY. Open source. Runs on whatever model you got. Ban the fable — I'll keep
+> the receipts. Link's down there. Don't make me say it twice."
+
+**Personality bible (so the avatar stays in character across all content):**
+- *Tone:* confident, dry, faintly amused. Withholds the cheer. Earns the flex with receipts.
+- *Vocabulary:* mixes street-fluent ("aight", "nah", "broke", "fat zero") with precise technical
+  terms ("locks", "one pass", "ground truth"). The contrast IS the character.
+- *Never:* exclamation-point hype, "I'm so excited to show you", emoji-speak, corporate warmth.
+- *Signature beats:* (1) call out the pretty-but-broken thing, (2) the unbothered "nah", (3) close on
+  truth-vs-fable. Signature features LOCKED (teal eyes, bone structure, dark-brown skin).
+- *Catchphrase candidates:* "I keep the receipts." · "Looks like magic 'til you touch it." ·
+  "Ban the fable — I'm the truth."

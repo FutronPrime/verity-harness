@@ -52,6 +52,9 @@ python3 -m verity swarm "<goal>"         # MULTI-AGENT (Mythos/Fable shape): pla
                                          #   research+execute → critic → synthesize. EVERY sub-agent
                                          #   = same tier/caliber as lead + full gates (can't quit,
                                          #   can't confabulate model ids — reads the registry)
+python3 -m verity demo ["<build task>"]  # VIBE CHECK: same model builds Tetris raw vs harnessed,
+                                         #   RUNS+PLAYS both in a headless browser, fixes what's broken
+                                         #   (--model <id>); artifacts+screenshots in ./demo-out/
 python3 -m verity models "<provider>"    # AUTHORITATIVE: live OpenRouter registry (deepseek, gemini,
                                          #   claude-opus, kimi, qwen3, grok…) — look up current model
                                          #   ids, NEVER guess them from stale training
