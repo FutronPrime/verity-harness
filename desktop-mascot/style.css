@@ -1,0 +1,42 @@
+html, body { margin: 0; width: 200px; height: 200px; background: transparent; overflow: hidden;
+  user-select: none; -webkit-user-select: none; }
+
+#stage { position: relative; width: 200px; height: 200px;
+  -webkit-app-region: drag;            /* drag the pet around the desktop */
+  display: flex; align-items: center; justify-content: center; }
+
+#mascot { width: 150px; height: auto; -webkit-user-drag: none;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,.5));
+  animation: idle 3.2s ease-in-out infinite; }
+
+/* gentle idle hover + breathe */
+@keyframes idle { 0%,100% { transform: translateY(4px) scale(1); } 50% { transform: translateY(-6px) scale(1.02); } }
+
+/* reaction glow behind the mascot */
+#glow { position: absolute; width: 120px; height: 120px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(45,212,191,.0) 60%, rgba(45,212,191,0) 100%);
+  transition: background .25s; }
+.react-success #glow { background: radial-gradient(circle, rgba(45,212,191,.55) 0%, rgba(45,212,191,0) 70%); }
+.react-alert   #glow { background: radial-gradient(circle, rgba(214,41,158,.55) 0%, rgba(214,41,158,0) 70%); }
+.react-think   #glow { background: radial-gradient(circle, rgba(252,238,10,.40) 0%, rgba(252,238,10,0) 70%); }
+
+/* reaction motions */
+.react-success #mascot { animation: nod .6s ease 2; }
+.react-alert   #mascot { animation: shake .5s ease 2; }
+.react-think   #mascot { animation: think 1.2s ease 1; }
+@keyframes nod   { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-10px) rotate(-3deg); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-7px) rotate(-4deg); } 75% { transform: translateX(7px) rotate(4deg); } }
+@keyframes think { 0% { transform: rotate(0); } 50% { transform: rotate(6deg) translateX(4px); } 100% { transform: rotate(0); } }
+
+/* floating emote bubble */
+#emote { position: absolute; top: 18px; right: 30px; font-size: 26px; opacity: 0;
+  transition: opacity .2s; pointer-events: none; }
+#emote.show { opacity: 1; animation: pop .5s ease; }
+@keyframes pop { 0% { transform: scale(.4) translateY(8px); } 60% { transform: scale(1.2) translateY(-4px); } 100% { transform: scale(1) translateY(0); } }
+
+/* "installed & working" liveness dot */
+#status { position: absolute; bottom: 16px; }
+#dot { display: block; width: 9px; height: 9px; border-radius: 50%; background: #586872;
+  box-shadow: 0 0 0 rgba(45,212,191,0); transition: all .3s; }
+#dot.up { background: #2dd4bf; box-shadow: 0 0 8px rgba(45,212,191,.9); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 5px rgba(45,212,191,.6); } 50% { box-shadow: 0 0 12px rgba(45,212,191,1); } }

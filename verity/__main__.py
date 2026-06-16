@@ -196,6 +196,18 @@ def main(argv: list[str]) -> None:
             if "--model" in rest:
                 i = rest.index("--model"); model = rest[i+1] if i+1 < len(rest) else None
             _demo(task=task, model=model)
+    elif cmd == "mascot":
+        # Launch the desktop pet (Truth Hawk / VERI) — a silent sign VERITY is installed + watching.
+        import shutil, subprocess, pathlib
+        appdir = pathlib.Path(__file__).resolve().parent.parent / "desktop-mascot"
+        if not shutil.which("npm"):
+            print("The desktop mascot needs Node/npm + Electron. Install Node, then:\n"
+                  f"  cd {appdir} && npm install && npm start", file=sys.stderr); sys.exit(1)
+        if not (appdir / "node_modules").exists():
+            print("[mascot] first run — installing Electron (one-time)…")
+            subprocess.run(["npm", "install"], cwd=str(appdir))
+        print("[mascot] launching the Truth Hawk — right-click the tray 'V' to switch/hide.")
+        subprocess.Popen(["npm", "start"], cwd=str(appdir))
     elif cmd in ("research-eval", "trending"):
         # RESEARCH benchmark: force the model to read the COMMUNITY (Reddit/X/GitHub/HN) for
         # trending/real-world knowledge it can't recall. --models "a,b,c" for a per-model table.

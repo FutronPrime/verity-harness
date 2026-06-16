@@ -393,6 +393,12 @@ refactor. (A warm **Sun** variant ships too — same energy, softer mood — int
 
 <p align="center"><sub>A minimalist, silent verification agent — expressive but swift. Pick the one that matches your vibe; both ship. Same palette as the harness. Use them in the repo, the launch posts, and the video.</sub></p>
 
+**It lives on your desktop, too.** `python3 -m verity mascot` drops the Truth Hawk (or VERI) into the
+corner of your screen — always-on-top, draggable, toggleable from the tray. It **reacts to the harness
+in real time** (reads the decision ledger): ✓ nods on a `VERIFIED` gate, shakes on a `CORRECTED`,
+wobbles while searching, and a teal dot glows when the `:11500` floor is up — a silent, living sign
+that VERITY is installed and watching. (Electron desktop pet — see [`desktop-mascot/`](desktop-mascot/).)
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

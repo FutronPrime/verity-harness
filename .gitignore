@@ -7,4 +7,5 @@ __pycache__/
 _preview.html
 assets/mascot-*-sheet-clean.png
 demo-out/
+desktop-mascot/node_modules
 venv/

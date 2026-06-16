@@ -1,0 +1,13 @@
+{
+  "name": "verity-desktop-mascot",
+  "version": "1.0.0",
+  "description": "VERITY's desktop pet — the Truth Hawk (or VERI the Sun) idles in the corner of your screen and reacts to the harness's gates firing. A silent sign that VERITY is installed and working.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "mascot": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}
