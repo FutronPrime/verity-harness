@@ -73,19 +73,24 @@ def _embedder():
     if _EMB != "unset":
         return _EMB
     _EMB = None
-    if not os.environ.get("VERITY_SEMANTIC"):     # opt-in ONLY (default off → zero-dep, no model load)
+    # DEFAULT-ON when an embedding lib is present (better recall); graceful FTS5-only fallback when not —
+    # so zero-dep installs still work untouched. Force off with VERITY_SEMANTIC=0 (e.g. to avoid the
+    # model load in latency-sensitive paths). Model load is silenced so it never clutters agent output.
+    if os.environ.get("VERITY_SEMANTIC", "").lower() in ("0", "off", "false", "no"):
         return _EMB
+    import contextlib, io
     try:
-        from model2vec import StaticModel  # type: ignore
-        m = StaticModel.from_pretrained("minishlab/potion-base-8M")
-        _EMB = lambda texts: m.encode(list(texts))
-    except Exception:  # noqa: BLE001
-        try:
-            from sentence_transformers import SentenceTransformer  # type: ignore
-            m = SentenceTransformer("all-MiniLM-L6-v2")
-            _EMB = lambda texts: m.encode(list(texts))
-        except Exception:  # noqa: BLE001
-            _EMB = None
+        with contextlib.redirect_stderr(io.StringIO()), contextlib.redirect_stdout(io.StringIO()):
+            try:
+                from model2vec import StaticModel  # type: ignore
+                m = StaticModel.from_pretrained("minishlab/potion-base-8M")
+                _EMB = lambda texts: m.encode(list(texts))
+            except Exception:  # noqa: BLE001
+                from sentence_transformers import SentenceTransformer  # type: ignore
+                m = SentenceTransformer("all-MiniLM-L6-v2")
+                _EMB = lambda texts: m.encode(list(texts))
+    except Exception:  # noqa: BLE001 — no embedding lib → FTS5 keyword floor (still fully functional)
+        _EMB = None
     return _EMB
 
 
