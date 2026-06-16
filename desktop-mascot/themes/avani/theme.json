@@ -1,13 +1,13 @@
 {
   "$schema": "clawd-on-desk theme (codex-pet compatible) \u2014 importable into clawd-on-desk / codexpets and vice-versa",
-  "id": "verity-truth-hawk",
-  "name": "VERITY \u2014 Truth Hawk",
+  "id": "verity-avani",
+  "name": "VERITY \u2014 AVANI (easter egg)",
   "author": "FUTRON / VERITY",
-  "description": "A silent low-poly verification hawk with a built-in V chevron. Reacts to the harness's gates.",
+  "description": "Easter egg: AVANI herself, the Afrofuturistic neural companion. Head-and-shoulders profile reactions.",
   "palette": [
     "#2dd4bf",
+    "#7c3aed",
     "#d6299e",
-    "#fcee0a",
     "#070a0d"
   ],
   "eyeTracking": false,
@@ -19,42 +19,42 @@
   ],
   "states": {
     "idle": {
-      "asset": "../../assets/anim/hawk-idle.webp",
+      "asset": "../../assets/anim/avani-idle.webp",
       "format": "webp-anim",
       "loop": true
     },
     "thinking": {
-      "asset": "../../assets/anim/hawk-thinking.webp",
+      "asset": "../../assets/anim/avani-thinking.webp",
       "format": "webp-anim",
       "loop": true
     },
     "working": {
-      "asset": "../../assets/anim/hawk-building.webp",
+      "asset": "../../assets/anim/avani-building.webp",
       "format": "webp-anim",
       "loop": true
     },
     "juggling": {
-      "asset": "../../assets/anim/hawk-juggling.webp",
+      "asset": "../../assets/anim/avani-building.webp",
       "format": "webp-anim",
       "loop": true
     },
     "happy": {
-      "asset": "../../assets/anim/hawk-success.webp",
+      "asset": "../../assets/anim/avani-success.webp",
       "format": "webp-anim",
       "loop": true
     },
     "error": {
-      "asset": "../../assets/anim/hawk-error.webp",
+      "asset": "../../assets/anim/avani-error.webp",
       "format": "webp-anim",
       "loop": true
     },
     "notification": {
-      "asset": "../../assets/anim/hawk-notification.webp",
+      "asset": "../../assets/anim/avani-notification.webp",
       "format": "webp-anim",
       "loop": true
     },
     "sleeping": {
-      "asset": "../../assets/anim/hawk-sleeping.webp",
+      "asset": "../../assets/anim/avani-idle.webp",
       "format": "webp-anim",
       "loop": true
     }
@@ -85,6 +85,6 @@
   },
   "generation": {
     "method": "Generated NOT hand-drawn: clean transparent mascot PNG -> Ludo animateSprite (frame_size:-9, frames:16, model:blitz) -> download the RGBA SPRITESHEET (spritesheet_url, .webp) NOT the mp4 (no alpha) -> /tmp/sheet2webp.py splits the 4x4 grid into a transparent animated WebP. AVANI states come from pre-made transparent GIFs via /tmp/gif2webp.py. Verify corner alpha=0. See memory/feedback_transparent_animation_professional_motion.md.",
-    "source_sprite": "../../assets/mascot-hawk.png"
+    "source_sprite": "AVANI Sprites/frames/avani-main (pre-made transparent GIFs)"
   }
 }

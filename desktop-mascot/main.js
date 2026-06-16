@@ -59,6 +59,7 @@ function trayMenu() {
     {label: 'Mascot', submenu: [
       {label: 'Truth Hawk', type: 'radio', checked: chk('mascot','hawk'), click: pick('mascot','hawk')},
       {label: 'VERI (Sun)', type: 'radio', checked: chk('mascot','sun'),  click: pick('mascot','sun')},
+      {label: 'AVANI ✦ (easter egg)', type: 'radio', checked: chk('mascot','avani'), click: pick('mascot','avani')},
       {label: 'Logo only',  type: 'radio', checked: chk('mascot','logo'), click: pick('mascot','logo')},
       {label: 'None (off)', type: 'radio', checked: chk('mascot','none'), click: pick('mascot','none')},
     ]},
