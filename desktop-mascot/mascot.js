@@ -8,17 +8,33 @@ const SPRITES = {hawk: 'assets/mascot-hawk.png', sun: 'assets/mascot-sun.png', l
 let cfg = {mascot: 'hawk', animations: 'full', frequency: 'med'};
 const FREQ = {low: {flourish: 18000, chance: 0.10}, med: {flourish: 9000, chance: 0.25}, high: {flourish: 4500, chance: 0.55}};
 
+// STATE MACHINE: each state can have a real animated GIF at assets/anim/<mascot>-<state>.gif (generated
+// via Ludo/Higgsfield). If a state's GIF is missing for a mascot, we gracefully fall back to the static
+// sprite + a CSS micro-reaction — so partially-animated mascots still work. (clawd-on-desk model.)
+const STATES = ['idle', 'success', 'error', 'thinking', 'building'];
+function gifFor(state) { return `assets/anim/${cfg.mascot}-${state}.gif`; }
+
+function setState(state) {
+  const want = gifFor(state);
+  // probe the gif; on error fall back to the static sprite (mascots without that anim yet)
+  const probe = new Image();
+  probe.onload = () => { img.src = want; };
+  probe.onerror = () => { img.src = SPRITES[cfg.mascot] || SPRITES.hawk; };
+  probe.src = want + '?v=' + (cfg.mascot);   // cache-stable per mascot
+}
+
 function render(c) {
   cfg = {...cfg, ...c};
-  img.src = SPRITES[cfg.mascot] || SPRITES.hawk;
   img.style.width = cfg.mascot === 'logo' ? '180px' : '150px';
+  if (cfg.mascot === 'logo') { img.src = SPRITES.logo; return; }
+  setState('idle');                          // resting animation (or static fallback)
 }
 
 function reactionFor(verdict, gate) {
   const v = (verdict || '').toUpperCase();
-  if (v === 'VERIFIED' || v === 'FOUND' || v === 'PASS') return {cls: 'react-success', glyph: '✓'};
-  if (v === 'CORRECTED' || v === 'NEGATIVE' || v === 'DEFER' || v === 'FAIL') return {cls: 'react-alert', glyph: '!'};
-  if (v === 'NONE' || (gate || '').toLowerCase().includes('search')) return {cls: 'react-think', glyph: '🔍'};
+  if (v === 'VERIFIED' || v === 'FOUND' || v === 'PASS') return {state: 'success', cls: 'react-success', glyph: '✓'};
+  if (v === 'CORRECTED' || v === 'NEGATIVE' || v === 'DEFER' || v === 'FAIL') return {state: 'error', cls: 'react-alert', glyph: '!'};
+  if (v === 'NONE' || (gate || '').toLowerCase().includes('search')) return {state: 'thinking', cls: 'react-think', glyph: '🔍'};
   return null;
 }
 
@@ -26,9 +42,13 @@ let reacting = false;
 function playReaction(r) {
   if (!r || reacting) return;
   reacting = true;
-  stage.classList.add(r.cls);
+  if (r.state) setState(r.state);            // swap to the state's real animation (GIF) if it exists
+  stage.classList.add(r.cls);                // + CSS micro-reaction (the fallback when no GIF, harmless with one)
   emote.textContent = r.glyph; emote.classList.add('show');
-  setTimeout(() => { stage.classList.remove(r.cls); emote.classList.remove('show'); reacting = false; }, 1400);
+  setTimeout(() => {
+    stage.classList.remove(r.cls); emote.classList.remove('show'); reacting = false;
+    setState('idle');                        // back to the resting animation
+  }, 1800);
 }
 
 let lastMtime = 0;
@@ -62,7 +82,7 @@ window.addEventListener('mousemove', (e) => {
   if (Math.abs(dx) + Math.abs(dy) > 2) { moved = true; if (window.verity && window.verity.moveWindow) window.verity.moveWindow(dx, dy); lastX = e.screenX; lastY = e.screenY; }
 });
 window.addEventListener('mouseup', () => {
-  if (down && !moved) playReaction({cls: 'react-success', glyph: '✓'});   // it was a click → react
+  if (down && !moved) playReaction({state: 'success', cls: 'react-success', glyph: '✓'});   // click → success animation
   down = false;
 });
 // Right-click the mascot → the options menu (switch / hide / position / frequency / setup).
