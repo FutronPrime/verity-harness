@@ -127,6 +127,29 @@ from concurrent.futures import TimeoutError as _FutureTimeout
 _AGENT_POOL = ThreadPoolExecutor(max_workers=8)
 
 
+def _context_pack(text: str) -> str:
+    """Bounded knowledge injection for EVERY spawned agent: relevant prior MEMORY (membank recall) +
+    REUSE-FIRST hints (existing tools/lists to check before building). Both are local, bounded, and
+    return nothing when irrelevant (zero cost) — so every sub-agent inherits the same context/knowledge
+    the main loop has, without bloating the call. This is how a spawn gets smarter, not just more numerous."""
+    parts = []
+    try:
+        from . import membank
+        rec = membank.recall(text, budget_chars=700)
+        if rec and not rec.startswith("[membank"):
+            parts.append(rec)
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        from .resources import reuse_hint
+        uh = reuse_hint(text)
+        if uh:
+            parts.append(uh)
+    except Exception:  # noqa: BLE001
+        pass
+    return ("\n\n".join(parts) + "\n\n") if parts else ""
+
+
 def _agent(role: str, prompt: str, tiers=None, timeout: float = 150.0) -> str:
     """One swarm agent = one model call through the SAME tier as everything else — so the swarm's
     agents are the SAME CALIBER as the base model: Opus-4.8 base → Opus-4.8 agents, Codex-5.5 →
@@ -137,6 +160,7 @@ def _agent(role: str, prompt: str, tiers=None, timeout: float = 150.0) -> str:
     from .router import ask
     from . import guard
     sys_prompt = _discipline() + "\n\n" + ROLE_SYS[role]
+    prompt = _context_pack(prompt) + prompt          # every spawn inherits memory + reuse-first context
     # Guard only the PROSE roles: the critic is SUPPOSED to voice negatives (it hunts flaws) and
     # planner/critic emit JSON that a re-prompt could corrupt. Executor/synthesizer must not punt.
     guarded = role in ("executor", "synthesizer")

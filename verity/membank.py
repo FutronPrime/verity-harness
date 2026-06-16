@@ -97,9 +97,12 @@ def _rank_rows(rows, query):
     """Hybrid score: keyword overlap ⊕ recency ⊕ access_count ⊕ durable-scope. rows=(id,scope,content,created,acc)."""
     now = time.time()
     qwords = {w for w in re.split(r"\W+", (query or "").lower()) if len(w) > 2}
+    # stem to a 6-char prefix so morphological variants match (animation↔animated, deploy↔deployment)
+    qstems = {w[:6] for w in qwords}
     scored = []
     for rid, scope, content, created, acc in rows:
-        kw = sum(1 for w in qwords if w in content.lower()) if qwords else 0
+        cl = content.lower()
+        kw = sum(1 for s in qstems if s in cl) if qstems else 0
         recency = max(0.0, 1.0 - (now - created) / (90 * 86400))      # 90-day linear decay
         score = kw * 3 + recency * 2 + min(acc, 5) * 0.4 + (1 if scope in DURABLE else 0)
         scored.append((score, rid, scope, content, created, acc))
@@ -125,16 +128,19 @@ def recall(query: str, project: str | None = None, budget_chars: int = 2000, k: 
         rows = []
         if query and _fts(c):
             try:
-                q = " OR ".join(re.findall(r"\w+", query))
+                # prefix-stem EVERY query token (`want*` matches wants, `animat*` matches animated) —
+                # FTS5 matches whole tokens, so without this, plurals/inflections silently miss.
+                toks = [t for t in re.findall(r"\w+", query) if len(t) > 2]
+                q = " OR ".join(t[:6] + "*" for t in toks) or "*"
                 rows = c.execute(
                     "SELECT m.id,m.scope,m.content,m.created_at,m.access_count FROM mem_fts f "
                     "JOIN memories m ON m.id=f.rowid WHERE mem_fts MATCH ? LIMIT ?", (q, k)).fetchall()
             except sqlite3.OperationalError:
                 rows = []
-        if not rows:                                    # fallback / empty query → recent + LIKE
-            like = f"%{query}%" if query else "%"
-            rows = c.execute("SELECT id,scope,content,created_at,access_count FROM memories "
-                             "WHERE content LIKE ? ORDER BY created_at DESC LIMIT ?", (like, k)).fetchall()
+        if not rows:                                    # FTS empty / no FTS → rank a recent window by
+            rows = c.execute(                            # keyword (qstems substring-match catches inflections)
+                "SELECT id,scope,content,created_at,access_count FROM memories "
+                "ORDER BY created_at DESC LIMIT ?", (max(k, 200),)).fetchall()
         ranked = _dedup(_rank_rows(rows, query))
         out, used, ids = [], 0, []
         for _, rid, scope, content, *_ in ranked:

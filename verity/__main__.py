@@ -148,6 +148,13 @@ def main(argv: list[str]) -> None:
             print(_mb.bootstrap_lint(argrest[0]))
         else:
             print(_mb.stats())
+    elif cmd in ("eval-memory", "memory-proof"):
+        # PROOF the memory + reuse-first layers work AND improve the system (deterministic; --llm adds A/B).
+        from .eval_memory import run as _memrun
+        jp = None
+        if "--json" in rest:
+            i = rest.index("--json"); jp = rest[i + 1] if i + 1 < len(rest) else "memory-proof.json"
+        _memrun(with_llm="--llm" in rest, json_path=jp)
     elif cmd in ("models", "registry"):
         # AUTHORITATIVE model lookup — read the live OpenRouter registry instead of guessing current
         # model ids from stale training. The right way to answer 'what's the newest X model'.
