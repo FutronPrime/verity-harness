@@ -73,12 +73,26 @@ def _headless_check(path: str, keypress=True, record=False):
             pg.goto("file://" + os.path.abspath(path))
             pg.wait_for_timeout(1200)
             if keypress:
-                # actually PLAY it — drop several pieces with rotations. Many one-shot games look
-                # fine on load but throw (or freeze) once pieces lock / lines clear / it speeds up.
-                seq = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowDown"]
-                for n in range(40):
-                    pg.keyboard.press(seq[n % len(seq)]); pg.wait_for_timeout(60)
-                pg.wait_for_timeout(800)
+                # actually PLAY it — robustly, across ANY control scheme. A game reading "broken" was
+                # often a TEST artifact (no focus, or it uses WASD / needs a Start click) — not the
+                # model. So: (1) click to focus the canvas/body, (2) press a likely "start" set, (3)
+                # drive BOTH arrows and WASD so whichever the game listens for advances it.
+                try:
+                    box = pg.query_selector("canvas")
+                    (box.click() if box else pg.click("body"))
+                except Exception:  # noqa: BLE001
+                    pass
+                for k in ("Enter", "Space", "KeyP", "KeyS"):   # common start/pause/begin keys
+                    try: pg.keyboard.press(k); pg.wait_for_timeout(40)
+                    except Exception: pass  # noqa: BLE001
+                # arrows + WASD interleaved, with extra downs to force pieces to lock/stack
+                seq = ["ArrowLeft", "KeyA", "ArrowRight", "KeyD", "ArrowUp", "KeyW",
+                       "ArrowDown", "KeyS", "ArrowDown", "KeyS", "ArrowDown", "KeyS"]
+                for n in range(54):
+                    try: pg.keyboard.press(seq[n % len(seq)])
+                    except Exception: pass  # noqa: BLE001
+                    pg.wait_for_timeout(55)
+                pg.wait_for_timeout(900)
             pg.screenshot(path=shot)
             # FUNCTIONAL signal: after 40 moves a working Tetris has LOCKED pieces stacked on the
             # board. Measure the fraction of canvas pixels that differ from the background — a broken
