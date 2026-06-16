@@ -76,6 +76,13 @@ VERITY agents don't just *answer* — they **work**, and they **don't give up**:
   and the fixes that *worked*, and distills an injectable playbook that `autostart` re-feeds **every
   session**. So the model starts each run pre-loaded with its own proven discipline and gets sharper the
   more you use it — *the harness that checks the work also learns from it.*
+- **Unbounded memory, bounded context** — `verity memory` is a zero-dependency persistent store (stdlib
+  SQLite+FTS5) with one guarantee: the block injected each session stays a **fixed budget no matter how
+  much you've stored**. Proven, not claimed — injection holds **~270 chars flat from 10 → 10,000 memories**
+  while a naive always-loaded index would balloon to ~150k tokens and blow the window. ([details below](#unbounded-memory-bounded-context-verity-memory))
+- **Reuse before reinvent — an "infinite resource" library.** `verity resources` is a curated index of
+  awesome-lists/frameworks; before building, the harness surfaces *existing* tools to check first (wired
+  into pre-flight, zero-cost when irrelevant). REUSE-FIRST as a knowledge base, not a slogan.
 
 This isn't a personality prompt asking the model to be diligent; it's enforced on **code conditions**.
 
@@ -292,6 +299,44 @@ SYNTHESIZE → combine the verified sub-results → final answer (VERIFIED vs GU
 Every step is gate-disciplined and logged to the ledger. A fresh `git clone` runs the full swarm
 with **no knowledge of any private tooling** — that's the point: same system, same results, for
 anyone who installs it.
+
+## Unbounded memory, bounded context (`verity memory`)
+
+Every agent hits the same wall: knowledge grows toward infinity, the context window doesn't. The usual
+"fixes" — a big `CLAUDE.md`, a flat memory file you keep trimming — just move the cliff. A flat index
+loaded every session is **O(memories)**; it *will* overflow. Trimming is a treadmill.
+
+VERITY's answer is structural — **the loaded context stays O(categories); the store grows O(∞) behind
+retrieval.** Four tiers:
+
+| Tier | What | Grows? | Loaded |
+|------|------|--------|--------|
+| **0 — Root** | always-on rules + ~6–10 category pointers + infra | **never** | every session |
+| **1 — Category index** | `INDEX-*.md`, capped, auto-rollup DONE/PARKED | slowly | on demand |
+| **2 — Topic files** | the detail | unbounded count | lazy, when relevant |
+| **3 — Retrieval store** | `verity memory` (SQLite+FTS5) | **infinite** | only a fixed-budget slice |
+
+`verity/membank.py` — **zero dependencies** (pure stdlib `sqlite3` + FTS5), **LLM-agnostic**, **local-first**:
+
+```bash
+verity memory capture "<text>" --scope decision   # ADD-only (never overwrites), dedup, entity-tagged
+verity memory recall  "<query>"                    # hybrid rank → dedup → HARD char-cap (≤ budget, always)
+verity memory get <ids>                            # full content on demand (progressive disclosure)
+verity memory session-start                        # the bounded block — wired into autostart for ANY LLM
+verity memory lint MEMORY.md                       # flags the O(memories) anti-pattern + the fix
+```
+
+**Proven, not claimed** — `verity eval-memory` is a deterministic, reproducible suite (no LLM cost):
+
+| Proof | Result |
+|-------|--------|
+| **Boundedness** | injection held **~270 chars flat from 10 → 10,000 memories**; a naive flat-index hit **600,000 chars (~150k tokens)** — over the window |
+| **Retrieval** | **5/5** gold facts surfaced in the capped block despite **300 distractors** |
+| **Reuse-first** | **6/7** build-goals surfaced the right *existing* tool before building |
+| **Continuity (LLM A/B)** | without memory the model **hallucinated** a token; with the injected block it returned the **correct** one |
+
+No LLM call anywhere in the store — summarization, if you want it, is the agent's own job. Run it on your
+own machine: `python3 -m verity eval-memory` (add `--llm` for the A/B against a local model).
 
 ## Invisible, always-on (proxy daemon)
 
