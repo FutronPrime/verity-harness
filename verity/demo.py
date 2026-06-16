@@ -73,25 +73,24 @@ def _headless_check(path: str, keypress=True, record=False):
             pg.goto("file://" + os.path.abspath(path))
             pg.wait_for_timeout(1200)
             if keypress:
-                # actually PLAY it — robustly, across ANY control scheme. A game reading "broken" was
-                # often a TEST artifact (no focus, or it uses WASD / needs a Start click) — not the
-                # model. So: (1) click to focus the canvas/body, (2) press a likely "start" set, (3)
-                # drive BOTH arrows and WASD so whichever the game listens for advances it.
+                # SMOKE TEST (honest scope): click to focus, then play the STANDARD Tetris controls
+                # (arrows, with extra downs to lock pieces) + one gentle Enter/Space in case it needs a
+                # start. We do NOT mash WASD/every key — that was found to BREAK working games (e.g.
+                # Space=hard-drop/pause) and made the metric noisier than the model itself. The fill%
+                # below is a "renders + actually progresses" SMOKE signal, NOT a quality score: it's
+                # dominated by per-generation variance, so judge real gameplay from the recorded .webm.
                 try:
                     box = pg.query_selector("canvas")
                     (box.click() if box else pg.click("body"))
                 except Exception:  # noqa: BLE001
                     pass
-                for k in ("Enter", "Space", "KeyP", "KeyS"):   # common start/pause/begin keys
-                    try: pg.keyboard.press(k); pg.wait_for_timeout(40)
-                    except Exception: pass  # noqa: BLE001
-                # arrows + WASD interleaved, with extra downs to force pieces to lock/stack
-                seq = ["ArrowLeft", "KeyA", "ArrowRight", "KeyD", "ArrowUp", "KeyW",
-                       "ArrowDown", "KeyS", "ArrowDown", "KeyS", "ArrowDown", "KeyS"]
-                for n in range(54):
+                try: pg.keyboard.press("Enter"); pg.wait_for_timeout(60)   # in case a Start is needed
+                except Exception: pass  # noqa: BLE001
+                seq = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowDown"]
+                for n in range(40):
                     try: pg.keyboard.press(seq[n % len(seq)])
                     except Exception: pass  # noqa: BLE001
-                    pg.wait_for_timeout(55)
+                    pg.wait_for_timeout(60)
                 pg.wait_for_timeout(900)
             pg.screenshot(path=shot)
             # FUNCTIONAL signal: after 40 moves a working Tetris has LOCKED pieces stacked on the
