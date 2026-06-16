@@ -1,19 +1,19 @@
-// Renderer: pick the mascot, idle, and REACT to VERITY's gates firing (read from the decision ledger).
+// Renderer: render the chosen mascot, idle, and (in full mode) REACT to VERITY's gates firing.
 const stage = document.getElementById('stage');
 const img = document.getElementById('mascot');
 const emote = document.getElementById('emote');
 const dot = document.getElementById('dot');
 
-const SPRITES = {hawk: 'assets/mascot-hawk.png', sun: 'assets/mascot-sun.png'};
-let current = 'hawk';
+const SPRITES = {hawk: 'assets/mascot-hawk.png', sun: 'assets/mascot-sun.png', logo: 'assets/logo.png'};
+let cfg = {mascot: 'hawk', animations: 'full', frequency: 'med'};
+const FREQ = {low: {flourish: 18000, chance: 0.10}, med: {flourish: 9000, chance: 0.25}, high: {flourish: 4500, chance: 0.55}};
 
-function setMascot(m) {
-  if (!SPRITES[m]) return;
-  current = m; img.src = SPRITES[m];
-  window.verity.saveCfg({mascot: m});
+function render(c) {
+  cfg = {...cfg, ...c};
+  img.src = SPRITES[cfg.mascot] || SPRITES.hawk;
+  img.style.width = cfg.mascot === 'logo' ? '180px' : '150px';
 }
 
-// Map a ledger verdict to a reaction (silent — emote glyph + motion, never words).
 function reactionFor(verdict, gate) {
   const v = (verdict || '').toUpperCase();
   if (v === 'VERIFIED' || v === 'FOUND' || v === 'PASS') return {cls: 'react-success', glyph: '✓'};
@@ -31,39 +31,39 @@ function playReaction(r) {
   setTimeout(() => { stage.classList.remove(r.cls); emote.classList.remove('show'); reacting = false; }, 1400);
 }
 
-// Watch the ledger: when a NEW event lands (mtime advanced), react to its verdict.
 let lastMtime = 0;
 function pollLedger() {
+  if (cfg.animations !== 'full') return;            // idle-only mode: no harness reactions
   const ev = window.verity.latestLedgerEvent();
   if (ev && ev.mtime > lastMtime) {
-    if (lastMtime !== 0) playReaction(reactionFor(ev.verdict, ev.gate));  // skip the first (startup) read
+    if (lastMtime !== 0) playReaction(reactionFor(ev.verdict, ev.gate));
     lastMtime = ev.mtime;
   }
 }
 
-// Liveness: is the proxy floor up? Show the teal "installed & working" dot.
-async function pollProxy() {
-  const up = await window.verity.proxyUp();
-  dot.classList.toggle('up', up);
+async function pollProxy() { dot.classList.toggle('up', await window.verity.proxyUp()); }
+
+function idleFlourish() {
+  if (cfg.animations !== 'full') return;
+  if (!reacting && Math.random() < (FREQ[cfg.frequency] || FREQ.med).chance)
+    playReaction({cls: 'react-think', glyph: '·'});
 }
 
-// Occasional spontaneous idle flourish so it feels alive even when nothing's happening.
-function idleFlourish() {
-  if (!reacting && Math.random() < 0.25) playReaction({cls: 'react-think', glyph: '·'});
+// Click the mascot → a friendly reaction (works in every mode).
+stage.addEventListener('click', () => playReaction({cls: 'react-success', glyph: '✓'}));
+
+let flourishTimer = null;
+function startLoops() {
+  clearInterval(flourishTimer);
+  flourishTimer = setInterval(idleFlourish, (FREQ[cfg.frequency] || FREQ.med).flourish);
 }
 
 (async () => {
-  // Degrade gracefully in a plain browser (no Electron preload): still idle + click-to-toggle for demos.
-  if (!window.verity) {
-    setMascot('hawk');
-    stage.addEventListener('click', () => setMascot(current === 'hawk' ? 'sun' : 'hawk'));
-    setInterval(idleFlourish, 9000);
-    return;
-  }
-  const cfg = await window.verity.getCfg();
-  setMascot(cfg.mascot || 'hawk');
-  window.verity.onSetMascot(setMascot);
+  if (!window.verity) { render({mascot: 'hawk'}); stage.addEventListener('click',
+    () => render({mascot: cfg.mascot === 'hawk' ? 'sun' : 'hawk'})); return; }   // browser-preview fallback
+  render(await window.verity.getCfg());
+  window.verity.onCfg((c) => { render(c); startLoops(); });   // live updates from the tray/setup
   pollProxy(); setInterval(pollProxy, 5000);
   setInterval(pollLedger, 1200);
-  setInterval(idleFlourish, 9000);
+  startLoops();
 })();

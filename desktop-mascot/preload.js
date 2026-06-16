@@ -8,7 +8,8 @@ const LEDGER_DIR = path.join(os.homedir(), '.verity-harness', 'ledger');
 contextBridge.exposeInMainWorld('verity', {
   getCfg: () => ipcRenderer.invoke('get-cfg'),
   saveCfg: (c) => ipcRenderer.send('save-cfg', c),
-  onSetMascot: (cb) => ipcRenderer.on('set-mascot', (_e, m) => cb(m)),
+  setupDone: (c) => ipcRenderer.send('setup-done', c),
+  onCfg: (cb) => ipcRenderer.on('cfg', (_e, c) => cb(c)),
   // Tail the newest ledger file; return the latest event verdict so the mascot can react.
   latestLedgerEvent: () => {
     try {
