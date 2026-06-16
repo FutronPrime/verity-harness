@@ -1,0 +1,30 @@
+{
+  "$schema": "clawd-on-desk theme (codex-pet compatible) — so this mascot can be imported into clawd-on-desk / codex pets and ours can import theirs",
+  "id": "verity-truth-hawk",
+  "name": "VERITY — Truth Hawk",
+  "author": "FUTRON / VERITY",
+  "description": "A silent low-poly verification hawk with a built-in V chevron. Reacts to the harness's gates.",
+  "palette": ["#2dd4bf", "#d6299e", "#fcee0a", "#070a0d"],
+  "eyeTracking": false,
+  "capabilities": ["tracked-idle", "mini", "reactions"],
+  "states": {
+    "idle":         { "asset": "../../assets/mascot-hawk.png", "format": "png", "note": "static fallback until hawk-idle.webp lands" },
+    "thinking":     { "asset": "../../assets/anim/hawk-thinking.webp", "format": "webp-anim", "loop": true },
+    "working":      { "asset": "../../assets/anim/hawk-thinking.webp", "format": "webp-anim", "loop": true, "note": "alias of thinking until hawk-building.webp lands" },
+    "error":        { "asset": "../../assets/anim/hawk-error.webp", "format": "webp-anim", "loop": true },
+    "happy":        { "asset": "../../assets/anim/hawk-success.webp", "format": "webp-anim", "loop": true },
+    "notification": { "asset": "../../assets/anim/hawk-success.webp", "format": "webp-anim", "loop": true, "note": "TODO dedicated notification" },
+    "sleeping":     { "asset": "../../assets/mascot-hawk.png", "format": "png", "note": "TODO dedicated sleeping (proxy down)" },
+    "waking":       { "asset": "../../assets/anim/hawk-idle.webp", "format": "webp-anim", "loop": false, "note": "TODO" }
+  },
+  "event_map": {
+    "VERIFIED": "happy", "FOUND": "happy", "PASS": "happy",
+    "CORRECTED": "error", "NEGATIVE": "error", "DEFER": "error", "FAIL": "error",
+    "SEARCH": "thinking", "NONE": "thinking",
+    "proxy_down": "sleeping", "click": "happy"
+  },
+  "generation": {
+    "method": "feed the clean transparent mascot PNG to Ludo animateSprite (frame_size:-9, gif:true) -> download the RGBA SPRITESHEET (webp) -> split the 4x4 grid -> assemble a transparent animated webp. NEVER the MP4 (no alpha). See memory/reference-verity-mascot-desktop-and-tetris-resources-2026-06-16.md.",
+    "source_sprite": "../../assets/mascot-hawk.png"
+  }
+}
