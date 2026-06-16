@@ -61,6 +61,14 @@ VERITY agents don't just *answer* — they **work**, and they **don't give up**:
 
 This isn't a personality prompt asking the model to be diligent; it's enforced on **code conditions**.
 
+> **The discipline layer for the meta-harness era.** The hard lesson of 2026 (sharpened by the Fable
+> ban): *the harness matters as much as the model — maybe more.* "Meta-harnesses" now orchestrate
+> several agents together (one implements, another reviews). VERITY is the **reliability layer that
+> makes any of them trustworthy**: it injects the same gates into Claude Code, Codex, and Gemini, and
+> gates every OpenAI-format agent through the `:11500` proxy — so whether you run one agent or a whole
+> pyramid of them, none gets to confidently ship a guess or quit on a wall. If the model can't get
+> better, you make the system around it stronger. That's the whole bet.
+
 ## 100% self-contained
 
 - **Zero pip dependencies.** Pure Python stdlib. The thing that protects you from
