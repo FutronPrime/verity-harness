@@ -49,7 +49,12 @@ python3 -m verity solve "<goal>"         # full discipline scaffold (real shell)
    #   [--gate "<test/build/lint cmd>"]  objective completion gate: 'done' rejected until it exits 0
    #   [--deadline <seconds>]            wall-clock hard stop (no kill-switch → runs until $$ spent)
 python3 -m verity swarm "<goal>"         # MULTI-AGENT (Mythos/Fable shape): plan → parallel
-                                         #   research+execute → critic → synthesize (gated)
+                                         #   research+execute → critic → synthesize. EVERY sub-agent
+                                         #   = same tier/caliber as lead + full gates (can't quit,
+                                         #   can't confabulate model ids — reads the registry)
+python3 -m verity models "<provider>"    # AUTHORITATIVE: live OpenRouter registry (deepseek, gemini,
+                                         #   claude-opus, kimi, qwen3, grok…) — look up current model
+                                         #   ids, NEVER guess them from stale training
 python3 -m verity x-read "<x.com url or tweet id>"   # read tweets AND long-form X Articles, no key
 python3 -m verity web-setup              # one-time: enable auth-walled X-article reading (Playwright)
 python3 -m verity playbook [--inject]    # 'make any model think like Fable': distill an injectable
@@ -195,7 +200,7 @@ python3 -m verity swebench   # SWE-Bench-style: test-scored bug fixing (the codi
 **If the user asks "does this help MY model? benchmark it" — follow [`BENCHMARKING.md`](BENCHMARKING.md):**
 a step-by-step runbook (written for you, the agent) to set up the tiers/keys, run the right
 benchmark for their use case, and report the naive-vs-harness table + honest interpretation.
-Verified on this repo: **Opus 4.8 went 25% → 100%** on current-info tasks (+3) and a 4B went 33%→67% on reasoning (+1). HONEST counter-result: on *easy* coding bugs capable models already score 100% naive, so the harness shows 0 lift and can even regress −1 (agentic overhead on trivial fixes). The harness helps where the model NEEDS help — not on tasks it aces one-shot.
+Verified on this repo: a **5-model A/B** (gpt-4o-mini, gemini-2.5-flash, llama-3.3-70b, qwen3.5-flash, gemma-4-31b) on 16 current-info assumption-traps lifted **8% → 91%** (6/80 → 73/80, +67) — *every* model **+12..+14**, deterministic (temp=0 + authoritative registry lookup, not flaky web snippets). HONEST counter-result: on *easy* coding bugs capable models already score 100% naive, so the harness shows 0 lift and can even regress −1 (agentic overhead on trivial fixes). The harness helps where the model NEEDS help — not on tasks it aces one-shot.
 
 ## Run it silently in the background (no UI — just on)
 
