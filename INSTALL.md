@@ -54,20 +54,25 @@ python3 -m verity web-setup                 # Playwright + Chromium + cryptograp
 
 ## Wire the gates into your coding agents
 
-`verity autostart` injects the discipline gates into the agents you already use. **OpenAI Codex now
-ships as its own desktop app (macOS/Windows) and a `codex` CLI** — VERITY wires it via `AGENTS.md`,
-the same way it wires Claude Code (`CLAUDE.md` + Stop-hook) and Gemini (`GEMINI.md`):
+`verity autostart` injects the discipline gates into the agents you already use.
 
 ```bash
-python3 -m verity autostart                  # installs the SessionStart inject + per-agent gate files
+python3 -m verity autostart --all            # claude-code + codex + gemini + the proxy note
 python3 -m verity autostart --daemon         # also keep the :11500 failover proxy always-on (launchd/systemd)
 ```
 
-Any OpenAI-compatible client (Codex app/CLI, Cursor, an SDK) can instead point at the proxy and inherit
-failover + the overconfidence guard transparently:
+**OpenAI Codex is its own app now (macOS/Windows desktop + a `codex` CLI), so it gets its own wiring.**
+`verity autostart --codex` installs three surfaces: `~/.codex/AGENTS.md` (always-on rules),
+`~/.codex/hooks.json` Stop/SubagentStop hooks (the real anti-giveup gate — Codex supports
+Claude-Code-style hooks), and copies the skill to `~/.agents/skills/`. **Important:** Codex talks the
+OpenAI **Responses API** (`wire_api="responses"`), so the `:11500` chat/completions proxy does **not**
+discipline Codex via the proxy path — on Codex the AGENTS.md rules + the Stop hook are the enforcement.
+
+For other OpenAI-compatible clients (Cursor, an SDK, Claude Code via base-url) the proxy works directly
+and they inherit failover + the overconfidence guard transparently:
 
 ```bash
-python3 -m verity.server                      # → http://127.0.0.1:11500/v1
+python3 -m verity.server                      # → http://127.0.0.1:11500/v1  (chat/completions)
 export OPENAI_BASE_URL=http://127.0.0.1:11500/v1
 ```
 
