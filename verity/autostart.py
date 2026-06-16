@@ -85,6 +85,12 @@ agents talk direct to the API) — so apply these gates MANUALLY, every task. No
    (Real lapse 2026-06-15: called a QA backend a "global model outage" from empty responses + 4 port
    probes; the shim log showed ONE expired OAuth token, fixable with one command. The assumption cost
    the real answer and produced a weak "can't fix it" result. Don't repeat it.)
+ • CURRENT MODELS — READ THE REGISTRY, DON'T GUESS (BLOCKER): model names move monthly and your
+   TRAINING IS STALE. Before naming, choosing, or wiring ANY model id ("the newest X is…", routing
+   config, "use model Y"), query the live registry: `python3 -m verity models <provider>` (e.g.
+   deepseek, claude-opus, gemini, kimi, qwen3, grok). Web snippets rarely carry the exact slug
+   (kimi-k2.7, opus-4.8, gemini-3.5, deepseek-v4, qwen3.7, gemma-4, grok-4.3 are all post-2025) —
+   the OpenRouter /models API is ground truth. Verify the id exists there before using it.
  • VERIFY (Borg): adversarially confirm each action actually worked; >=2 backends; no "done" on a vibe.
  • REUSE-FIRST: check installed tools + existing OSS BEFORE building.
  • CALIBRATE: label conclusions VERIFIED vs GUESS.
@@ -204,6 +210,9 @@ _GATES_MD = """<!-- VERITY-GATES:start (managed by `verity autostart` — re-run
   (platform API, GitHub, Reddit, X, YouTube, Google, StackOverflow). "Errored / empty / timed out" is a
   SYMPTOM, not a diagnosis — find the ROOT CAUSE first. (Real lapse: a QA backend was called a "global
   outage" from empty responses; the log showed one expired OAuth token, fixable in one command.)
+- **Current models — read the registry, don't guess (BLOCKER):** before naming/choosing/wiring any
+  model id, run `python3 -m verity models <provider>` (deepseek, claude-opus, gemini, kimi, qwen3,
+  grok…). Names move monthly and training is stale; the OpenRouter /models API is ground truth.
 - **Verify (Borg):** adversarially confirm each action actually worked; >=2 backends; no "done" on a vibe.
 - **Reuse-first:** check installed tools + existing OSS BEFORE building.
 - **Calibrate:** label conclusions VERIFIED vs GUESS.

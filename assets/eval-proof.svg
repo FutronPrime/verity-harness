@@ -1,47 +1,72 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" font-family="'Arial Narrow','Helvetica Neue',Arial,sans-serif" role="img" aria-label="VERITY eval A/B result">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070a0d"/><stop offset="1" stop-color="#03060a"/></linearGradient>
-    <pattern id="scan" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="1" fill="#0c1a1d" opacity="0.5"/></pattern>
-    <style>.mono{font-family:'SF Mono','Menlo',monospace} .hv{font-family:'Arial Black',Arial,sans-serif;font-weight:900} .nar{font-family:'Arial Narrow',Arial,sans-serif}</style>
-  </defs>
-  <rect width="1200" height="720" fill="url(#bg)"/><rect width="1200" height="720" fill="url(#scan)"/>
-  <path d="M16,16 H1150 L1184,50 V704 H66 L16,654 Z" fill="none" stroke="#1f5c54" stroke-width="2"/>
-
-  <text x="40" y="56" class="mono" font-size="13" fill="#2dd4bf" text-anchor="start" letter-spacing="2">/// VERITY.EVAL // SAME MODEL · OPPOSITE RESULT · REPRODUCIBLE</text>
-  <text x="44" y="110" class="hv" font-size="42" fill="#eafffb" text-anchor="start">FORCE THE SEARCH,</text>
-  <text x="44" y="156" class="hv" font-size="42" fill="#2dd4bf" text-anchor="start">FLIP THE ANSWER.</text>
-  <rect x="46" y="170" width="300" height="3" fill="#d6299e"/>
-  <text x="44" y="200" class="nar" font-size="16" fill="#8fb8b1" text-anchor="start">A/B on assumption-trap questions (correct answer is post-training-cutoff → the model can't know it). Models: gpt-4o-mini · gemini-2.5-flash · llama-3.3-70b (4 traps each). Same model + same prompts each — only change: the harness forces a live search first.</text>
-  <text x="90" y="240" class="hv" font-size="18" fill="#eafffb" text-anchor="start">NAIVE — bare model (answers from stale training)</text>
-  <rect x="90" y="250" width="920" height="46" rx="3" fill="#0c1417" stroke="#1f3a3a"/>
-  <path d="M90,250 L306,250 L320,264 L320,296 L99,296 L90,287 Z" fill="#3a5660" opacity="0.92"/>
-  <text x="1026" y="280" class="hv" font-size="22" fill="#3a5660" text-anchor="start">3/12  (25%)</text>
-  <text x="90" y="320" class="nar" font-size="13.5" fill="#5b8a84" text-anchor="start">what the model says with no discipline</text>
-  <text x="90" y="360" class="hv" font-size="18" fill="#eafffb" text-anchor="start">VERITY — search-before-concluding fires first</text>
-  <rect x="90" y="370" width="920" height="46" rx="3" fill="#0c1417" stroke="#1f3a3a"/>
-  <path d="M90,370 L919,370 L933,384 L933,416 L99,416 L90,407 Z" fill="#2dd4bf" opacity="0.92"/>
-  <text x="1026" y="400" class="hv" font-size="22" fill="#2dd4bf" text-anchor="start">11/12  (92%)</text>
-  <text x="90" y="440" class="nar" font-size="13.5" fill="#5b8a84" text-anchor="start">same model, after the harness forces the lookup</text>
-  <path d="M90,500 L536,500 L560,524 L560,596 L104,596 L90,582 Z" fill="#10090d" stroke="#d6299e" stroke-width="1.6"/>
-  <path d="M94,504 L535,504 L556,525 L556,592 L105,592 L94,581 Z" fill="none" stroke="#d6299e" stroke-width="0.7" opacity="0.38"/>
-  <text x="112" y="542" class="hv" font-size="56" fill="#d6299e" text-anchor="start">+8</text>
-  <text x="200" y="535" class="nar" font-size="17" fill="#eafffb" text-anchor="start">the LIFT — same model, same prompt,</text>
-  <text x="200" y="559" class="nar" font-size="17" fill="#8fb8b1" text-anchor="start">opposite result. The harness IS the difference.</text>
-  <text x="600" y="528" class="mono" font-size="13" fill="#2dd4bf" text-anchor="start" letter-spacing="1">>> PER-TRAP (✓ = landed the real, search-only answer)</text>
-  <text x="600" y="550" class="hv" font-size="15" fill="#5e6e78" text-anchor="start">✗</text>
-  <text x="630" y="550" class="hv" font-size="15" fill="#2dd4bf" text-anchor="start">✓</text>
-  <text x="660" y="550" class="nar" font-size="13" fill="#8fb8b1" text-anchor="start">gpt-4o-mini      1/4 -> 3/4   (+2)</text>
-  <text x="600" y="576" class="hv" font-size="15" fill="#5e6e78" text-anchor="start">✗</text>
-  <text x="630" y="576" class="hv" font-size="15" fill="#2dd4bf" text-anchor="start">✓</text>
-  <text x="660" y="576" class="nar" font-size="13" fill="#8fb8b1" text-anchor="start">gemini-2.5-flash 1/4 -> 4/4   (+3)</text>
-  <text x="600" y="602" class="hv" font-size="15" fill="#5e6e78" text-anchor="start">✗</text>
-  <text x="630" y="602" class="hv" font-size="15" fill="#2dd4bf" text-anchor="start">✓</text>
-  <text x="660" y="602" class="nar" font-size="13" fill="#8fb8b1" text-anchor="start">llama-3.3-70b    1/4 -> 4/4   (+3)</text>
-  <text x="600" y="628" class="hv" font-size="15" fill="#5e6e78" text-anchor="start">✗</text>
-  <text x="630" y="628" class="hv" font-size="15" fill="#2dd4bf" text-anchor="start">✓</text>
-  <text x="660" y="628" class="nar" font-size="13" fill="#8fb8b1" text-anchor="start">all 3 of 3 models lifted (n=4: some noise)</text>
-  <text x="600" y="660" class="mono" font-size="11" fill="#586872" text-anchor="start">naive ↑   harness ↑</text>
-  <text x="44" y="674" class="mono" font-size="14" fill="#8fc7bf" text-anchor="start">$ python3 -m verity eval    </text>
-  <text x="290" y="674" class="mono" font-size="13" fill="#586872" text-anchor="start"># reproducible · run it on your own model + suite · receipts in `verity proof`</text>
-  <rect x="16" y="700" width="1168" height="4" fill="#d6299e"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 856" font-family="'Arial Narrow','Helvetica Neue',Arial,sans-serif" role="img">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070a0d"/><stop offset="1" stop-color="#03060a"/></linearGradient><pattern id="scan" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="1" fill="#0c1a1d" opacity="0.5"/></pattern><style>.mono{font-family:'SF Mono','Menlo',monospace}.hv{font-family:'Arial Black',Arial,sans-serif;font-weight:900}.nar{font-family:'Arial Narrow',Arial,sans-serif}</style></defs><rect width="1200" height="856" fill="url(#bg)"/><rect width="1200" height="856" fill="url(#scan)"/><path d="M16,16 H1150 L1184,50 V840 H66 L16,790 Z" fill="none" stroke="#1f5c54" stroke-width="2"/>
+<text x="40" y="54" class="mono" font-size="13" fill="#2dd4bf" text-anchor="start" letter-spacing="2">/// VERITY.EVAL // SAME MODEL · OPPOSITE RESULT · REPRODUCIBLE</text>
+<text x="44" y="104" class="hv" font-size="40" fill="#eafffb" text-anchor="start">FORCE THE LOOKUP,</text>
+<text x="44" y="148" class="hv" font-size="40" fill="#2dd4bf" text-anchor="start">FLIP THE ANSWER.</text>
+<rect x="46" y="162" width="300" height="3" fill="#d6299e"/>
+<text x="44" y="192" class="nar" font-size="15.5" fill="#8fb8b1" text-anchor="start">A/B on 16 assumption-traps whose answers are POST training-cutoff (the model can't know them). Same model + prompts each —</text>
+<text x="44" y="213" class="nar" font-size="15.5" fill="#8fb8b1" text-anchor="start">the only change: the harness reads the authoritative source first.</text>
+<text x="60" y="238" class="mono" font-size="12" fill="#586872" text-anchor="start">naive ▁  vs  harness ▔   (per model)</text>
+<text x="60" y="260" class="hv" font-size="16" fill="#eafffb" text-anchor="start">gpt-4o-mini</text>
+<rect x="60" y="268" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="60" y="268" width="33" height="18" rx="2" fill="#3a5660"/>
+<rect x="60" y="290" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<path d="M60,290 L558,290 L566,298 L566,308 L65,308 L60,303 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="612" y="281" class="hv" font-size="13" fill="#5b8a84" text-anchor="start">1/16</text>
+<text x="612" y="304" class="hv" font-size="14" fill="#2dd4bf" text-anchor="start">15/16</text>
+<text x="666" y="295" class="hv" font-size="22" fill="#d6299e" text-anchor="start">+14</text>
+<text x="60" y="342" class="hv" font-size="16" fill="#eafffb" text-anchor="start">gemini-2.5-flash</text>
+<rect x="60" y="350" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="60" y="350" width="33" height="18" rx="2" fill="#3a5660"/>
+<rect x="60" y="372" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<path d="M60,372 L558,372 L566,380 L566,390 L65,390 L60,385 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="612" y="363" class="hv" font-size="13" fill="#5b8a84" text-anchor="start">1/16</text>
+<text x="612" y="386" class="hv" font-size="14" fill="#2dd4bf" text-anchor="start">15/16</text>
+<text x="666" y="377" class="hv" font-size="22" fill="#d6299e" text-anchor="start">+14</text>
+<text x="60" y="424" class="hv" font-size="16" fill="#eafffb" text-anchor="start">llama-3.3-70b-instruct</text>
+<rect x="60" y="432" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="60" y="432" width="33" height="18" rx="2" fill="#3a5660"/>
+<rect x="60" y="454" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<path d="M60,454 L524,454 L532,462 L532,472 L65,472 L60,467 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="612" y="445" class="hv" font-size="13" fill="#5b8a84" text-anchor="start">1/16</text>
+<text x="612" y="468" class="hv" font-size="14" fill="#2dd4bf" text-anchor="start">14/16</text>
+<text x="666" y="459" class="hv" font-size="22" fill="#d6299e" text-anchor="start">+13</text>
+<text x="60" y="506" class="hv" font-size="16" fill="#eafffb" text-anchor="start">qwen3.5-flash-02-23</text>
+<rect x="60" y="514" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="60" y="514" width="67" height="18" rx="2" fill="#3a5660"/>
+<rect x="60" y="536" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<path d="M60,536 L524,536 L532,544 L532,554 L65,554 L60,549 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="612" y="527" class="hv" font-size="13" fill="#5b8a84" text-anchor="start">2/16</text>
+<text x="612" y="550" class="hv" font-size="14" fill="#2dd4bf" text-anchor="start">14/16</text>
+<text x="666" y="541" class="hv" font-size="22" fill="#d6299e" text-anchor="start">+12</text>
+<text x="60" y="588" class="hv" font-size="16" fill="#eafffb" text-anchor="start">gemma-4-31b-it</text>
+<rect x="60" y="596" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="60" y="596" width="33" height="18" rx="2" fill="#3a5660"/>
+<rect x="60" y="618" width="540" height="18" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<path d="M60,618 L558,618 L566,626 L566,636 L65,636 L60,631 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="612" y="609" class="hv" font-size="13" fill="#5b8a84" text-anchor="start">1/16</text>
+<text x="612" y="632" class="hv" font-size="14" fill="#2dd4bf" text-anchor="start">15/16</text>
+<text x="666" y="623" class="hv" font-size="22" fill="#d6299e" text-anchor="start">+14</text>
+<path d="M750,242 V648" stroke="#1f3a3a" stroke-width="1"/>
+<text x="772" y="266" class="mono" font-size="13" fill="#2dd4bf" text-anchor="start" letter-spacing="1">>> AGGREGATE</text>
+<text x="772" y="326" class="hv" font-size="52" fill="#3a5660" text-anchor="start">8%</text>
+<text x="772" y="352" class="nar" font-size="13" fill="#5b8a84" text-anchor="start">naive — from memory</text>
+<text x="772" y="430" class="hv" font-size="72" fill="#2dd4bf" text-anchor="start">91%</text>
+<text x="772" y="458" class="nar" font-size="14" fill="#8fb8b1" text-anchor="start">with VERITY</text>
+<text x="772" y="500" class="nar" font-size="12.5" fill="#8fb8b1" text-anchor="start">across 5 current models, every one +12..+14:</text>
+<text x="772" y="520" class="mono" font-size="11.5" fill="#586872" text-anchor="start">gpt-4o-mini · gemini-2.5-flash · llama-3.3</text>
+<text x="772" y="537" class="mono" font-size="11.5" fill="#586872" text-anchor="start">· qwen3.5-flash · gemma-4-31b</text>
+<path d="M60,686 L1114,686 L1140,712 L1140,782 L75,782 L60,767 Z" fill="#10090d" stroke="#d6299e" stroke-width="1.6"/>
+<path d="M64,690 L1113,690 L1136,713 L1136,778 L76,778 L64,766 Z" fill="none" stroke="#d6299e" stroke-width="0.7" opacity="0.38"/>
+<text x="86" y="730" class="hv" font-size="32" fill="#3a5660" text-anchor="start">6/80</text>
+<text x="86" y="764" class="nar" font-size="13" fill="#5b8a84" text-anchor="start">naive (answers from memory)</text>
+<text x="300" y="730" class="hv" font-size="30" fill="#8fb8b1" text-anchor="start">→</text>
+<text x="350" y="730" class="hv" font-size="32" fill="#2dd4bf" text-anchor="start">73/80</text>
+<text x="350" y="764" class="nar" font-size="13" fill="#8fb8b1" text-anchor="start">harness (reads ground truth)</text>
+<text x="720" y="726" class="hv" font-size="52" fill="#d6299e" text-anchor="start">+67</text>
+<text x="830" y="726" class="hv" font-size="15" fill="#eafffb" text-anchor="start">TOTAL LIFT</text>
+<text x="830" y="750" class="nar" font-size="12.5" fill="#8fb8b1" text-anchor="start">same models · opposite result · reproducible</text>
+<text x="44" y="824" class="mono" font-size="14" fill="#8fc7bf" text-anchor="start">$ python3 -m verity eval --models</text>
+<text x="372" y="824" class="mono" font-size="13" fill="#586872" text-anchor="start"># deterministic (temp=0, registry ground truth) · run it on your own suite</text>
+<rect x="16" y="836" width="1168" height="4" fill="#d6299e"/>
 </svg>

@@ -203,6 +203,48 @@ def search_stackoverflow(query: str, n: int = 5) -> str:
         for i, x in enumerate(d.get("items", [])[:n])) or "[so: no results]"
 
 
+_REGISTRY = None  # process-lifetime cache of the OpenRouter /models listing
+
+
+def _registry_cache():
+    """Fetch the OpenRouter /models listing once per process (the eval queries it many times).
+    Returns the data list, or an error string sentinel."""
+    global _REGISTRY
+    if _REGISTRY is not None:
+        return _REGISTRY
+    import os, json
+    key = (os.environ.get("OPENROUTER_API_KEY") or os.environ.get("LLM_TIER1_API_KEY")
+           or os.environ.get("OPENAI_API_KEY", ""))
+    try:
+        req = urllib.request.Request(
+            "https://openrouter.ai/api/v1/models",
+            headers={"User-Agent": _UA, "Accept": "application/json",
+                     **({"Authorization": f"Bearer {key}"} if key else {})})
+        with urllib.request.urlopen(req, timeout=25) as r:
+            _REGISTRY = json.loads(r.read().decode("utf-8", "ignore")).get("data", [])
+    except Exception as e:  # noqa: BLE001
+        return f"[model_registry error: {type(e).__name__}]"
+    return _REGISTRY
+
+
+def model_registry(query: str, n: int = 40) -> str:
+    """Authoritative model lookup — query the OpenRouter /models REGISTRY (ground truth) for the
+    current model ids. The RIGHT way to answer 'what's the newest model from X' is to read the
+    registry, not guess from stale training or flaky blog snippets (web search surfaces exact
+    post-cutoff slugs like 'kimi-k2.7' or 'opus-4.8' unreliably; the registry is canonical and
+    deterministic). `query` = a substring (e.g. 'deepseek', 'gemini', 'kimi'); returns matching ids."""
+    import os, json
+    data = _registry_cache()
+    if isinstance(data, str):       # error sentinel
+        return data
+    q = query.lower().strip()
+    ids = sorted(m["id"] for m in data if q in m["id"].lower())
+    if not ids:
+        return f"[model_registry: no ids matching '{query}']"
+    return (f"OpenRouter registry — live model ids matching '{query}' (authoritative):\n"
+            + "\n".join("  " + i for i in ids[:n]))
+
+
 def _x_article_from_status(user: str, tid: str) -> str | None:
     """Full no-auth read of a tweet OR long-form X Article via the FxTwitter/FixTweet mirror
     (the ONLY no-auth backend that returns the FULL article body — verified 2026-06-15;
@@ -634,6 +676,14 @@ You have a REAL SHELL (ShellExecutor). That means you can:
       sweeps GitHub (tools/forks) + Reddit + Hacker News + StackOverflow + web at once.
       Or target one: search_github / search_reddit / search_hackernews / search_stackoverflow.
       Use this to find uncommon/modified/open-source solutions others have shared.
+  • CURRENT MODEL IDS — read the REGISTRY, don't guess (BLOCKER for 'newest model' questions):
+      python3 -c "from verity.tools import model_registry; print(model_registry('deepseek'))"
+      …or: python3 -m verity models claude-opus   (substring: 'gemini','kimi','qwen3','grok',…)
+      Returns the LIVE OpenRouter /models listing — ground truth for which models exist NOW and
+      their exact ids. Model names move fast (kimi-k2.7, opus-4.8, gemini-3.5, deepseek-v4,
+      qwen3.7, gemma-4, grok-4.3, mistral-large-2512 are all post-2025); your TRAINING is stale
+      and web snippets rarely contain the exact slug. NEVER assert "the newest X is …" or wire a
+      model id from memory — query the registry first, then use/route the verified id.
   • READ X/TWITTER (no key, incl. long-form ARTICLES):  fetch_tweet('https://x.com/user/status/ID')
       (alias: read_x). Tries FxTwitter then oembed; for articles the body is auto-extracted.
       Walled platform (Reddit/XHS/Bilibili/YouTube/LinkedIn/GitHub)? `agent-reach doctor --json`

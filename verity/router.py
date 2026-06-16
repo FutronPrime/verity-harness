@@ -17,6 +17,7 @@ OAuth shim, Tier 0 needs none.
 from __future__ import annotations
 
 import json
+import os
 import time
 import urllib.error
 import urllib.request
@@ -76,11 +77,28 @@ def _post_json(url: str, payload: dict, timeout: float, api_key: str = "") -> di
         raise ProviderError(f"HTTP {e.code}: {body}", status=e.code, headers=e.headers)
 
 
+def _temp():
+    """Opt-in deterministic sampling. OFF by default (normal agentic runs keep the
+    provider default); set VERITY_TEMPERATURE=0 to pin it — used by the eval so the
+    A/B isn't measuring sampling noise. Returns float or None."""
+    v = os.environ.get("VERITY_TEMPERATURE", "").strip()
+    if not v:
+        return None
+    try:
+        return float(v)
+    except ValueError:
+        return None
+
+
 def _call_openai_compat(tier: Tier, messages: list[dict], timeout: float) -> str:
     """OAuth shim, OpenRouter, and Ollama's /v1 all speak OpenAI chat."""
+    payload = {"model": tier.model, "messages": messages, "stream": False}
+    _t = _temp()
+    if _t is not None:
+        payload["temperature"] = _t
     out = _post_json(
         f"{tier.base_url}/chat/completions",
-        {"model": tier.model, "messages": messages, "stream": False},
+        payload,
         timeout, getattr(tier, "api_key", ""),
     )
     # Some providers return a 200 with an {"error": ...} body — surface it clearly
@@ -94,9 +112,13 @@ def _call_openai_compat(tier: Tier, messages: list[dict], timeout: float) -> str
 
 def _call_ollama_native(tier: Tier, messages: list[dict], timeout: float) -> str:
     """Ollama native /api/chat — the maximally-sovereign path (no shim, no cloud)."""
+    payload = {"model": tier.model, "messages": messages, "stream": False}
+    _t = _temp()
+    if _t is not None:
+        payload["options"] = {"temperature": _t}
     out = _post_json(
         f"{tier.base_url}/api/chat",
-        {"model": tier.model, "messages": messages, "stream": False},
+        payload,
         timeout,
     )
     return out["message"]["content"]

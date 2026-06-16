@@ -112,6 +112,16 @@ def main(argv: list[str]) -> None:
     elif cmd == "capabilities":
         from .tools import capabilities_guide
         print(capabilities_guide())
+    elif cmd in ("models", "registry"):
+        # AUTHORITATIVE model lookup — read the live OpenRouter registry instead of guessing current
+        # model ids from stale training. The right way to answer 'what's the newest X model'.
+        from .tools import model_registry
+        q = rest[0] if rest else ""
+        if not q:
+            print('usage: models <substring>   e.g. models deepseek | models claude-opus | models gemini\n'
+                  '(reads the live OpenRouter /models registry — ground truth for current model ids)',
+                  file=sys.stderr); sys.exit(2)
+        print(model_registry(q, n=60))
     elif cmd == "playbook":
         # 'make any model think like Fable' — distill an injectable playbook from THIS harness's own
         # verified history (the assumptions it caught + the tools it found). --inject writes the file
@@ -137,11 +147,9 @@ def main(argv: list[str]) -> None:
         if "--models" in rest:
             i = rest.index("--models")
             models = [m.strip() for m in (rest[i + 1] if i + 1 < len(rest) else "").split(",") if m.strip()]
-            if not models:
-                print('usage: eval --models "openai/gpt-4o-mini,google/gemini-2.0-flash-001,…"',
-                      file=sys.stderr); sys.exit(2)
+            # no explicit list → DEFAULT_MODELS (current set people actually run, not retired ids)
             from .eval_assumptions import run_models
-            run_models(models)
+            run_models(models or None)
         else:
             from .eval_assumptions import run as _eval
             _eval()

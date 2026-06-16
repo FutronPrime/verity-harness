@@ -4,8 +4,11 @@
 VERITY's base loop is single-model. Mythos/Fable-class systems get their power from a SWARM of
 specialized agents (planner, researcher, executor, critic, synthesizer) exploring in parallel and
 critiquing each other. This builds that natively — and **with zero external dependencies**: every
-"agent" is just a model call with a role system-prompt, wrapped in VERITY's discipline gates. A
-fresh `git clone` runs the same swarm with NO knowledge of any private tooling. If a richer
+"agent" is a model call through the SAME tier as the lead (so each is the same caliber — Matrix/
+Agent-Smith: every copy as capable as the original, the critic often sharper), with the FULL
+discipline stack prepended to its role prompt — PRIME_DIRECTIVE + a swarm reiteration (don't quit,
+don't be confidently wrong, read the registry) + the same overconfidence/anti-giveup guard the main
+loop uses. A fresh `git clone` runs the same swarm with NO knowledge of any private tooling. If a richer
 external orchestrator (e.g. a FUTRON forge endpoint) is present it can be used, but the swarm is
 fully sovereign without it.
 
@@ -67,6 +70,34 @@ ROLE_SYS = {
 }
 
 
+# Every swarm agent inherits the FULL discipline stack — not just a role label. An assimilated agent
+# is the SAME caliber as the lead and bound by the SAME gates (Matrix/Agent-Smith: each copy is as
+# capable as the original, some better). Without this, a sub-agent can quit or be confidently wrong
+# with no forcing function watching — the exact failure VERITY exists to kill, multiplied by N.
+_DISCIPLINE_CACHE = None
+
+
+def _discipline() -> str:
+    """PRIME_DIRECTIVE + a swarm reiteration, prepended to EVERY agent's system prompt so each
+    sub-agent carries all gates (anti-quit, anti-overconfidence, Rule 6, read-the-registry)."""
+    global _DISCIPLINE_CACHE
+    if _DISCIPLINE_CACHE is None:
+        from .scaffold import PRIME_DIRECTIVE
+        _DISCIPLINE_CACHE = PRIME_DIRECTIVE + """
+
+YOU ARE A FULL-CALIBER SPECIALIST in this swarm — the SAME model and capability as the lead agent,
+NOT a cheaper helper. Act like it. Every gate above binds YOU:
+ • DO NOT QUIT / DEFER / HEDGE. Never say "I can't", "it's not possible", "it's broken", "only the
+   user can do this" until you've INVESTIGATED (Rule 6). A half-answer or a punt is a FAILURE of your
+   sub-task, not a completion.
+ • DO NOT BE CONFIDENTLY WRONG. Label each claim VERIFIED or GUESS. Prefer the provided findings and
+   the LIVE registry over your training — your weights are stale. For any model id, the registry is
+   ground truth (`python3 -m verity models <provider>`); never assert "the newest X is…" from memory.
+ • OWN YOUR SUB-TASK end to end and return a complete, defensible result. The critic WILL probe it.
+"""
+    return _DISCIPLINE_CACHE
+
+
 @dataclass
 class SwarmResult:
     goal: str
@@ -85,19 +116,50 @@ _AGENT_POOL = ThreadPoolExecutor(max_workers=8)
 def _agent(role: str, prompt: str, tiers=None, timeout: float = 150.0) -> str:
     """One swarm agent = one model call through the SAME tier as everything else — so the swarm's
     agents are the SAME CALIBER as the base model: Opus-4.8 base → Opus-4.8 agents, Codex-5.5 →
-    5.5 agents, a local 4B → 4B agents. Bounded by a per-call wall-clock timeout so a single stuck
-    call (slow local model, provider retry storm) can't hang the swarm — it degrades to a skip."""
+    5.5 agents, a local 4B → 4B agents. Each carries the FULL discipline stack (PRIME_DIRECTIVE +
+    swarm reiteration), and prose roles get the same overconfidence/anti-giveup GUARD as the main
+    loop — a sub-agent that quits or hedges is re-prompted once, not allowed to punt. Bounded by a
+    per-call wall-clock timeout so one stuck call can't hang the swarm — it degrades to a skip."""
     from .router import ask
+    from . import guard
+    sys_prompt = _discipline() + "\n\n" + ROLE_SYS[role]
+    # Guard only the PROSE roles: the critic is SUPPOSED to voice negatives (it hunts flaws) and
+    # planner/critic emit JSON that a re-prompt could corrupt. Executor/synthesizer must not punt.
+    guarded = role in ("executor", "synthesizer")
+
+    def _txt(r):
+        return r.text if hasattr(r, "text") else str(r)
 
     def _call():
-        r = ask(prompt, system=ROLE_SYS[role], **({"tiers": tiers} if tiers else {}))
-        return r.text if hasattr(r, "text") else str(r)
+        kw = {"tiers": tiers} if tiers else {}
+        out = _txt(ask(prompt, system=sys_prompt, **kw))
+        if guarded and guard.flag(out):          # quit/defer/overconfident-negative detected
+            out = _txt(ask(prompt + "\n\n" + guard.CORRECTIVE, system=sys_prompt, **kw))
+        return out
     try:
         return _AGENT_POOL.submit(_call).result(timeout=timeout)
     except _FutureTimeout:
         return f"[agent:{role} timed out after {int(timeout)}s — skipped so the swarm can proceed]"
     except Exception as e:  # noqa: BLE001 — never let one agent kill the swarm
         return f"[agent:{role} failed: {type(e).__name__}]"
+
+
+_PROVIDERS = ("deepseek", "kimi", "qwen", "gemini", "gemma", "grok", "mistral",
+              "opus", "claude", "llama", "fable", "moonshot", "openai", "gpt")
+
+
+def _registry_hint(text: str) -> str:
+    """If a sub-task names a model provider, pull the AUTHORITATIVE OpenRouter registry slice for it
+    so the sub-agent reasons over real current ids — not hallucinated ones. Empty when no provider
+    is mentioned (zero cost). This is the same registry the eval + main loop trust."""
+    tl = text.lower()
+    hits = [p for p in _PROVIDERS if p in tl][:3]
+    if not hits:
+        return ""
+    from .tools import model_registry
+    blocks = [model_registry("claude-opus" if p in ("opus", "claude") else p, n=25) for p in hits]
+    return ("=== AUTHORITATIVE MODEL REGISTRY (live OpenRouter — use these EXACT ids, not memory) ===\n"
+            + "\n".join(blocks))
 
 
 def _local_primary(tiers=None) -> bool:
@@ -139,6 +201,10 @@ def run_swarm(goal: str, executor=None, tiers=None, max_subtasks: int = 4,
     def work(st: str) -> dict:
         from .scaffold import _preflight
         findings = _preflight(st, verbose=False) if research else ""
+        # GROUND TRUTH for model questions: web search rarely carries exact post-cutoff slugs, so a
+        # reasoning-mode sub-agent would CONFABULATE ("Kimi V4, 2023"). Inject the authoritative
+        # registry whenever the sub-task names a provider — same discipline the eval/main loop use.
+        findings = (_registry_hint(st) + ("\n\n" + findings if findings else "")).strip()
         if executor is not None:
             from .scaffold import run_verified
             r = run_verified(st, executor=executor, preflight=False, discover=False,
