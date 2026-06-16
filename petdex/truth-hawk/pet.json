@@ -1,0 +1,90 @@
+{
+  "name": "VERITY Truth Hawk",
+  "slug": "truth-hawk",
+  "kind": "robot",
+  "tags": [
+    "verity",
+    "harness",
+    "hawk",
+    "ai-agent",
+    "verification"
+  ],
+  "vibes": [
+    "focused",
+    "calm",
+    "diligent"
+  ],
+  "frameWidth": 192,
+  "frameHeight": 208,
+  "cols": 8,
+  "rows": 9,
+  "description": "A silent low-poly verification hawk. Idles calm, ponders on search, builds while working, juggles for multi-agent swarms, droops on a caught error.",
+  "author": "FUTRON / VERITY",
+  "license": "see github.com/FutronPrime/verity-harness",
+  "source": "github.com/FutronPrime/verity-harness/desktop-mascot",
+  "states": [
+    {
+      "id": "idle",
+      "row": 0,
+      "frames": 6,
+      "durationMs": 1100,
+      "source": "hawk-idle"
+    },
+    {
+      "id": "running-right",
+      "row": 1,
+      "frames": 8,
+      "durationMs": 1060,
+      "source": "hawk-building"
+    },
+    {
+      "id": "running-left",
+      "row": 2,
+      "frames": 8,
+      "durationMs": 1060,
+      "source": "hawk-building(mirrored)"
+    },
+    {
+      "id": "waving",
+      "row": 3,
+      "frames": 4,
+      "durationMs": 700,
+      "source": "hawk-success"
+    },
+    {
+      "id": "jumping",
+      "row": 4,
+      "frames": 5,
+      "durationMs": 840,
+      "source": "hawk-juggling"
+    },
+    {
+      "id": "failed",
+      "row": 5,
+      "frames": 8,
+      "durationMs": 1220,
+      "source": "hawk-error"
+    },
+    {
+      "id": "waiting",
+      "row": 6,
+      "frames": 6,
+      "durationMs": 1010,
+      "source": "hawk-thinking"
+    },
+    {
+      "id": "running",
+      "row": 7,
+      "frames": 6,
+      "durationMs": 820,
+      "source": "hawk-building"
+    },
+    {
+      "id": "review",
+      "row": 8,
+      "frames": 6,
+      "durationMs": 1030,
+      "source": "hawk-thinking"
+    }
+  ]
+}
