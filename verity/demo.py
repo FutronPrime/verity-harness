@@ -47,18 +47,27 @@ def _features(html: str, checklist: dict) -> dict:
     return {name: bool(re.search(pat, html, re.I)) for name, pat in checklist.items()}
 
 
-def _headless_check(path: str, keypress=True):
-    """Open the HTML in a real headless browser; return (console_errors, screenshot_path, blank?).
-    This is the crux: it RUNS the code instead of trusting it looks right."""
+def _headless_check(path: str, keypress=True, record=False):
+    """Open the HTML in a real headless browser; return (console_errors, screenshot, blank, filled).
+    This is the crux: it RUNS the code instead of trusting it looks right. record=True also captures
+    a real SCREEN RECORDING of the gameplay → path.replace('.html','.webm') (the video proof)."""
     try:
         from playwright.sync_api import sync_playwright
     except Exception:
-        return (["[playwright not installed — run `python3 -m verity web-setup`]"], None, None)
+        return (["[playwright not installed — run `python3 -m verity web-setup`]"], None, None, 0.0)
     errors, shot = [], path.replace(".html", ".png")
+    viddir = os.path.join(os.path.dirname(path), "_vid")
     try:
         with sync_playwright() as p:
             b = p.chromium.launch(headless=True)
-            pg = b.new_page(viewport={"width": 420, "height": 720})
+            if record:
+                os.makedirs(viddir, exist_ok=True)
+                ctx = b.new_context(viewport={"width": 420, "height": 720},
+                                    record_video_dir=viddir, record_video_size={"width": 420, "height": 720})
+                pg = ctx.new_page()
+            else:
+                ctx = None
+                pg = b.new_page(viewport={"width": 420, "height": 720})
             pg.on("console", lambda m: errors.append(m.text[:200]) if m.type == "error" else None)
             pg.on("pageerror", lambda e: errors.append(str(e)[:200]))
             pg.goto("file://" + os.path.abspath(path))
@@ -66,7 +75,6 @@ def _headless_check(path: str, keypress=True):
             if keypress:
                 # actually PLAY it — drop several pieces with rotations. Many one-shot games look
                 # fine on load but throw (or freeze) once pieces lock / lines clear / it speeds up.
-                import random
                 seq = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowDown"]
                 for n in range(40):
                     pg.keyboard.press(seq[n % len(seq)]); pg.wait_for_timeout(60)
@@ -81,18 +89,30 @@ def _headless_check(path: str, keypress=True):
                 let nz=0,t=0; for(let i=0;i<d.length;i+=4){ t++;
                   if(Math.abs(d[i]-bg[0])+Math.abs(d[i+1]-bg[1])+Math.abs(d[i+2]-bg[2])>60) nz++; }
                 return t ? nz/t : 0; }""")
+            vidsrc = None
+            if ctx is not None:
+                vidsrc = pg.video.path() if pg.video else None
+                ctx.close()   # finalizes the .webm
             b.close()
+        # move the recording to a stable name next to the html
+        if record and vidsrc and os.path.exists(vidsrc):
+            import shutil as _sh
+            try:
+                _sh.move(vidsrc, path.replace(".html", ".webm"))
+            except Exception:  # noqa: BLE001
+                pass
         blank = filled < 0.004
         return (errors, shot, bool(blank), float(filled))
     except Exception as e:  # noqa: BLE001
         return ([f"[render failed: {type(e).__name__}: {e}"], shot if os.path.exists(shot) else None, None, 0.0)
 
 
-def run(task: str = None, model: str = None, max_fixes: int = 4, verbose: bool = True) -> dict:
+def run(task: str = None, model: str = None, max_fixes: int = 4, verbose: bool = True,
+        outdir: str = None, record: bool = True) -> dict:
     from .router import ask, chat
     from . import config
     task = task or DEFAULT_TASK
-    outdir = os.path.abspath("demo-out"); os.makedirs(outdir, exist_ok=True)
+    outdir = os.path.abspath(outdir or "demo-out"); os.makedirs(outdir, exist_ok=True)
     checklist = TETRIS_FEATURES if "tetris" in task.lower() else \
         {"canvas": r"<canvas|getContext", "keyboard": r"keydown|key", "loop": r"setInterval|requestAnimationFrame"}
 
@@ -113,7 +133,7 @@ def run(task: str = None, model: str = None, max_fixes: int = 4, verbose: bool =
     if verbose: print("[demo] NAIVE — one-shot build…")
     naive_html = _extract_html(_ask(task))
     np_ = os.path.join(outdir, "naive.html"); open(np_, "w").write(naive_html)
-    n_err, n_shot, n_blank, n_fill = _headless_check(np_)
+    n_err, n_shot, n_blank, n_fill = _headless_check(np_, record=record)  # record the gameplay
     n_feat = _features(naive_html, checklist)
 
     # ---------- HARNESS: build → RUN+PLAY → read failures → fix → repeat ----------
@@ -143,14 +163,17 @@ def run(task: str = None, model: str = None, max_fixes: int = 4, verbose: bool =
                      f"score increases). Output ONLY the corrected full HTML in one ```html block.")
         h_html = _extract_html(_ask(fixprompt))
     hp = os.path.join(outdir, "harness.html"); open(hp, "w").write(h_html)
-    h_err, h_shot, h_blank, h_fill = _headless_check(hp); h_err = _real(h_err)
+    h_err, h_shot, h_blank, h_fill = _headless_check(hp, record=record); h_err = _real(h_err)  # record gameplay
     h_feat = _features(h_html, checklist)
 
+    def _vid(p):
+        v = p.replace(".html", ".webm")
+        return v if os.path.exists(v) else None
     def _arm(html, err, blank, fill, feat, shot, f):
         return {"bytes": len(html), "console_errors": err, "blank": blank,
                 "board_filled_pct": round(fill * 100, 1), "plays": fill >= PLAYS,
                 "features_present": sum(feat.values()), "features_total": len(checklist),
-                "features": feat, "screenshot": shot, "file": f}
+                "features": feat, "screenshot": shot, "video": _vid(f), "file": f}
     report = {"task": task[:120], "model": model or "(configured tier)", "fix_rounds": rounds,
               "naive":   _arm(naive_html, n_err, n_blank, n_fill, n_feat, n_shot, np_),
               "harness": _arm(h_html, h_err, h_blank, h_fill, h_feat, h_shot, hp)}
@@ -166,6 +189,34 @@ def run(task: str = None, model: str = None, max_fixes: int = 4, verbose: bool =
               f"{'PLAYS' if h['plays'] else 'DOESNT PLAY'}  (after {rounds} run-and-fix round(s))")
         print(f"  artifacts + screenshots → {outdir}/")
     return report
+
+
+def run_models(models, task: str = None, max_fixes: int = 3, verbose: bool = True) -> list:
+    """Robust spread: run the same build head-to-head across MANY models → see how each is improved.
+    Each model writes its own demo-out/<slug>/ (naive+harness html, screenshots, .webm recordings)."""
+    results = []
+    for m in models:
+        slug = m.split("/")[-1].replace(":", "-")
+        if verbose:
+            print(f"\n========== {m} ==========")
+        try:
+            r = run(task=task, model=m, max_fixes=max_fixes, verbose=verbose,
+                    outdir=os.path.join("demo-out", slug))
+            results.append(r)
+        except Exception as e:  # noqa: BLE001 — one model failing must not kill the sweep
+            if verbose:
+                print(f"  [model {m} errored: {type(e).__name__}: {e}]")
+            results.append({"model": m, "error": str(e)[:120]})
+    if verbose:
+        print("\n──────── MULTI-MODEL — naive vs VERITY (does the game actually PLAY?) ────────")
+        for r in results:
+            if "error" in r:
+                print(f"  {r['model'][:30]:30}  [errored]"); continue
+            n, h = r["naive"], r["harness"]
+            print(f"  {r['model'].split('/')[-1][:24]:24}  naive {'PLAYS ' if n['plays'] else 'BROKEN'}"
+                  f" ({n['board_filled_pct']:>4}%)  →  VERITY {'PLAYS ' if h['plays'] else 'BROKEN'}"
+                  f" ({h['board_filled_pct']:>4}%)  [{r['fix_rounds']} fix]")
+    return results
 
 
 if __name__ == "__main__":

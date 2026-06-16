@@ -1,9 +1,9 @@
-__pycache__/
-*.pyc
-.venv/
-venv/
-.env
 *.log
+*.pyc
 .DS_Store
+.env
+.venv/
+__pycache__/
 _preview.html
 demo-out/
+venv/

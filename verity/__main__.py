@@ -184,12 +184,18 @@ def main(argv: list[str]) -> None:
     elif cmd == "demo":
         # The fun head-to-head: same model builds a real app (Tetris by default) RAW vs through the
         # harness (build → run headless → read console errors → fix → repeat). Artifacts in ./demo-out/.
-        from .demo import run as _demo
         task = next((a for a in rest if not a.startswith("--")), None)
-        model = None
-        if "--model" in rest:
-            i = rest.index("--model"); model = rest[i+1] if i+1 < len(rest) else None
-        _demo(task=task, model=model)
+        if "--models" in rest:   # robust spread across many models, each its own demo-out/<slug>/
+            i = rest.index("--models")
+            ms = [m.strip() for m in (rest[i+1] if i+1 < len(rest) else "").split(",") if m.strip()]
+            from .demo import run_models as _dm
+            _dm(ms, task=task)
+        else:
+            from .demo import run as _demo
+            model = None
+            if "--model" in rest:
+                i = rest.index("--model"); model = rest[i+1] if i+1 < len(rest) else None
+            _demo(task=task, model=model)
     elif cmd in ("research-eval", "trending"):
         # RESEARCH benchmark: force the model to read the COMMUNITY (Reddit/X/GitHub/HN) for
         # trending/real-world knowledge it can't recall. --models "a,b,c" for a per-model table.
