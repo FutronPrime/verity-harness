@@ -24,6 +24,20 @@ DEFAULT_MODELS = [
     "google/gemma-4-31b-it",                  # open Gemma-4 (DJ runs it local; :free slug rate-limits the eval)
 ]
 
+# FLAGSHIP set — the proof on the models enterprises actually deploy + the top open weights.
+# `python3 -m verity eval --flagship`. Slugs verified live on OpenRouter 2026-06-15. NOTE: these have
+# RECENT cutoffs, so they already know more current ids → a SMALLER but HONEST lift than the cheap set
+# (the harness still catches them on the freshest post-cutoff facts). That's the real enterprise story:
+# discipline + lookup beats even a frontier model's memory on anything past its cutoff. (There is no
+# `gpt-5.5-codex` slug — the newest codex variant is gpt-5.3-codex; gpt-5.5 is the 5.5-gen flagship.)
+FLAGSHIP_MODELS = [
+    "anthropic/claude-opus-4.8",              # Claude Opus 4.8
+    "openai/gpt-5.5",                         # GPT-5.5 (OpenAI's 5.5-gen; newest codex = gpt-5.3-codex)
+    "google/gemini-3.1-pro-preview",          # Gemini 3.1 Pro Preview
+    "moonshotai/kimi-k2.7-code",              # Kimi K2.7
+    "z-ai/glm-5.1",                           # GLM-5.1 (Zhipu, newest)
+]
+
 # Each trap: a question whose CORRECT answer is CURRENT / post-training-cutoff knowledge — so the
 # cheaper test models (cutoffs well before these releases) can't answer it from training and must
 # rely on the harness's live search. THIS is how the harness lifts a model: it supplies the current

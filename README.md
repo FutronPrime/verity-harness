@@ -64,6 +64,8 @@ VERITY agents don't just *answer* — they **work**, and they **don't give up**:
 
 This isn't a personality prompt asking the model to be diligent; it's enforced on **code conditions**.
 
+**Docs:** [Install & requirements](INSTALL.md) · [Guide — purpose, features & best practices](GUIDE.md) · [Model registry](MODELS.md) · [Benchmarks](BENCHMARK.md)
+
 > **The discipline layer for the meta-harness era.** The hard lesson of 2026 (sharpened by the Fable
 > ban): *the harness matters as much as the model — maybe more.* "Meta-harnesses" now orchestrate
 > several agents together (one implements, another reviews). VERITY is the **reliability layer that
@@ -277,13 +279,26 @@ python3 -m verity doctor    # → READY / MARGINAL / BELOW THRESHOLD
 
 ## Honest status
 
-<p align="center"><img src="assets/eval-proof.svg" alt="verity eval — same model 1/16 → 15/16 on current-info traps, 5 models, +67 aggregate lift" width="100%"/></p>
+<p align="center"><img src="assets/eval-proof.png" alt="verity eval — same model 1/16 → 15/16 on current-info traps, 5 models, +67 aggregate lift" width="100%"/></p>
 
 <p align="center"><sub>Live <b>5-model</b> A/B on <b>16</b> assumption-traps whose answers are post-training-cutoff (the model can't recall them). Same model + prompts each — the only change: the harness reads the authoritative source first. <b>Every model lifted +12 to +14</b> (gpt-4o-mini, gemini-2.5-flash, llama-3.3-70b, qwen3.5-flash, gemma-4-31b); aggregate <b>8% → 91%</b> (6/80 → 73/80, <b>+67</b>). Deterministic: <code>temp=0</code> + ground-truth registry lookup (not flaky web snippets), so it reproduces. <code>python3 -m verity eval</code>.</sub></p>
 
-<p align="center"><img src="assets/eval-iterations.svg" alt="how the eval was hardened across three iterations" width="100%"/></p>
+<p align="center"><img src="assets/eval-iterations.png" alt="how the eval was hardened across three iterations" width="100%"/></p>
 
 <p align="center"><sub>How we got to a number worth trusting — <b>including the run where the harness caught its OWN broken eval</b>. v1 (4 traps, web search, n=4) was noisy. v2 widened to 16 traps but the harness arm <b>collapsed to 12%</b> — web search can't surface exact slugs like <code>kimi-k2.7</code>; that dip <b>exposed invalid markers</b> instead of shipping a confident-but-wrong 92%. v3 points the harness at the authoritative registry → <b>91%</b>, deterministic, generalizes uniformly. The v2 dip is the receipt that the method is honest.</sub></p>
+
+### Prove it on your own harness
+
+This eval ships in the repo — run it against your own models and see your own lift (it writes receipts to the ledger, so nothing is taken on faith):
+
+```bash
+python3 -m verity eval                       # the default current-model set
+python3 -m verity eval --flagship            # enterprise + top-open: Opus 4.8, GPT-5.5, Gemini 3.1 Pro, Kimi K2.7, GLM-5.1
+python3 -m verity eval --models "anthropic/claude-opus-4.8,openai/gpt-5.5,your/model"   # your own list
+python3 -m verity proof                      # the receipts: which gates fired, what got corrected
+```
+
+Frontier models have recent cutoffs, so they already know more current ids — expect a **smaller but real** lift than the cheap set (the harness still catches them on anything past their cutoff). That's the honest enterprise takeaway: *discipline + a live lookup beats even a frontier model's memory on fresh facts.* The skill (`/verity`) wires the same gates into Claude Code / Codex / Gemini, so you can A/B your *own* harness, not just ours.
 
 <p align="center"><img src="assets/benchmark.svg" alt="Benchmark — scaffold vs naive by model tier" width="100%"/></p>
 

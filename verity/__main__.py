@@ -144,7 +144,11 @@ def main(argv: list[str]) -> None:
     elif cmd == "eval":
         # A/B: naive vs harness on assumption-trap questions. The delta = proof of difference.
         # --models "a,b,c" runs the A/B across SEVERAL models → proof the lift generalizes (rigor).
-        if "--models" in rest:
+        if "--flagship" in rest:
+            # the proof on enterprise + top-open models people actually deploy
+            from .eval_assumptions import run_models, FLAGSHIP_MODELS
+            run_models(FLAGSHIP_MODELS)
+        elif "--models" in rest:
             i = rest.index("--models")
             models = [m.strip() for m in (rest[i + 1] if i + 1 < len(rest) else "").split(",") if m.strip()]
             # no explicit list → DEFAULT_MODELS (current set people actually run, not retired ids)

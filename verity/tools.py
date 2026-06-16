@@ -203,6 +203,50 @@ def search_stackoverflow(query: str, n: int = 5) -> str:
         for i, x in enumerate(d.get("items", [])[:n])) or "[so: no results]"
 
 
+def notebooklm(query: str, sources=None, timeout: float = 180) -> str:
+    """Deep, SOURCE-GROUNDED research via NotebookLM — synthesis over many docs/videos/URLs with
+    citations, for when a flat web search isn't enough (onboarding a codebase, decoding legacy code +
+    its git history, compressing a long issue/PR thread into problem→options→decision).
+
+    BEST-EFFORT ENRICHMENT, never a hard gate dependency: NotebookLM clients ride Google's UNDOCUMENTED
+    API, so keep the web/scrape cascade as the floor (Rule 29: >=2 backends). Reaches, in order:
+      1. $NOTEBOOKLM_URL — a REST sidecar you run (e.g. teng-lin/notebooklm-py's server, 16k★, or
+         jacob-bd/notebooklm-mcp-cli). POSTs {"query","sources"}; expects {"answer"/"text","citations"}.
+      2. a local CLI if present: futron-notebooklm | nlm | notebooklm  (`<cli> research "<query>"`).
+    Returns the grounded answer (+ citations) or setup guidance — never silently nothing."""
+    import os, json, shutil, subprocess
+    url = os.environ.get("NOTEBOOKLM_URL")
+    if url:
+        try:
+            body = json.dumps({"query": query, **({"sources": sources} if sources else {})}).encode()
+            req = urllib.request.Request(url, data=body,
+                                         headers={"Content-Type": "application/json", "User-Agent": _UA},
+                                         method="POST")
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                d = json.loads(r.read().decode("utf-8", "ignore"))
+            ans = d.get("answer") or d.get("text") or d.get("response") or json.dumps(d)[:2000]
+            cites = d.get("citations") or d.get("sources") or []
+            tail = ("\nSOURCES: " + "; ".join(map(str, cites))[:600]) if cites else ""
+            return f"=== NOTEBOOKLM (source-grounded) ===\n{ans}{tail}"
+        except Exception as e:  # noqa: BLE001
+            return f"[notebooklm REST error: {type(e).__name__} — check $NOTEBOOKLM_URL sidecar]"
+    for cli in ("futron-notebooklm", "nlm", "notebooklm"):
+        if shutil.which(cli):
+            try:
+                r = subprocess.run([cli, "research", query], capture_output=True, text=True, timeout=timeout)
+                out = (r.stdout or "").strip()
+                low = out.lower()
+                # reject a usage/help/error dump (wrong subcommand) — don't feed that to an agent
+                if out and not low.startswith(("usage:", "error", "[")) and "the following arguments" not in low:
+                    return f"=== NOTEBOOKLM via {cli} ===\n{out[:3000]}"
+            except Exception:  # noqa: BLE001
+                pass
+    return ("[notebooklm: no sidecar found. Stand one up for deep source-grounded research — "
+            "`pip install notebooklm-py` (teng-lin, REST+MCP) and run its server, then set "
+            "NOTEBOOKLM_URL=<research endpoint>; or install jacob-bd/notebooklm-mcp-cli (`nlm`). "
+            "Until then, use research()/browse() — NotebookLM is enrichment, not required.]")
+
+
 _REGISTRY = None  # process-lifetime cache of the OpenRouter /models listing
 
 
@@ -676,6 +720,12 @@ You have a REAL SHELL (ShellExecutor). That means you can:
       sweeps GitHub (tools/forks) + Reddit + Hacker News + StackOverflow + web at once.
       Or target one: search_github / search_reddit / search_hackernews / search_stackoverflow.
       Use this to find uncommon/modified/open-source solutions others have shared.
+  • DEEP SOURCE-GROUNDED RESEARCH (NotebookLM) — synthesis WITH citations over many docs/videos,
+    for what a flat search can't do (onboard a codebase, decode legacy code + its git history,
+    compress a long issue/PR thread into problem→options→decision):
+      python3 -c "from verity.tools import notebooklm; print(notebooklm('your question', sources=['url','file']))"
+      Best-effort enrichment (rides Google's undocumented API → not a hard dependency). Run a sidecar:
+      teng-lin/notebooklm-py (16k★, REST+MCP) or jacob-bd/notebooklm-mcp-cli (`nlm`); set NOTEBOOKLM_URL.
   • CURRENT MODEL IDS — read the REGISTRY, don't guess (BLOCKER for 'newest model' questions):
       python3 -c "from verity.tools import model_registry; print(model_registry('deepseek'))"
       …or: python3 -m verity models claude-opus   (substring: 'gemini','kimi','qwen3','grok',…)
@@ -730,6 +780,8 @@ def _detected_tools() -> str:
         "futron-youtube-query": "YouTube search + transcripts",
         "futron-perplexity-query": "Perplexity AI web research",
         "futron-web-to-api": "convert any website into a callable API",
+        "futron-notebooklm": "NotebookLM deep source-grounded research (via verity.tools.notebooklm)",
+        "nlm": "NotebookLM CLI (jacob-bd) — notebooks/sources/grounded chat",
     }
     found = [(c, d) for c, d in extra.items() if shutil.which(c)]
     if not found:
