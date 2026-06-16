@@ -26,7 +26,9 @@ function createWindow(cfg) {
   win = new BrowserWindow({
     width: SIZE, height: SIZE, x: width - SIZE - 24, y: height - SIZE - 24,
     frame: false, transparent: true, resizable: false, skipTaskbar: true, hasShadow: false,
-    webPreferences: {preload: path.join(__dirname, 'preload.js'), contextIsolation: true},
+    // sandbox:false so the preload can require fs/path (read the ledger) — without it Electron 31's
+    // default sandbox kills the preload and window.verity is never exposed (the "bridge not loaded" bug).
+    webPreferences: {preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: false},
   });
   win.setVisibleOnAllWorkspaces(true, {visibleOnFullScreen: true});
   win.loadFile('index.html');
@@ -36,7 +38,7 @@ function createWindow(cfg) {
 function openSetup() {
   if (setupWin) { setupWin.focus(); return; }
   setupWin = new BrowserWindow({width: 470, height: 680, resizable: true, title: 'VERITY mascot',
-    webPreferences: {preload: path.join(__dirname, 'preload.js'), contextIsolation: true}});
+    webPreferences: {preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: false}});
   setupWin.loadFile('setup.html');
   setupWin.on('closed', () => { setupWin = null; });
 }
