@@ -90,7 +90,7 @@ def pack(mascot, slug, display_name, description=""):
 
     out_dir = os.path.join(os.path.dirname(__file__), "..", "petdex", slug)
     os.makedirs(out_dir, exist_ok=True)
-    sheet_path = os.path.join(out_dir, "sprite.webp")
+    sheet_path = os.path.join(out_dir, "spritesheet.webp")   # petdex requires this exact name
     sheet.save(sheet_path, format="WEBP", lossless=False, quality=90, method=6)
 
     pet = {
