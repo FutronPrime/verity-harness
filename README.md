@@ -6,6 +6,10 @@
 
 > **Fable tells the tale. Verity verifies it.**
 
+*The names were always the tell: a **Fable** is a story that isn't true; a **Mythos** is a myth.
+**VERITY** is Latin (`veritas`) for **truth**. They banned the fiction — this is the open-source truth,
+and it can't be revoked.*
+
 ### The open-source, model-agnostic Fable killer.
 
 Make the models you **own** — a local 8B *or* a frontier flagship — verify, self-correct, and punch
@@ -65,6 +69,29 @@ VERITY agents don't just *answer* — they **work**, and they **don't give up**:
 This isn't a personality prompt asking the model to be diligent; it's enforced on **code conditions**.
 
 **Docs:** [Install & requirements](INSTALL.md) · [Guide — purpose, features & best practices](GUIDE.md) · [Model registry](MODELS.md) · [Benchmarks](BENCHMARK.md)
+
+## Standalone · additive · a supercharger (not a stopgap)
+
+**Works on a fresh clone with nothing but Python 3.9+ and a model key.** No special models, no daemons,
+no preset rules, no private memory or context required. `git clone && python3 -m verity ask "hi"` and
+you have the *full* capability set — failover, swarm, verification gates, the live model registry,
+research/social-search, web scraping, browser/CUA automation, the anti-giveup guard, and the demo.
+(If you happen to have richer tools installed — any `*-scrape`, NotebookLM, a CUA stack — VERITY
+auto-detects and prefers them; absent, it falls back to its own stdlib tools. Nothing is required.)
+
+**Additive — it plays well with whatever you already run.** VERITY is an OpenAI-compatible proxy
+(`:11500`) + injected gate files (`CLAUDE.md` / `AGENTS.md` / `GEMINI.md`) + a CLI. It doesn't take
+anything over. Point OpenClaw, Hermes, Pi, Paperclip, or your own orchestrator/dashboard at the proxy
+(or don't); the gates inject into agent config files *additively*; the only port it claims is `:11500`
+(configurable). It sits alongside your stack as a discipline layer, not a replacement for it.
+
+**A supercharger, not a stopgap — useful even after Fable comes back.** VERITY's value isn't "be smart
+for you"; it's the *innate discipline* it forces on **any** model: the multi-agent swarm, adversarial
+verification, making the model check its own work, and proactively searching / trend-scanning /
+scraping / automating / taking CUA actions like a human would to actually finish a goal. So when Fable
+5 returns, or OpenAI / Google / the open-source world ship their own frontier models, VERITY
+**supercharges those too** — *a frontier model + VERITY beats the same frontier model alone.* It's a
+permanent force-multiplier on whatever the best available model is.
 
 > **The discipline layer for the meta-harness era.** The hard lesson of 2026 (sharpened by the Fable
 > ban): *the harness matters as much as the model — maybe more.* "Meta-harnesses" now orchestrate

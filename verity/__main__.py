@@ -251,11 +251,23 @@ def main(argv: list[str]) -> None:
                         print("--deadline must be a number (seconds)", file=sys.stderr); sys.exit(2)
                 del toks[i:i + 2]
         goal = " ".join(x for x in toks if x != "--discover")
-        from .scaffold import run_verified
-        r = run_verified(goal, executor=ShellExecutor(), discover=disc,
-                         gate_cmd=gate_cmd, deadline_s=deadline, verbose=True)
-        print(f"\n=== result ===\ndone={r.done} verified={r.verified_steps} "
-              f"failed={r.failed_steps}\n{r.summary}")
+        # AUTO-ESCALATE multi-part goals to the SWARM. Measured: the single-agent loop REGRESSES on
+        # complex/coordination goals (esp. on weaker models — it loses the thread over many steps),
+        # while the swarm (decompose → grunt-workers retrieve → critic → synthesize) completes them.
+        # A no-gate complex goal routes to the swarm; a goal with an objective --gate stays single-loop
+        # (the gate IS the discipline there). Force either with `verity swarm` / `--no-swarm`.
+        from .swarm import should_swarm
+        if "--no-swarm" not in toks and not gate_cmd and should_swarm(goal):
+            print("[solve] multi-part goal → escalating to the multi-agent swarm (more reliable here).")
+            from .swarm import run_swarm
+            res = run_swarm(goal, executor=ShellExecutor() if "--exec" in toks else None, verbose=True)
+            print(f"\n=== result (swarm) ===\n{res.final}")
+        else:
+            from .scaffold import run_verified
+            r = run_verified(goal, executor=ShellExecutor(), discover=disc,
+                             gate_cmd=gate_cmd, deadline_s=deadline, verbose=True)
+            print(f"\n=== result ===\ndone={r.done} verified={r.verified_steps} "
+                  f"failed={r.failed_steps}\n{r.summary}")
     elif cmd == "loop":
         if not rest:
             print("usage: loop \"<goal>\" [--exec]   (--exec = allowlisted shell, else plan-only)",

@@ -271,6 +271,24 @@ def _registry_cache():
     return _REGISTRY
 
 
+_PROVIDERS = ("deepseek", "kimi", "qwen", "gemini", "gemma", "grok", "mistral",
+              "opus", "claude", "llama", "fable", "moonshot", "glm", "gpt", "openai")
+
+
+def registry_hint(text: str, n: int = 25) -> str:
+    """If a goal/sub-task names a model provider, return the AUTHORITATIVE OpenRouter registry slice
+    for it so the agent reasons over REAL current ids, not hallucinated/stale ones. Empty when no
+    provider is mentioned (zero cost). Shared by the agentic loop's preflight AND the swarm — the
+    fix for the generic loop regressing on model-id goals (it had web noise, not ground truth)."""
+    tl = (text or "").lower()
+    hits = [p for p in _PROVIDERS if p in tl][:3]
+    if not hits:
+        return ""
+    blocks = [model_registry("claude-opus" if p in ("opus", "claude") else p, n=n) for p in hits]
+    return ("=== AUTHORITATIVE MODEL REGISTRY (live OpenRouter — use these EXACT ids, not memory) ===\n"
+            + "\n".join(blocks))
+
+
 def model_registry(query: str, n: int = 40) -> str:
     """Authoritative model lookup — query the OpenRouter /models REGISTRY (ground truth) for the
     current model ids. The RIGHT way to answer 'what's the newest model from X' is to read the

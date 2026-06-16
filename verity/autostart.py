@@ -237,10 +237,42 @@ def _ensure_md_block(path: pathlib.Path) -> str:
     path.write_text(text + sep + "\n" + _GATES_MD + "\n"); return f"[wired] {path}"
 
 def wire_codex() -> str:
-    write_script()
-    msg = _ensure_md_block(pathlib.Path(os.path.expanduser("~/.codex/AGENTS.md")))
-    return (f"Codex: {msg}\n  NOTE: if a bootstrap regenerates AGENTS.md, add the gates block to that "
-            "template too (or re-run this). Codex also gates natively if pointed at OPENAI_BASE_URL=:11500/v1.")
+    """Codex is its OWN app now (desktop + `codex` CLI), with its own config surfaces. Wire all three
+    that matter: AGENTS.md (always-on rules), hooks.json (real Stop-gate enforcement), and the honest
+    proxy caveat. Verified against developers.openai.com/codex (2026-06)."""
+    write_script(); write_guard_script()
+    out = ["Codex (own app + `codex` CLI):"]
+    # 1) Always-on doctrine → ~/.codex/AGENTS.md (global, every repo; ~/.codex/AGENTS.override.md = hard override).
+    out.append("  AGENTS.md: " + _ensure_md_block(pathlib.Path(os.path.expanduser("~/.codex/AGENTS.md"))))
+    # 2) REAL enforcement → ~/.codex/hooks.json Stop hook (Codex supports Claude-Code-style hooks; a
+    #    Stop handler that emits decision:block forces the turn to continue until verified — same
+    #    mechanical overconfidence/anti-giveup guard, not just advice).
+    hj = pathlib.Path(os.path.expanduser("~/.codex/hooks.json"))
+    try:
+        data = json.loads(hj.read_text()) if hj.exists() else {}
+    except ValueError:
+        out.append("  hooks.json: [refused] existing file isn't valid JSON — fix it, then re-run.")
+        return "\n".join(out)
+    hooks = data.setdefault("hooks", {})
+    guard_cmd = f"python3 {GUARD}"
+    changed = []
+    for ev in ("Stop", "SubagentStop"):
+        arr = hooks.setdefault(ev, [])
+        if "stop_guard.py" not in json.dumps(arr):
+            arr.append({"matcher": "", "hooks": [{"type": "command", "command": guard_cmd, "timeout": 10}]})
+            changed.append(ev)
+    if changed:
+        hj.parent.mkdir(parents=True, exist_ok=True); hj.write_text(json.dumps(data, indent=2))
+        out.append(f"  hooks.json: [wired] {', '.join(changed)} → overconfidence/anti-giveup guard.")
+    else:
+        out.append("  hooks.json: [already wired] Stop guard present.")
+    # 3) HONEST proxy caveat: Codex's model_providers base_url uses wire_api='responses' (/v1/responses),
+    #    NOT /chat/completions — so the :11500 chat-completions proxy does NOT gate Codex via the proxy
+    #    path. On Codex, the rules (AGENTS.md) + the Stop hook ARE the enforcement.
+    out.append("  PROXY NOTE: Codex speaks the Responses API; the :11500 chat/completions proxy will "
+               "NOT discipline Codex — the AGENTS.md rules + Stop hook above do.")
+    out.append("  SKILL: copy skill/verity → ~/.agents/skills/verity/ (Codex reads the same SKILL.md skill standard).")
+    return "\n".join(out)
 
 def wire_gemini() -> str:
     write_script()

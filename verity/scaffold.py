@@ -290,8 +290,14 @@ def _preflight(goal: str, verbose: bool = False) -> str:
         print(f"[preflight] live-searching current best approach for: {goal[:70]}")
     findings = ""
     try:
-        from .tools import research
+        from .tools import research, registry_hint
         findings = research(f"best current 2026 approach + established tools to {goal}"[:140])[:2500]
+        # GROUND TRUTH for model-id goals: web search rarely carries exact post-cutoff slugs, so a
+        # weaker model in the agentic loop would hallucinate — this was the coordination REGRESSION
+        # (generic loop had web noise, no registry). Prepend the authoritative registry when relevant.
+        rh = registry_hint(goal)
+        if rh:
+            findings = rh + ("\n\n" + findings if findings.strip() else "")
     except Exception:  # noqa: BLE001 — never let preflight failure break the run
         findings = ""
     ledger.log(ledger.SEARCH, trigger="preflight: current best approach",
