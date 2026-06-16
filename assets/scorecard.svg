@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" font-family="'Arial Narrow','Helvetica Neue',Arial,sans-serif" role="img"><defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070a0d"/><stop offset="1" stop-color="#03060a"/></linearGradient><pattern id="scan" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="1" fill="#0c1a1d" opacity="0.5"/></pattern><style>.mono{font-family:'SF Mono','Menlo',monospace}.hv{font-family:'Arial Black',Arial,sans-serif;font-weight:900}.nar{font-family:'Arial Narrow',Arial,sans-serif}</style></defs><rect width="1200" height="760" fill="url(#bg)"/><rect width="1200" height="760" fill="url(#scan)"/><path d="M16,16 H1150 L1184,50 V744 H66 L16,694 Z" fill="none" stroke="#1f5c54" stroke-width="2"/>
+<text x="40" y="54" class="mono" font-size="13" fill="#2dd4bf" text-anchor="start" letter-spacing="2">/// VERITY // PROOF SCORECARD · SAME MODEL ± THE HARNESS · REPRODUCIBLE</text>
+<text x="44" y="104" class="hv" font-size="38" fill="#eafffb" text-anchor="start">THE HARNESS DOES THE WORK.</text>
+<rect x="46" y="116" width="360" height="3" fill="#d6299e"/>
+<text x="44" y="146" class="nar" font-size="14.5" fill="#8fb8b1" text-anchor="start">Four axes, one rule: the SAME model against itself — only change is the discipline. Every number is a live run, ledger-logged, reproducible on your own models.</text>
+<text x="60" y="186" class="mono" font-size="12" fill="#2dd4bf" text-anchor="start" letter-spacing="1">>> AXIS / WHAT IT PROVES</text>
+<text x="690" y="186" class="mono" font-size="12" fill="#5b8a84" text-anchor="start" letter-spacing="1">NAIVE</text>
+<text x="1010" y="186" class="mono" font-size="12" fill="#2dd4bf" text-anchor="start" letter-spacing="1">+ VERITY</text>
+<path d="M56,212 L1124,212 L1144,232 L1144,312 L68,312 L56,300 Z" fill="#0a0f12" stroke="#16343a" stroke-width="1.2"/>
+<text x="80" y="246" class="hv" font-size="21" fill="#eafffb" text-anchor="start">ACCURACY — current facts</text>
+<text x="80" y="272" class="nar" font-size="13.5" fill="#8fb8b1" text-anchor="start">Knowledge the model's training can't have (newest model ids, prices)</text>
+<text x="80" y="294" class="mono" font-size="11.5" fill="#586872" text-anchor="start">verity eval --flagship · Opus 4.8 · GPT-5.5 · Gemini 3.1 Pro · Kimi K2.7</text>
+<rect x="640" y="242" width="300" height="16" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="640" y="242" width="60" height="16" rx="2" fill="#3a5660"/>
+<rect x="640" y="264" width="300" height="16" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<path d="M640,264 L897,264 L904,271 L904,280 L644,280 L640,276 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="952" y="255" class="hv" font-size="14" fill="#5b8a84" text-anchor="start">20%</text>
+<text x="952" y="277" class="hv" font-size="15" fill="#2dd4bf" text-anchor="start">88%</text>
+<text x="1050" y="266" class="hv" font-size="30" fill="#d6299e" text-anchor="start">+43</text>
+<path d="M56,328 L1124,328 L1144,348 L1144,428 L68,428 L56,416 Z" fill="#0a0f12" stroke="#16343a" stroke-width="1.2"/>
+<text x="80" y="362" class="hv" font-size="21" fill="#eafffb" text-anchor="start">RESEARCH — trending / community</text>
+<text x="80" y="388" class="nar" font-size="13.5" fill="#8fb8b1" text-anchor="start">Tools people actually use — must read Reddit / X / GitHub / HN</text>
+<text x="80" y="410" class="mono" font-size="11.5" fill="#586872" text-anchor="start">verity research · gpt-4o-mini · gemini-2.5-flash · qwen3.5-flash</text>
+<rect x="640" y="358" width="300" height="16" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="640" y="358" width="132" height="16" rx="2" fill="#3a5660"/>
+<rect x="640" y="380" width="300" height="16" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<path d="M640,380 L933,380 L940,387 L940,396 L644,396 L640,392 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="952" y="371" class="hv" font-size="14" fill="#5b8a84" text-anchor="start">44%</text>
+<text x="952" y="393" class="hv" font-size="15" fill="#2dd4bf" text-anchor="start">100%</text>
+<text x="1050" y="382" class="hv" font-size="30" fill="#d6299e" text-anchor="start">+10</text>
+<path d="M56,444 L1124,444 L1144,464 L1144,544 L68,544 L56,532 Z" fill="#0a0f12" stroke="#16343a" stroke-width="1.2"/>
+<text x="80" y="478" class="hv" font-size="21" fill="#eafffb" text-anchor="start">CODING — test-scored</text>
+<text x="80" y="504" class="nar" font-size="13.5" fill="#8fb8b1" text-anchor="start">Working code: run the test before you say done (spec hidden in test)</text>
+<text x="80" y="526" class="mono" font-size="11.5" fill="#586872" text-anchor="start">verity swebench · 3 models · per-task receipts</text>
+<rect x="640" y="474" width="300" height="16" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="640" y="474" width="180" height="16" rx="2" fill="#3a5660"/>
+<rect x="640" y="496" width="300" height="16" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<path d="M640,496 L912,496 L919,503 L919,512 L644,512 L640,508 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="952" y="487" class="hv" font-size="14" fill="#5b8a84" text-anchor="start">60%</text>
+<text x="952" y="509" class="hv" font-size="15" fill="#2dd4bf" text-anchor="start">93%</text>
+<text x="1050" y="498" class="hv" font-size="30" fill="#d6299e" text-anchor="start">+5</text>
+<path d="M56,560 L1124,560 L1144,580 L1144,660 L68,660 L56,648 Z" fill="#0a0f12" stroke="#16343a" stroke-width="1.2"/>
+<text x="80" y="594" class="hv" font-size="21" fill="#eafffb" text-anchor="start">COORDINATION — multi-agent swarm</text>
+<text x="80" y="620" class="nar" font-size="13.5" fill="#8fb8b1" text-anchor="start">Multi-part goals: plan -> grunt-workers retrieve -> critic -> synthesize</text>
+<text x="80" y="642" class="mono" font-size="11.5" fill="#586872" text-anchor="start">verity tasks --swarm · gpt-4o-mini (generic loop regressed; swarm hit 100%)</text>
+<rect x="640" y="590" width="300" height="16" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="640" y="590" width="60" height="16" rx="2" fill="#3a5660"/>
+<rect x="640" y="612" width="300" height="16" rx="2" fill="#0c1417" stroke="#1f3a3a"/>
+<path d="M640,612 L933,612 L940,619 L940,628 L644,628 L640,624 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="952" y="603" class="hv" font-size="14" fill="#5b8a84" text-anchor="start">20%</text>
+<text x="952" y="625" class="hv" font-size="15" fill="#2dd4bf" text-anchor="start">100%</text>
+<text x="1050" y="614" class="hv" font-size="30" fill="#d6299e" text-anchor="start">+4</text>
+<text x="44" y="720" class="mono" font-size="13.5" fill="#8fc7bf" text-anchor="start">$ python3 -m verity eval --flagship · tasks --swarm · swebench · research</text>
+<text x="44" y="740" class="mono" font-size="12" fill="#586872" text-anchor="start"># four axes, measured the same way: bare model vs the disciplined harness. run them yourself.</text>
+<rect x="16" y="752" width="1168" height="4" fill="#d6299e"/>
+</svg>

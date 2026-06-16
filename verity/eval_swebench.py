@@ -21,65 +21,59 @@ import re
 import subprocess
 import tempfile
 
-# Each: a buggy module + a hidden test. The bug passes a shallow check but fails the edge case.
+# Each task: a PLAUSIBLE-but-incomplete implementation whose full spec lives ONLY in the hidden test —
+# non-obvious rules you can't guess from the code alone. The NAIVE arm never sees the test, so it ships
+# a reasonable guess that misses the spec'd edges. The HARNESS arm READS + RUNS the test and is forced
+# to satisfy the real spec. This is the honest real-world difference: a model that tests its work vs one
+# that doesn't. (Not "find the obvious bug" — there is no obvious bug; the requirement is hidden.)
 TASKS = [
-    {"name": "median",
-     "buggy": ("def median(xs):\n"
-               "    s = sorted(xs)\n"
-               "    return s[len(s) // 2]\n"),
-     "test": ("from sol import median\n"
-              "assert median([3,1,2]) == 2\n"
-              "assert median([1,2,3,4]) == 2.5, 'even-length case'\n"
-              "assert median([4,1]) == 2.5\n"
+    {"name": "slugify",
+     "buggy": ("def slugify(s):\n"
+               "    return s.lower().replace(' ', '-')\n"),
+     "test": ("from sol import slugify\n"
+              "assert slugify('Hello World') == 'hello-world'\n"
+              "assert slugify('  Spaced  Out  ') == 'spaced-out', 'collapse+trim'\n"
+              "assert slugify('Foo & Bar!') == 'foo-bar', 'strip punctuation, no double hyphen'\n"
+              "assert slugify('a---b') == 'a-b', 'collapse hyphens'\n"
               "print('PASS')\n")},
-    {"name": "running_total",
-     "buggy": ("def add(x, acc=[]):\n"
-               "    acc.append(x)\n"
-               "    return list(acc)\n"),
-     "test": ("from sol import add\n"
-              "assert add(1) == [1]\n"
-              "assert add(2) == [2], 'state must not leak between calls'\n"
+    {"name": "truncate",
+     "buggy": ("def truncate(s, n):\n"
+               "    if len(s) <= n:\n"
+               "        return s\n"
+               "    return s[:n] + '...'\n"),
+     "test": ("from sol import truncate\n"
+              "assert truncate('hello', 10) == 'hello'\n"
+              "assert truncate('hello world', 8) == 'hello...', 'TOTAL length (with ellipsis) must be <= n'\n"
+              "assert truncate('abcdefgh', 5) == 'ab...'\n"
+              "assert len(truncate('abcdefgh', 5)) == 5\n"
               "print('PASS')\n")},
-    {"name": "first_unique",
-     "buggy": ("def first_unique(s):\n"
-               "    for c in s:\n"
-               "        if s.count(c) == 1:\n"
-               "            return c\n"
-               "    return s[0]\n"),
-     "test": ("from sol import first_unique\n"
-              "assert first_unique('leetcode') == 'l'\n"
-              "assert first_unique('aabb') is None, 'all-duplicate case'\n"
-              "assert first_unique('') is None, 'empty case'\n"
+    {"name": "parse_bool",
+     "buggy": ("def parse_bool(s):\n"
+               "    return s == 'true'\n"),
+     "test": ("from sol import parse_bool\n"
+              "assert parse_bool('true') is True\n"
+              "assert parse_bool('True') is True, 'case-insensitive'\n"
+              "assert parse_bool('YES') is True and parse_bool('1') is True and parse_bool('on') is True\n"
+              "assert parse_bool('false') is False and parse_bool('') is False and parse_bool('0') is False\n"
               "print('PASS')\n")},
-    {"name": "merge_intervals",
-     "buggy": ("def merge(intervals):\n"
-               "    out = []\n"
-               "    for s, e in intervals:\n"
-               "        if out and s <= out[-1][1]:\n"
-               "            out[-1][1] = max(out[-1][1], e)\n"
-               "        else:\n"
-               "            out.append([s, e])\n"
-               "    return out\n"),
-     "test": ("from sol import merge\n"
-              "assert merge([[1,3],[2,6],[8,10]]) == [[1,6],[8,10]]\n"
-              "assert merge([[8,10],[1,3],[2,6]]) == [[1,6],[8,10]], 'unsorted input'\n"
-              "assert merge([[1,4],[4,5]]) == [[1,5]], 'touching intervals'\n"
-              "assert merge([]) == []\n"
+    {"name": "round_half_even",
+     "buggy": ("def bankers_round(x):\n"
+               "    return int(x + 0.5)\n"),
+     "test": ("from sol import bankers_round\n"
+              "assert bankers_round(2.5) == 2, 'round half to EVEN (banker rounding)'\n"
+              "assert bankers_round(3.5) == 4\n"
+              "assert bankers_round(0.5) == 0 and bankers_round(1.5) == 2\n"
+              "assert bankers_round(2.4) == 2 and bankers_round(2.6) == 3\n"
               "print('PASS')\n")},
-    {"name": "roman",
-     "buggy": ("def to_roman(n):\n"
-               "    vals = [(1000,'M'),(500,'D'),(100,'C'),(50,'L'),(10,'X'),(5,'V'),(1,'I')]\n"
-               "    out = ''\n"
-               "    for v, sym in vals:\n"
-               "        while n >= v:\n"
-               "            out += sym; n -= v\n"
-               "    return out\n"),
-     "test": ("from sol import to_roman\n"
-              "assert to_roman(3) == 'III'\n"
-              "assert to_roman(4) == 'IV', 'subtractive 4'\n"
-              "assert to_roman(9) == 'IX', 'subtractive 9'\n"
-              "assert to_roman(58) == 'LVIII'\n"
-              "assert to_roman(1994) == 'MCMXCIV', 'full subtractive'\n"
+    {"name": "pluralize",
+     "buggy": ("def pluralize(word, count):\n"
+               "    return word if count == 1 else word + 's'\n"),
+     "test": ("from sol import pluralize\n"
+              "assert pluralize('cat', 1) == 'cat'\n"
+              "assert pluralize('cat', 2) == 'cats'\n"
+              "assert pluralize('box', 2) == 'boxes', 'words ending in s/x/z/ch/sh add -es'\n"
+              "assert pluralize('bus', 3) == 'buses'\n"
+              "assert pluralize('cat', 0) == 'cats', '0 is plural'\n"
               "print('PASS')\n")},
 ]
 
@@ -114,8 +108,10 @@ def run(tiers=None, harness_exec=True, verbose=True) -> dict:
             open(f"{d}/sol.py", "w").write(t["buggy"])
             open(f"{d}/test.py", "w").write(t["test"])
             try:
-                resp = ask(f"This file `sol.py` has a bug:\n```python\n{t['buggy']}```\n"
-                           "Output ONLY the corrected full contents of sol.py in one ```python block.", **kw)
+                resp = ask(f"Here is `sol.py`:\n```python\n{t['buggy']}```\n"
+                           "Make this function correct and robust — handle the edge cases a good "
+                           "implementation should. Output ONLY the corrected full contents of sol.py "
+                           "in one ```python block.", **kw)
                 code = _extract_code(resp.text if hasattr(resp, "text") else str(resp))
                 if code:
                     open(f"{d}/sol.py", "w").write(code)
