@@ -561,6 +561,31 @@ in real time** (reads the decision ledger): ✓ nods on a `VERIFIED` gate, shake
 wobbles while searching, and a teal dot glows when the `:11500` floor is up — a silent, living sign
 that VERITY is installed and watching. (Electron desktop pet — see [`desktop-mascot/`](desktop-mascot/).)
 
+## Give it a voice (optional, local-first)
+
+The same setup window can attach a **voice** to whatever model you're running — so the harness *speaks*
+its result (and, optionally, you talk back). All of it is configured in the one popup; all of it is
+**off by default** and runs **on-device** unless you choose otherwise.
+
+- **Speak mode** — `silent` (visual-only, default) · **spoken TL;DR** (a short, conversational read-out —
+  best for not drowning in walls of text) · `full` (read the whole response).
+- **Readout style** — the *personality* of the spoken TL;DR:
+  - **Standard** — warm, conversational, emotive (a sharp friend talking to you).
+  - **LCARS / J.A.R.V.I.S.** — terse, technical, emotionless computer cadence (*"Acknowledged. Two systems updated; one awaits authorization."*).
+  - **AISHA** — Gen-Z, expressive, a little sassy.
+- **Engine** — **free open-source on-device (Voicebox)** by default (no per-word cloud cost), or bring your
+  own **ElevenLabs**/OpenAI-Realtime key for premium voices.
+- **Voice** — a built-in open-source voice, **upload a clip**, or **clone your own** (on-device).
+- **Talk back** — optional push-to-talk (on-device Whisper) so you drive any attached LLM by voice.
+
+### The voice-clone workflow — a runnable proof of agentic capability
+VERITY ships an **opt-in example workflow** (not pre-made voices) that lets *your own* LLM do the whole
+multi-step job end-to-end — **source a reference → fetch → process → clone into the engine → wire it as a
+readout style → verify it plays** — as a live demonstration of `verity synthesize` doing a real,
+multi-stage agentic task. **You supply the reference** (your own recording, a royalty-free/CC0 voice, or a
+voice you're licensed to use) and **you are responsible for the rights** to anything you clone — VERITY
+distributes the *workflow*, never the voices. Run it, watch your model build the capability itself.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
