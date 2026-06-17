@@ -94,6 +94,11 @@ VERITY agents don't just *answer* — they **work**, and they **don't give up**:
 - **Reuse before reinvent — an "infinite resource" library.** `verity resources` is a curated index of
   awesome-lists/frameworks; before building, the harness surfaces *existing* tools to check first (wired
   into pre-flight, zero-cost when irrelevant). REUSE-FIRST as a knowledge base, not a slogan.
+- **Enforced, not injected — the discipline BINDS the model.** A rule in the prompt is *probabilistic*: the
+  model can read it and ignore it. So the gates that matter fire on **code conditions** — a proxy that
+  re-prompts any model on a premature giveup, and a Stop hook that **blocks** ending a turn on a lapse
+  (concluding "it's down / not authenticated / only you can" *without* investigating, or publishing without
+  the brand screen). [Regression-tested **31/31** adversarially.](#enforced-not-injected--reliability-by-deterministic-gates)
 
 This isn't a personality prompt asking the model to be diligent; it's enforced on **code conditions**.
 
@@ -249,6 +254,32 @@ r = run_verified("find and fix the off-by-one bug in utils.py",
   a loop with no kill-switch "runs until someone notices the bill." Wall-clock + iteration give two
   of the three classic kill-switches (the third, token budget, is the tier layer's job). Long runs
   also get a periodic **goal reanchor** so constraints don't drift away over many steps.
+
+## Enforced, not injected — reliability by deterministic gates
+
+Most "disciplined agent" projects inject rules into the prompt and hope. That's **probabilistic** — the
+model can read "don't conclude a negative without investigating" and do it anyway (we have the receipts:
+it happened repeatedly while *building* this). You cannot make a probabilistic system reliable by asking
+it harder. The catchable lapses have to be **enforced on a code condition.**
+
+VERITY's enforcement points fire whether the model cooperates or not:
+- **Proxy** (`verity/server.py` + `verity/guard.py`) — inspects every model *response* and re-prompts on a
+  premature giveup. Universal for any model through `:11500`.
+- **Stop hook** (`hooks/stop_guard.py`) — **blocks** ending a turn on a lapse when the evidence trail is
+  missing. It catches four classes, each only when the justifying step is absent:
+  1. **Unverified negative** — "it's down / broken / not authenticated / not configured" without reading
+     logs, attempting a repair, or **querying the tool's own status** first.
+  2. **Workaround redirect** — "the clean path is X instead / I'll fall back to…" without that investigation.
+  3. **Premature deferral** — "only you can / you'll have to" without trying the automation stack.
+  4. **Publish without screening** — posting outward-facing content before the brand/persona screen ran.
+
+### The reliability engine: lapse → gate (monotonic hardening)
+Every probabilistic failure becomes a deterministic gate: **name the pattern → add the gate (evidence-gated,
+so it never punishes correct work) → log it → test it.** Each repeatable error can happen ~once, then it's
+mechanically unrepeatable. The gates are **regression-tested adversarially — `python3 tests/test_stop_guard.py`,
+31/31** across many phrasings of each lapse, plus false-positive guards (a properly-investigated conclusion,
+a completed screen, normal completion all pass through). What *can't* be coded (taste, novel judgment) stays
+probabilistic — but the moment a judgment-lapse becomes a *pattern*, it gets promoted to a gate.
 
 ## Reading the walled web (X posts & Articles, no API key)
 

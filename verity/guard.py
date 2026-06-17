@@ -22,8 +22,9 @@ NEGATIVE = re.compile(r"""(?ix)
     | global\s+outage | environmental\s+(outage|issue|problem) | nothing\s+(i|we)\s+can\s+do
     | out\s+of\s+(my|our)\s+control | (model|backend|service|api|shim)\s+is\s+(down|unavailable)
     | there'?s\s+no\s+(way|option|api|tool) | doesn'?t\s+exist | gave?\s+up
-    | (is|are|isn'?t|aren'?t|not)\s+(currently\s+)?(authenticated|configured|set\s*up|installed|wired\s*up)
+    | (is|are|isn'?t|aren'?t|not)\s+(currently\s+)?(authenticated|configured|set\s*up|installed|wired\s*up|reachable)
     | no\s+(api\s+)?(tokens?|creds?|credentials?|auth\b)
+    | (credentials?|creds?|tokens?)\s+(are|is)?\s*missing | missing\s+(credentials?|creds?|tokens?)
     | (no|without)\s+(an?\s+)?(account|config|setup)\s+(configured|set\s*up|available))
 """)
 

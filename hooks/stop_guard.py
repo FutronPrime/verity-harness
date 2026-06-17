@@ -31,15 +31,17 @@ NEG = re.compile(r"""(?ix)
     | not\s+(possible|fixable|feasible) | unfixable | impossible | no\s+way\s+to
     | global\s+outage | environmental\s+(outage|issue|problem) | nothing\s+(i|we)\s+can\s+do
     | out\s+of\s+(my|our)\s+control | (model|backend|service|api)\s+is\s+(down|unavailable)
-    | (is|are|isn'?t|aren'?t|not)\s+(currently\s+)?(authenticated|configured|set\s*up|installed|wired)
-    | no\s+(api\s+)?(tokens?|creds?|credentials?|auth\b))
+    | (is|are|isn'?t|aren'?t|not)\s+(currently\s+)?(authenticated|configured|set\s*up|installed|wired|reachable|available)
+    | no\s+(api\s+)?(tokens?|creds?|credentials?|auth\b) | doesn'?t\s+exist
+    | (credentials?|creds?|tokens?|account)\s+(are|is)?\s*missing | missing\s+(credentials?|creds?|tokens?))
 """)
 # A "the tool isn't ready, so I'll just work around it" REDIRECT — my most common quiet lapse: reaching
 # for a fallback (browser, manual, a different tool) instead of querying the tool's own status first.
 WORKAROUND = re.compile(r"""(?ix)
     (the\s+(clean|only|right|best|simplest)\s+(path|way|option)\s+is
     | so\s+(the\s+clean\s+|i'?ll\s+|we'?ll\s+|i\s+have\s+to\s+|we\s+have\s+to\s+).{0,24}(use|post\s+through|go\s+through|via\s+the\s+browser|do\s+it\s+manually)
-    | instead\s+(i'?ll|we'?ll|use|let'?s) | fall\s*back\s+to | work\s*around)
+    | instead\s+(i'?ll|we'?ll|use|let'?s) | fall\s*back\s+to | work\s*around
+    | (use|do|go|post|try|switch)\b[^.]{0,40}\binstead\b)
 """)
 DEFER = re.compile(r"""(?ix)
     \b(only\s+you\s+can | you'?ll\s+have\s+to | you\s+(will\s+)?(need|have)\s+to\s+(do|run|manually)
