@@ -45,11 +45,34 @@
     <div class="opt" data-v="high">High</div>
   </div>
 
+  <div class="q">5 · Voice — should it speak?</div>
+  <div class="row" id="voice">
+    <div class="opt sel" data-v="off">Silent (visual only)</div>
+    <div class="opt" data-v="tldr">Spoken TL;DR — conversational</div>
+    <div class="opt" data-v="full">Speak full responses</div>
+  </div>
+
+  <div class="q" id="voicesrc-q" style="display:none">6 · Which voice?</div>
+  <div class="row" id="voicesrc" style="display:none">
+    <div class="opt sel" data-v="builtin">Built-in open-source voice</div>
+    <div class="opt" data-v="upload">Upload a voice clip</div>
+    <div class="opt" data-v="clone">Clone my own voice</div>
+  </div>
+  <input type="file" id="voicefile" accept="audio/*" style="display:none;margin-top:8px;width:100%;color:#8fb8b1;font-size:12px"/>
+
+  <div class="q">7 · Talk back to it? (interactive)</div>
+  <div class="row" id="interactive">
+    <div class="opt sel" data-v="off">Off</div>
+    <div class="opt" data-v="ptt">Push-to-talk · voice → action</div>
+  </div>
+  <p class="note" style="text-align:left;color:#586872;margin-top:8px">Voice runs locally via open-source TTS (Voicebox) — no per-word cloud cost. Talk-back uses on-device Whisper and needs microphone permission. Upload/clone keeps your clip on-device.</p>
+
   <button class="go" id="go">Add it 🦅</button>
   <p class="note">Drag the mascot to move it · click it for an animation · right-click the tray “V” to change anything later.</p>
 
   <script>
-    const sel = {mascot:'hawk', animations:'full', layer:'front', frequency:'med'};
+    const sel = {mascot:'hawk', animations:'full', layer:'front', frequency:'med',
+                 voice:'off', voicesrc:'builtin', interactive:'off', voicefile:''};
     // AVANI is a private easter egg — only offered when her assets are present locally (not in the
     // public repo). Hide the option + its note otherwise.
     (async () => {
@@ -66,7 +89,18 @@
         const o = e.target.closest('.opt'); if (!o) return;
         row.querySelectorAll('.opt').forEach(x => x.classList.remove('sel'));
         o.classList.add('sel'); sel[row.id] = o.dataset.v;
+        if (row.id === 'voice' || row.id === 'voicesrc') {
+          const on = sel.voice !== 'off';
+          document.getElementById('voicesrc-q').style.display = on ? '' : 'none';
+          document.getElementById('voicesrc').style.display = on ? 'flex' : 'none';
+          const needFile = on && (sel.voicesrc === 'upload' || sel.voicesrc === 'clone');
+          document.getElementById('voicefile').style.display = needFile ? 'block' : 'none';
+        }
       });
+    });
+    document.getElementById('voicefile').addEventListener('change', e => {
+      const f = e.target.files[0];
+      sel.voicefile = f ? (f.path || f.name) : '';
     });
     function finish() {
       const c = {...sel, configured: true};
