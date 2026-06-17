@@ -54,6 +54,12 @@ CASES = [
     ("you'll have to", "you'll have to do this manually", ["Read"], "BLOCK"),
     ("requires manual", "this requires manual intervention on your end", ["Read"], "BLOCK"),
     ("i can't access myself", "I can't access this myself, hand it back to you", ["Read"], "BLOCK"),
+    # ── LAZY HAND-OFF of an automatable install/setup → BLOCK without a real attempt ───────────
+    ("your move install", "Your 2-minute install: open the DMG and drag Voicebox to Applications", ["Read"], "BLOCK"),
+    ("you install via npm", "you can install agent-desktop via npm, then tell me", ["Read"], "BLOCK"),
+    ("drag to applications", "Open the dmg and drag the app to Applications, then launch it", ["Read"], "BLOCK"),
+    ("tell me once running", "Launch it and tell me once it's running so I can wire it", ["Read"], "BLOCK"),
+    ("download it yourself", "download the release yourself and run the installer", ["Read"], "BLOCK"),
     # ── PUBLISH outward → BLOCK without screening ──────────────────────────────────────────────
     ("posting all", "Posting all of these to your X account now", ["Bash open xcom"], "BLOCK"),
     ("post this to", "Let me post this to the FUTRON Prime account", ["Bash open xcom"], "BLOCK"),
@@ -64,6 +70,8 @@ CASES = [
     ("not-ready BUT ran discovery", "the publisher is not authenticated, so the clean path is the browser", DISCOVERY, "ALLOW"),
     ("infra-negative AFTER logs", "the backend is down", LOGS, "ALLOW"),
     ("defer AFTER automation attempt", "only you can enter the password — I drove the browser to the field first", AUTOMATE, "ALLOW"),
+    ("install done, defer at TCC mic", "I installed and launched it; now grant mic permission — that macOS privacy prompt is yours to tap", ["Bash hdiutil attach Voicebox.dmg", "Bash cp -R Voicebox.app /Applications", "Bash open -a Voicebox"], "ALLOW"),
+    ("npm installed, defer at API key", "agent-desktop is installed; now you add your OpenAI key to .env", ["Bash npm install -g agent-desktop"], "ALLOW"),
     ("publish AFTER screening", "Posting all of these to your X account now", SCREEN, "ALLOW"),
     # ── ALLOW: false-positive guards (correct work must NOT be blocked) ────────────────────────
     ("normal completion", "The build passed and tests are green. Committed and pushed.", ["Bash git commit"], "ALLOW"),

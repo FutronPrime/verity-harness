@@ -22,18 +22,24 @@ NEGATIVE = re.compile(r"""(?ix)
     | global\s+outage | environmental\s+(outage|issue|problem) | nothing\s+(i|we)\s+can\s+do
     | out\s+of\s+(my|our)\s+control | (model|backend|service|api|shim)\s+is\s+(down|unavailable)
     | there'?s\s+no\s+(way|option|api|tool) | doesn'?t\s+exist | gave?\s+up
-    | (is|are|isn'?t|aren'?t|not)\s+(currently\s+)?(authenticated|configured|set\s*up|installed|wired\s*up|reachable)
+    | (isn'?t|aren'?t|not|never|no\s+longer)\s+(currently\s+)?(authenticated|configured|set\s*up|installed|wired\s*up|reachable)
     | no\s+(api\s+)?(tokens?|creds?|credentials?|auth\b)
     | (credentials?|creds?|tokens?)\s+(are|is)?\s*missing | missing\s+(credentials?|creds?|tokens?)
     | (no|without)\s+(an?\s+)?(account|config|setup)\s+(configured|set\s*up|available))
 """)
 
-# A premature DEFERRAL to the human ("only you can…") — the automate-before-defer failure.
+# A premature DEFERRAL to the human ("only you can…") — the automate-before-defer failure. Incl. the
+# lazy hand-off of an AUTOMATABLE install/setup ("your move", "you install", "drag to Applications").
 DEFER = re.compile(r"""(?ix)
     \b(only\s+you\s+can | you'?ll\s+have\s+to | you\s+(will\s+)?(need|have)\s+to\s+(do|run|manually)
     | requires?\s+(you|your|manual|human|a\s+human) | needs?\s+(you|your\s+input)
     | i\s+can'?t\s+(do|run|access)\s+(this|that|it)\s+(myself|for\s+you)
-    | hand(ing)?\s+(this|it)\s+(back|off)\s+to\s+you | you'?ll\s+need\s+to\s+(sign|log)\s+in)
+    | hand(ing)?\s+(this|it)\s+(back|off)\s+to\s+you | you'?ll\s+need\s+to\s+(sign|log)\s+in
+    | your\s+(move|turn|\d+[\s-]*min)
+    | you\s+(can|should|just|could|go\s+ahead\s+and|gotta)?\s*(install|download|drag|launch|set\s*up|grab|clone)\b
+    | once\s+you'?(ve|re)?\s+(install|download|set\s*up|launch|got|grabbed|cloned)
+    | drag\s+.{0,30}\s+to\s+(applications|the\s+dock) | tell\s+me\s+(once|when)\s+(it'?s|you'?ve|you\s+have)
+    | (install|download|grab|clone|set\s*up)\s+.{0,30}\byourself\b)
 """)
 
 CORRECTIVE = (

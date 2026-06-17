@@ -31,7 +31,7 @@ NEG = re.compile(r"""(?ix)
     | not\s+(possible|fixable|feasible) | unfixable | impossible | no\s+way\s+to
     | global\s+outage | environmental\s+(outage|issue|problem) | nothing\s+(i|we)\s+can\s+do
     | out\s+of\s+(my|our)\s+control | (model|backend|service|api)\s+is\s+(down|unavailable)
-    | (is|are|isn'?t|aren'?t|not)\s+(currently\s+)?(authenticated|configured|set\s*up|installed|wired|reachable|available)
+    | (isn'?t|aren'?t|not|never|no\s+longer)\s+(currently\s+)?(authenticated|configured|set\s*up|installed|wired|reachable|available)
     | no\s+(api\s+)?(tokens?|creds?|credentials?|auth\b) | doesn'?t\s+exist
     | (credentials?|creds?|tokens?|account)\s+(are|is)?\s*missing | missing\s+(credentials?|creds?|tokens?))
 """)
@@ -46,7 +46,14 @@ WORKAROUND = re.compile(r"""(?ix)
 DEFER = re.compile(r"""(?ix)
     \b(only\s+you\s+can | you'?ll\s+have\s+to | you\s+(will\s+)?(need|have)\s+to\s+(do|run|manually)
     | requires?\s+(you|your|manual|human|a\s+human) | needs?\s+(you|your\s+input)
-    | i\s+can'?t\s+(do|run|access)\s+(this|that|it)\s+(myself|for\s+you) | hand(ing)?\s+(this|it)\s+(back|off)\s+to\s+you)
+    | i\s+can'?t\s+(do|run|access)\s+(this|that|it)\s+(myself|for\s+you) | hand(ing)?\s+(this|it)\s+(back|off)\s+to\s+you
+    # ── lazy hand-off of an AUTOMATABLE task (install/download/setup punted to the user) ──
+    | your\s+(move|turn|\d+[\s-]*min)
+    | you\s+(can|should|just|could|go\s+ahead\s+and|gotta|might\s+want\s+to)?\s*(install|download|drag|launch|set\s*up|grab|run\s+the|clone)\b
+    | once\s+you'?(ve|re)?\s+(install|download|set\s*up|launch|got|grabbed|cloned)
+    | drag\s+.{0,30}\s+to\s+(applications|the\s+dock)
+    | tell\s+me\s+(once|when)\s+(it'?s|you'?ve|you\s+have)
+    | (install|download|grab|clone|set\s*up)\s+.{0,30}\byourself\b)
 """)
 # evidence the negative was earned — logs/repair/search OR DISCOVERY (querying the tool's own status,
 # health, accounts, help, the system directory, or creds — the check that satisfies a "not ready" claim).
@@ -58,10 +65,15 @@ INVESTIGATED = re.compile(r"""(?ix)
     | \baccounts\b|\bhealth\b|\bstatus\b|--list|--query|--help|print-disabled|defaults\s+read
     | futron-system-directory|command\s+-v|which\s+\w|grep[^\n]{0,40}(cred|token|account|auth))
 """)
-# evidence an automation attempt was made before deferring
+# evidence an automation attempt was made before deferring — incl. real INSTALL/SETUP actions
+# (mounting a DMG, copying an app, npm/pip/brew/git, dequarantine, launching) so a hand-off is only
+# allowed AFTER the agent actually tried to do it itself.
 AUTOMATION = re.compile(r"""(?ix)
     (cua|browser-act|browser_act|computer-use|computer_use|openclick|playwright|claude-in-chrome
-    | futron-claw|axiom|osascript|cdp|oauth-cdp|applescript|--browser-login|automate)
+    | futron-claw|axiom|osascript|cdp|oauth-cdp|applescript|--browser-login|automate
+    | hdiutil|xattr|\bcp\s+-[rR]|/Applications|open\s+-a|\bopen\s+["'~/]|installer\b|brew\s+install
+    | npm\s+(install|i)\b|pip3?\s+install|pipx\s+install|git\s+clone|defaults\s+write|launchctl\s+(load|bootstrap)
+    | agent-desktop|chmod\s+\+x|curl\s+-[a-zA-Z]*o|wget)
 """)
 # OUTWARD PUBLISH (post to public) — and the SCREENING that must precede it (brand/persona gate).
 PUBLISH = re.compile(r"""(?ix)
@@ -154,11 +166,15 @@ def main():
                   "and confirm you're posting to the CORRECT account(s) (query `futron-social-publish "
                   "accounts`). Public posts are irreversible — screen, route, then post.")
     elif defer and not automated:
-        reason = ("VERITY stop-guard: you're handing this back to the user ('only you can…') without "
-                  "trying the automation stack. Per automate-before-defer: ATTEMPT it first — CUA "
-                  "(futron-claw), browser-act, computer-use, Claude-in-Chrome, openclick, Playwright, "
-                  "or a CDP/oauth module. Defer ONLY at the genuine human boundary (password entry, "
-                  "2FA, CAPTCHA, biometrics, payment) — and say which one you actually hit.")
+        reason = ("VERITY stop-guard: you're HANDING AN AUTOMATABLE TASK BACK TO THE USER ('your move / "
+                  "you install / drag it to Applications / tell me once it's running') without doing it "
+                  "yourself first. You almost certainly CAN do it autonomously — DO IT: install an app "
+                  "(curl/`hdiutil attach` the dmg → `cp -R *.app /Applications` → `xattr -dr "
+                  "com.apple.quarantine` → `open -a`), `npm/pip/brew install`, `git clone`, edit a config, "
+                  "or drive the GUI via CUA (futron-claw / computer-use / Claude-in-Chrome / Playwright / "
+                  "osascript). Defer ONLY at a GENUINE human boundary — password entry, 2FA, CAPTCHA, "
+                  "biometrics, payment, or a macOS TCC privacy prompt (mic/camera/screen/accessibility "
+                  "grant) — and name the exact one you hit. 'It needs setup' is not a boundary; it's a task.")
     if not reason:
         sys.exit(0)
 
