@@ -93,19 +93,28 @@ def frame_svg(n_lines, caret_line, score=None):
 </svg>'''
 
 def endcard_svg():
+    cx = W // 2
     return f'''<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
   width="{W}" height="{H}" viewBox="0 0 {W} {H}">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="{TEAL}" stop-opacity="0.22"/>
+      <stop offset="55%" stop-color="{TEAL}" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="{TEAL}" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
   <rect width="{W}" height="{H}" fill="{BG}"/>
   <rect x="32" y="28" width="{W-64}" height="{H-56}" rx="10" fill="{PANEL}" stroke="{EDGE}" stroke-width="1.5"/>
-  <image xlink:href="{MASCOT_URI}" x="{W//2-150}" y="80" width="300" height="300"/>
-  <text x="{W//2}" y="450" text-anchor="middle" font-family="{MONO}" font-size="78" font-weight="800"
+  <ellipse cx="{cx}" cy="240" rx="430" ry="300" fill="url(#glow)"/>
+  <image xlink:href="{MASCOT_URI}" x="{cx-220}" y="42" width="440" height="440"/>
+  <text x="{cx}" y="500" text-anchor="middle" font-family="{MONO}" font-size="80" font-weight="800"
     fill="{WHITE}" letter-spacing="6">VERITY</text>
-  <text x="{W//2}" y="492" text-anchor="middle" font-family="{MONO}" font-size="22" font-weight="600"
+  <text x="{cx}" y="540" text-anchor="middle" font-family="{MONO}" font-size="21" font-weight="600"
     fill="{TEAL}" letter-spacing="4">THE OPEN-SOURCE FABLE ALTERNATIVE</text>
-  <text x="{W//2}" y="558" text-anchor="middle" font-family="{MONO}" font-size="26" font-weight="700"
+  <text x="{cx}" y="592" text-anchor="middle" font-family="{MONO}" font-size="23" font-weight="700"
     fill="{FG}">make ANY model verify instead of guess</text>
-  <rect x="{W//2-300}" y="588" width="600" height="50" rx="8" fill="#0c1116" stroke="{TEAL}" stroke-width="1.5"/>
-  <text x="{W//2}" y="621" text-anchor="middle" font-family="{MONO}" font-size="24" font-weight="700"
+  <rect x="{cx-300}" y="616" width="600" height="46" rx="8" fill="#0c1116" stroke="{TEAL}" stroke-width="1.5"/>
+  <text x="{W//2}" y="646" text-anchor="middle" font-family="{MONO}" font-size="23" font-weight="700"
     fill="{TEAL}">github.com/FutronPrime/verity-harness</text>
   <rect x="32" y="{H-30}" width="{W-64}" height="3" fill="{MAG}"/>
 </svg>'''
