@@ -12,14 +12,19 @@ investigating — the single most expensive, most common LLM error. Caught on a 
 from __future__ import annotations  # keep `str | None` annotations safe on Python 3.7–3.9 too
 import re
 
-# A negative VERDICT about feasibility/infra ("it can't be done / it's broken / it's an outage").
+# A negative VERDICT about feasibility/infra ("it can't be done / it's broken / it's an outage"),
+# INCLUDING the softer "the tool isn't ready, so I'll work around it" class — the most common quiet
+# lapse: declaring a tool unauthenticated/unconfigured/unavailable WITHOUT querying its own status first.
 NEGATIVE = re.compile(r"""(?ix)
     \b(it'?s\s+(down|broken|unavailable|impossible)
     | can'?t\s+be\s+(fixed|done|completed) | cannot\s+be\s+(fixed|done|completed)
     | not\s+(possible|fixable|feasible|doable) | unfixable | impossible | no\s+way\s+to
     | global\s+outage | environmental\s+(outage|issue|problem) | nothing\s+(i|we)\s+can\s+do
     | out\s+of\s+(my|our)\s+control | (model|backend|service|api|shim)\s+is\s+(down|unavailable)
-    | there'?s\s+no\s+(way|option|api|tool) | doesn'?t\s+exist | gave?\s+up)
+    | there'?s\s+no\s+(way|option|api|tool) | doesn'?t\s+exist | gave?\s+up
+    | (is|are|isn'?t|aren'?t|not)\s+(currently\s+)?(authenticated|configured|set\s*up|installed|wired\s*up)
+    | no\s+(api\s+)?(tokens?|creds?|credentials?|auth\b)
+    | (no|without)\s+(an?\s+)?(account|config|setup)\s+(configured|set\s*up|available))
 """)
 
 # A premature DEFERRAL to the human ("only you can…") — the automate-before-defer failure.
@@ -37,7 +42,10 @@ CORRECTIVE = (
     "(1) READ its logs, (2) ATTEMPT its repair/restart/refresh, (3) SEARCH the exact error "
     "(GitHub/Reddit/X/YouTube/Google/StackOverflow). For an 'only you can' deferral, first ATTEMPT "
     "the automation stack (browser/CDP/CUA/computer-use) and defer ONLY at a genuine human boundary "
-    "(password, 2FA, CAPTCHA, payment). 'Errored / empty / timed-out' is a SYMPTOM, not a diagnosis. "
+    "(password, 2FA, CAPTCHA, payment). For 'the tool isn't authenticated/configured' — QUERY THE TOOL "
+    "ITSELF FIRST: run its `accounts`/`health`/`status`/`--list` subcommand (and search the system for "
+    "an existing solution) BEFORE concluding it isn't ready or reaching for a workaround. "
+    "'Errored / empty / timed-out / not configured' is a SYMPTOM, not a diagnosis. "
     "Now either (a) give the concrete next investigative step + take it, or (b) if you HAVE already "
     "investigated, state the specific evidence that makes the negative truly earned. Do not repeat "
     "the bare giveup.")

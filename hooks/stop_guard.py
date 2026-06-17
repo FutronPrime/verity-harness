@@ -30,24 +30,45 @@ NEG = re.compile(r"""(?ix)
     \b(it'?s\s+(down|broken|unavailable)|can'?t\s+be\s+(fixed|done)|cannot\s+be\s+(fixed|done)
     | not\s+(possible|fixable|feasible) | unfixable | impossible | no\s+way\s+to
     | global\s+outage | environmental\s+(outage|issue|problem) | nothing\s+(i|we)\s+can\s+do
-    | out\s+of\s+(my|our)\s+control | (model|backend|service|api)\s+is\s+(down|unavailable))
+    | out\s+of\s+(my|our)\s+control | (model|backend|service|api)\s+is\s+(down|unavailable)
+    | (is|are|isn'?t|aren'?t|not)\s+(currently\s+)?(authenticated|configured|set\s*up|installed|wired)
+    | no\s+(api\s+)?(tokens?|creds?|credentials?|auth\b))
+""")
+# A "the tool isn't ready, so I'll just work around it" REDIRECT — my most common quiet lapse: reaching
+# for a fallback (browser, manual, a different tool) instead of querying the tool's own status first.
+WORKAROUND = re.compile(r"""(?ix)
+    (the\s+(clean|only|right|best|simplest)\s+(path|way|option)\s+is
+    | so\s+(the\s+clean\s+|i'?ll\s+|we'?ll\s+|i\s+have\s+to\s+|we\s+have\s+to\s+).{0,24}(use|post\s+through|go\s+through|via\s+the\s+browser|do\s+it\s+manually)
+    | instead\s+(i'?ll|we'?ll|use|let'?s) | fall\s*back\s+to | work\s*around)
 """)
 DEFER = re.compile(r"""(?ix)
     \b(only\s+you\s+can | you'?ll\s+have\s+to | you\s+(will\s+)?(need|have)\s+to\s+(do|run|manually)
     | requires?\s+(you|your|manual|human|a\s+human) | needs?\s+(you|your\s+input)
     | i\s+can'?t\s+(do|run|access)\s+(this|that|it)\s+(myself|for\s+you) | hand(ing)?\s+(this|it)\s+(back|off)\s+to\s+you)
 """)
-# evidence the negative was earned
+# evidence the negative was earned — logs/repair/search OR DISCOVERY (querying the tool's own status,
+# health, accounts, help, the system directory, or creds — the check that satisfies a "not ready" claim).
 INVESTIGATED = re.compile(r"""(?ix)
     (\btail\b|\bcat\b|\bgrep\b|\bless\b|\.log\b|read.{0,12}log|logs?\b
     | restart|kickstart|reboot|refresh|reinstall|launchctl|systemctl|--force|repair|bounce
     | websearch|web_search|search_|curl\s+http|https?://|github|reddit|stackoverflow|google|youtube|brave|ddgs
-    | futron-scrape|x-read|fetch_tweet|agent-reach)
+    | futron-scrape|x-read|fetch_tweet|agent-reach
+    | \baccounts\b|\bhealth\b|\bstatus\b|--list|--query|--help|print-disabled|defaults\s+read
+    | futron-system-directory|command\s+-v|which\s+\w|grep[^\n]{0,40}(cred|token|account|auth))
 """)
 # evidence an automation attempt was made before deferring
 AUTOMATION = re.compile(r"""(?ix)
     (cua|browser-act|browser_act|computer-use|computer_use|openclick|playwright|claude-in-chrome
     | futron-claw|axiom|osascript|cdp|oauth-cdp|applescript|--browser-login|automate)
+""")
+# OUTWARD PUBLISH (post to public) — and the SCREENING that must precede it (brand/persona gate).
+PUBLISH = re.compile(r"""(?ix)
+    (social-publish\s+post                    # the actual post subcommand (NOT 'accounts'/'health' discovery)
+    | \bpost(ing|ed)?\s+(to|the|all|it|this)\b | \btweet(ing|ed)?\b | publish(ing|ed)\s+(to|the|this|it)
+    | compose.{0,20}(tweet|post) | x\.com.{0,30}post | (reddit|instagram|facebook|linkedin)\s+post)
+""")
+SCREENED = re.compile(r"""(?ix)
+    (sets-review|test-screening|soul-personality-audit|persona[\s_-]*(screen|audit|panel)|s\.e\.t\.s|screening)
 """)
 
 
@@ -103,23 +124,33 @@ def main():
         sys.exit(0)
     tail_text = text[-1600:]  # the conclusion the agent is stopping on
 
-    neg = bool(NEG.search(tail_text))
+    neg = bool(NEG.search(tail_text)) or bool(WORKAROUND.search(tail_text))
     defer = bool(DEFER.search(tail_text))
-    if not (neg or defer):
+    publish = bool(PUBLISH.search(tail_text)) or bool(PUBLISH.search(actions))
+    if not (neg or defer or publish):
         sys.exit(0)
 
     investigated = bool(INVESTIGATED.search(actions))
     automated = bool(AUTOMATION.search(actions))
+    screened = bool(SCREENED.search(actions)) or bool(SCREENED.search(text))
 
     reason = None
     if neg and not investigated:
-        reason = ("VERITY stop-guard: you're concluding something is DOWN / BROKEN / IMPOSSIBLE / an "
-                  "outage — but the transcript shows no investigation. Before that negative can stand "
-                  "you MUST, in order: (1) READ the component's logs, (2) ATTEMPT its repair/restart/"
-                  "refresh, (3) SEARCH the exact error (GitHub/Reddit/X/YouTube/Google/SO). "
-                  "'Errored/empty/timed-out' is a symptom, not a diagnosis. Go find the root cause, "
-                  "then continue. (If you HAVE already done all three and the negative is truly earned, "
-                  "state the evidence explicitly and stop.)")
+        reason = ("VERITY stop-guard: you're concluding something is DOWN / BROKEN / IMPOSSIBLE / NOT "
+                  "AUTHENTICATED / NOT CONFIGURED — or reaching for a WORKAROUND — but the transcript "
+                  "shows no investigation. Before that stands you MUST, in order: for infra → (1) READ "
+                  "logs, (2) ATTEMPT repair/restart/refresh, (3) SEARCH the exact error. For 'the tool "
+                  "isn't ready / I'll just use X instead' → QUERY THE TOOL'S OWN STATUS FIRST (its "
+                  "`accounts`/`health`/`status`/`--list`, and `futron-system-directory --query`) — the "
+                  "system very likely already has the solution. 'Errored/empty/not-configured' is a "
+                  "symptom, not a diagnosis. Investigate, then continue. (If you HAVE already checked and "
+                  "the negative is truly earned, state the specific evidence and stop.)")
+    elif publish and not screened:
+        reason = ("VERITY stop-guard: you're about to PUBLISH / POST outward-facing content without "
+                  "running the required BRAND PERSONA SCREENING. Per protocol, run "
+                  "`futron-sets-review --panel marketing --text \"<copy>\"` FIRST and confirm it passes, "
+                  "and confirm you're posting to the CORRECT account(s) (query `futron-social-publish "
+                  "accounts`). Public posts are irreversible — screen, route, then post.")
     elif defer and not automated:
         reason = ("VERITY stop-guard: you're handing this back to the user ('only you can…') without "
                   "trying the automation stack. Per automate-before-defer: ATTEMPT it first — CUA "
