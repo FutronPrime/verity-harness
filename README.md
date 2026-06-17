@@ -411,6 +411,16 @@ own machine: `python3 -m verity eval-memory` (add `--llm` for the A/B against a 
 > In short: VERITY memory only **assists, enhances, and extends** how long and how well your agent works.
 > Uninstalling is `rm -rf ~/.verity-harness` — and your own files are exactly as you left them.
 
+### It self-learns — remembers how it solved things, and reuses that next time
+The harness doesn't just *do* a task and forget. When `verity synthesize` works out how to accomplish a
+goal (find the right tool, build a missing one, drive an app/site/CLI — see
+[`docs/TEACH-AN-APP.md`](docs/TEACH-AN-APP.md)), it **registers the capability** *and* **captures the
+approach to memory**. The next time you ask for something similar — even worded differently — discovery
+**recalls the prior lesson** from `membank` and reuses it instead of relearning from scratch. Layered with
+the gated **`verity evolve`** loop (which adopts a better playbook only if it passes a regression check),
+that's the self-improvement most "agent" demos hand-wave: **learn → remember → reuse → improve**, all
+local and add-only.
+
 ## Invisible, always-on (proxy daemon)
 
 Point any OpenAI-compatible client (Claude Code, Cursor, an SDK) at the proxy and

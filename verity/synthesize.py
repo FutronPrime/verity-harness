@@ -90,7 +90,13 @@ def discover(goal: str) -> dict:
     except Exception:
         registry = ""
     prior = _prior_capabilities(goal)
-    return {"reuse": reuse, "registry": registry, "prior": prior}
+    memory = ""
+    try:
+        from . import membank
+        memory = membank.recall(goal, budget_chars=1200)   # self-learning: recall how similar goals were solved
+    except Exception:
+        memory = ""
+    return {"reuse": reuse, "registry": registry, "prior": prior, "memory": memory}
 
 
 _PLAN_SYS = (
@@ -112,10 +118,13 @@ def _plan_prompt(goal: str, capabilities: list[str], disc: dict) -> str:
     if disc["prior"]:
         prior = "PRIOR VERITY-BUILT CAPABILITIES (reuse if they fit):\n" + "\n".join(
             f"  • {r.get('goal','?')} → {r.get('slug','')}" for r in disc["prior"]) + "\n\n"
+    mem = ""
+    if disc.get("memory"):
+        mem = "MEMORY — how similar goals were handled before (reuse the lesson, don't relearn):\n" + disc["memory"] + "\n\n"
     return (
         f"GOAL: {goal}\n\n"
         f"DECOMPOSED CAPABILITIES NEEDED:\n" + "\n".join(f"  - {c}" for c in capabilities) + "\n\n"
-        f"{prior}"
+        f"{mem}{prior}"
         f"DISCOVERY — installed tools to REUSE:\n{disc['registry'] or '  (none surfaced)'}\n\n"
         f"DISCOVERY — curated OSS / awesome-lists to REUSE:\n{disc['reuse'] or '  (none surfaced)'}\n\n"
         f"Now produce the plan."
@@ -189,6 +198,13 @@ def synthesize(goal: str, build: bool = False, gate: str | None = None,
     except Exception as e:
         if verbose:
             print(f"[synthesize] register failed: {e}")
+    # SELF-LEARN — remember this in membank so future runs recall it (cross-session, searchable).
+    try:
+        from . import membank
+        membank.capture(f"Capability for goal: {goal}\nApproach (reuse-first plan): {(plan or '')[:700]}",
+                        scope="lesson")
+    except Exception:
+        pass
     return rec
 
 
