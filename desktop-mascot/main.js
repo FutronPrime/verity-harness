@@ -102,6 +102,10 @@ ipcMain.on('setup-done', (_e, c) => { saveCfg({...loadCfg(), ...c, configured: t
 ipcMain.on('move-window', (_e, dx, dy) => { if (win) { const [x, y] = win.getPosition(); win.setPosition(Math.round(x + dx), Math.round(y + dy)); } });
 // Right-click the MASCOT → pop the same menu the tray has, at the cursor.
 ipcMain.on('show-menu', () => { if (tray) trayMenu().popup(); });
+// The status dot doubles as a voice-mode toggle → persist the mode where the voice loop reads it.
+const VOICE_MODE = path.join(os.homedir(), '.verity-harness', 'voice-mode');
+ipcMain.handle('get-voice-mode', () => { try { return fs.readFileSync(VOICE_MODE, 'utf8').trim() || 'tldr'; } catch { return 'tldr'; } });
+ipcMain.on('set-voice-mode', (_e, m) => { try { fs.mkdirSync(path.dirname(VOICE_MODE), {recursive: true}); fs.writeFileSync(VOICE_MODE, m === 'interactive' ? 'interactive' : 'tldr'); } catch {} });
 
 // Single-instance lock: so VERITY's startup can always try to launch the mascot without stacking —
 // a second launch just quits (and surfaces the existing one).

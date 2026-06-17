@@ -32,4 +32,8 @@ contextBridge.exposeInMainWorld('verity', {
       return r.ok;
     } catch { return false; }
   },
+  // The status dot doubles as a voice-mode TOGGLE: 'interactive' (real-time talk-back) vs
+  // 'tldr' (one-way spoken read-outs). Persisted to ~/.verity-harness/voice-mode for the voice loop.
+  setVoiceMode: (m) => ipcRenderer.send('set-voice-mode', m),
+  getVoiceMode: () => ipcRenderer.invoke('get-voice-mode'),
 });

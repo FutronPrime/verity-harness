@@ -127,6 +127,22 @@ window.addEventListener('mouseup', () => {
 // Right-click the mascot → the options menu (switch / hide / position / frequency / setup).
 stage.addEventListener('contextmenu', (e) => { e.preventDefault(); if (window.verity && window.verity.showMenu) window.verity.showMenu(); });
 
+// The status dot doubles as a VOICE-MODE TOGGLE: click it to flip TL;DR read-outs ↔ interactive
+// talk-back. Intercept on the dot (stopPropagation) so it doesn't trigger the drag/click-react logic.
+let voiceMode = 'tldr';
+function applyVoiceMode(m) {
+  voiceMode = (m === 'interactive') ? 'interactive' : 'tldr';
+  dot.classList.toggle('interactive', voiceMode === 'interactive');
+  dot.title = voiceMode === 'interactive'
+    ? 'Voice: INTERACTIVE — real-time talk-back (costly). Click for read-out mode.'
+    : 'Voice: read-out TL;DR (free). Click for interactive talk-back.';
+}
+dot.addEventListener('mousedown', (e) => {
+  e.stopPropagation();
+  applyVoiceMode(voiceMode === 'interactive' ? 'tldr' : 'interactive');
+  if (window.verity && window.verity.setVoiceMode) window.verity.setVoiceMode(voiceMode);
+});
+
 let flourishTimer = null;
 function startLoops() {
   clearInterval(flourishTimer);
@@ -138,6 +154,7 @@ function startLoops() {
     () => render({mascot: cfg.mascot === 'hawk' ? 'sun' : (cfg.mascot === 'sun' ? 'avani' : 'hawk')})); return; }   // browser-preview fallback cycles all 3
   render(await window.verity.getCfg());
   window.verity.onCfg((c) => { render(c); startLoops(); });   // live updates from the tray/setup
+  if (window.verity.getVoiceMode) applyVoiceMode(await window.verity.getVoiceMode());
   pollProxy(); setInterval(pollProxy, 5000);
   setInterval(pollLedger, 1200);
   startLoops();
