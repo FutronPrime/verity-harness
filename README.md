@@ -8,9 +8,12 @@
   <img src="assets/mascot-hawk-anim.gif" alt="The Truth Hawk — VERITY's silent verification mascot" height="150"/>
 </p>
 
+<h2 align="center">⚡ THE OPEN-SOURCE FABLE ALTERNATIVE ⚡</h2>
+<p align="center"><sub><b>frontier-grade discipline on any model you own</b> — zero-dependency · model-agnostic · local-first</sub></p>
+
 # VERITY · The Truth Harness
 
-> **Fable tells the tale. Verity verifies it.**
+> **Fable tells the tale. Verity verifies it.**  ·  *the Open-Source Fable Alternative.*
 
 *The names were always the tell: a **Fable** is a story that isn't true; a **Mythos** is a myth.
 **VERITY** is Latin (`veritas`) for **truth**. They banned the fiction — this is the open-source truth,
