@@ -281,6 +281,16 @@ mechanically unrepeatable. The gates are **regression-tested adversarially — `
 a completed screen, normal completion all pass through). What *can't* be coded (taste, novel judgment) stays
 probabilistic — but the moment a judgment-lapse becomes a *pattern*, it gets promoted to a gate.
 
+> **The loop, caught on camera (a real example from building this).** The agent built the first version of
+> the gate from *one* lapse it had just committed. Then an **adversarial test** was written — many phrasings
+> of the same lapse — and it surfaced **4 gaps the agent couldn't see**: it caught "not authenticated" but
+> *not* "credentials are missing"; "isn't configured" but *not* "isn't reachable"; the gate let
+> "I'll use the browser **instead**" slip through. The test made the blind spots **visible**, they were
+> patched, and the suite went 27/31 → **31/31**. That's the whole thesis in one sitting: a probabilistic
+> agent can't be trusted to notice its own blind spots — but a deterministic test *can*, and every gap it
+> finds becomes a gate that can't reopen. The system got more reliable by being **adversarial with itself**,
+> not by trying harder.
+
 ## Reading the walled web (X posts & Articles, no API key)
 
 The search-before-concluding gate is only as good as the agent's *reach*. "I can't read that page"
