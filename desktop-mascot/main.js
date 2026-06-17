@@ -106,6 +106,18 @@ ipcMain.on('show-menu', () => { if (tray) trayMenu().popup(); });
 const VOICE_MODE = path.join(os.homedir(), '.verity-harness', 'voice-mode');
 ipcMain.handle('get-voice-mode', () => { try { return fs.readFileSync(VOICE_MODE, 'utf8').trim() || 'tldr'; } catch { return 'tldr'; } });
 ipcMain.on('set-voice-mode', (_e, m) => { try { fs.mkdirSync(path.dirname(VOICE_MODE), {recursive: true}); fs.writeFileSync(VOICE_MODE, m === 'interactive' ? 'interactive' : 'tldr'); } catch {} });
+// Live TTS amplitude for the audio-reactive dot. The voice path writes {start, win, rms[]} while speaking;
+// we index the envelope by elapsed wall-clock and hand back the current level (or {speaking:false}).
+const VOICE_SPEAKING = path.join(os.homedir(), '.verity-harness', 'voice-speaking');
+ipcMain.handle('voice-level', () => {
+  try {
+    const j = JSON.parse(fs.readFileSync(VOICE_SPEAKING, 'utf8'));
+    if (!Array.isArray(j.rms) || !j.rms.length) return {speaking: false};
+    const idx = Math.floor((Date.now() - j.start) / (j.win || 80));
+    if (idx < 0 || idx >= j.rms.length) return {speaking: false};
+    return {speaking: true, level: Math.max(0.12, Math.min(1, j.rms[idx] || 0.3))};
+  } catch { return {speaking: false}; }
+});
 
 // Single-instance lock: so VERITY's startup can always try to launch the mascot without stacking —
 // a second launch just quits (and surfaces the existing one).

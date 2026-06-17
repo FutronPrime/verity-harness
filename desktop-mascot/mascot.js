@@ -143,6 +143,26 @@ dot.addEventListener('mousedown', (e) => {
   if (window.verity && window.verity.setVoiceMode) window.verity.setVoiceMode(voiceMode);
 });
 
+// Audio-reactive dot: while the voice path is talking back (TTS), pulse the dot to the speech pace by
+// reading the live RMS envelope. Drives scale + glow from amplitude — a voice indicator, like on the show.
+let speaking = false;
+async function pollVoice() {
+  if (!window.verity || !window.verity.voiceLevel) return;
+  let v; try { v = await window.verity.voiceLevel(); } catch { return; }
+  if (v && v.speaking) {
+    speaking = true;
+    dot.classList.add('speaking');
+    const s = (1 + v.level * 1.5).toFixed(2);
+    dot.style.transform = `scale(${s})`;
+    dot.style.boxShadow = `0 0 ${Math.round(6 + v.level * 20)}px rgba(45,212,191,${(0.45 + v.level * 0.55).toFixed(2)})`;
+  } else if (speaking) {
+    speaking = false;
+    dot.classList.remove('speaking');
+    dot.style.transform = '';
+    dot.style.boxShadow = '';
+  }
+}
+
 let flourishTimer = null;
 function startLoops() {
   clearInterval(flourishTimer);
@@ -156,6 +176,7 @@ function startLoops() {
   window.verity.onCfg((c) => { render(c); startLoops(); });   // live updates from the tray/setup
   if (window.verity.getVoiceMode) applyVoiceMode(await window.verity.getVoiceMode());
   pollProxy(); setInterval(pollProxy, 5000);
+  setInterval(pollVoice, 80);   // audio-reactive dot (pulses to the TTS pace while talking back)
   setInterval(pollLedger, 1200);
   startLoops();
 })();

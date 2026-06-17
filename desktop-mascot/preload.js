@@ -36,4 +36,7 @@ contextBridge.exposeInMainWorld('verity', {
   // 'tldr' (one-way spoken read-outs). Persisted to ~/.verity-harness/voice-mode for the voice loop.
   setVoiceMode: (m) => ipcRenderer.send('set-voice-mode', m),
   getVoiceMode: () => ipcRenderer.invoke('get-voice-mode'),
+  // Live TTS amplitude — the voice path writes an RMS envelope to ~/.verity-harness/voice-speaking
+  // while it talks; this returns the current level (by elapsed time) so the dot pulses to the speech pace.
+  voiceLevel: () => ipcRenderer.invoke('voice-level'),
 });

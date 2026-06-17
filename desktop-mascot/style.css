@@ -44,3 +44,6 @@ html, body { margin: 0; width: 200px; height: 200px; background: transparent; ov
 #dot.interactive { width: 11px; height: 11px; background: #d6299e; box-shadow: 0 0 10px rgba(214,41,158,.95);
   animation: pulseLive 1s ease-in-out infinite; }
 @keyframes pulseLive { 0%,100% { box-shadow: 0 0 6px rgba(214,41,158,.7); } 50% { box-shadow: 0 0 15px rgba(214,41,158,1); } }
+/* SPEAKING: JS drives scale + glow live from the TTS amplitude envelope, so kill the keyframe pulse
+   and use snappy transitions for a voice-reactive feel (the dot "talks"). */
+#dot.speaking { background: #2dd4bf; animation: none !important; transition: transform .07s ease-out, box-shadow .07s ease-out; }
