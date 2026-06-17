@@ -104,17 +104,15 @@
         }
       } catch {}
     })();
+    // Voice sub-options are ALWAYS visible (every speech option present in the menu) — they're just
+    // moot when "Silent" is picked. Only the engine key/voice-ID fields + the upload/clone file picker
+    // stay conditional (shown for the engine/source that needs them).
+    document.querySelectorAll('.vopt').forEach(el => { el.style.display = el.classList.contains('row') ? 'flex' : ''; });
     document.querySelectorAll('.row').forEach(row => {
       row.addEventListener('click', e => {
         const o = e.target.closest('.opt'); if (!o) return;
         row.querySelectorAll('.opt').forEach(x => x.classList.remove('sel'));
         o.classList.add('sel'); sel[row.id] = o.dataset.v;
-        if (row.id === 'voice') {
-          const on = sel.voice !== 'off';
-          document.querySelectorAll('.vopt').forEach(el =>
-            el.style.display = on ? (el.classList.contains('row') ? 'flex' : '') : 'none');
-          if (!on) ['apikey','elvoiceid','voicefile'].forEach(id => document.getElementById(id).style.display = 'none');
-        }
         if (row.id === 'voiceengine') {
           const en = sel.voiceengine;
           document.getElementById('apikey').style.display = (en === 'openai' || en === 'elevenlabs' || en === 'hybrid') ? 'block' : 'none';
