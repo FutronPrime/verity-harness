@@ -11,6 +11,11 @@
 <h2 align="center">⚡ THE OPEN-SOURCE FABLE ALTERNATIVE ⚡</h2>
 <p align="center"><sub><b>frontier-grade discipline on any model you own</b> — zero-dependency · model-agnostic · local-first</sub></p>
 
+<p align="center">
+  <img src="assets/demo-verity-live.gif" alt="VERITY caught live — the bare model guesses a stale model id, the harness reads the live registry and returns the current one" width="80%"/>
+</p>
+<p align="center"><sub><b>Caught live:</b> same model — off, it answers from a stale memory; on, VERITY makes it look up the current fact. <code>20%→88%</code>, reproducible.</sub></p>
+
 # VERITY · The Truth Harness
 
 > **Fable tells the tale. Verity verifies it.**  ·  *the Open-Source Fable Alternative.*
