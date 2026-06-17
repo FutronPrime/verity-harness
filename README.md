@@ -573,9 +573,11 @@ its result (and, optionally, you talk back). All of it is configured in the one 
   - **Standard** — warm, conversational, emotive (a sharp friend talking to you).
   - **LCARS / J.A.R.V.I.S.** — terse, technical, emotionless computer cadence (*"Acknowledged. Two systems updated; one awaits authorization."*).
   - **AISHA** — Gen-Z, expressive, a little sassy.
-- **Engine** — **free open-source on-device (Voicebox)** by default (no per-word cloud cost), or bring your
-  own **ElevenLabs**/OpenAI-Realtime key for premium voices.
-- **Voice** — a built-in open-source voice, **upload a clip**, or **clone your own** (on-device).
+- **Engine** — **Voicebox** (free, open-source, on-device — the default, no per-word cloud cost), **OpenAI**
+  (realtime), or **ElevenLabs** — the latter two with your own API key (kept on-device), plus an optional
+  **ElevenLabs voice ID** to pin a specific voice.
+- **Voice** — a **per-style default** (Standard → warm female · LCARS/J.A.R.V.I.S. → British male ·
+  AISHA → Black female), **upload a clip**, or **clone** one (on-device; the opt-in research workflow).
 - **Talk back** — optional push-to-talk (on-device Whisper) so you drive any attached LLM by voice.
 
 ### The voice-clone workflow — a runnable proof of agentic capability
