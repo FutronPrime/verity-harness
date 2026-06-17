@@ -114,6 +114,13 @@ REGISTRY = [
              "click/type/select/toggle). Reliable structured control, not pixel-clicking. Install: "
              "`npm i -g agent-desktop`; in-harness wrapper: `verity desktop <subcommand>`. Reach for this "
              "for ANY GUI task — opening apps, filling forms, clicking through flows — before deferring to the user."},
+    {"name": "microsoft/playwright", "url": "https://github.com/microsoft/playwright",
+     "kind": "tool", "tags": ["web", "browser", "website", "automation", "scrape", "click", "form", "fill",
+                              "hands", "headless", "automate", "interact", "cua", "navigate"],
+     "note": "VERITY's WEB hands — drive any website/web app headlessly or headed (navigate/click/fill/"
+             "extract/screenshot). The web counterpart to agent-desktop. Together they give the harness "
+             "observe→act 'hands' across every surface: DESKTOP (agent-desktop / osascript), WEB "
+             "(playwright / browser-act), CLI (the shell / ShellExecutor). Pick the surface, drive it, verify."},
 ]
 
 _BUILD_HINTS = ("build", "create", "implement", "make", "add", "write a", "develop", "design",

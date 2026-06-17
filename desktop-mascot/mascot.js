@@ -154,7 +154,9 @@ async function pollVoice() {
     dot.classList.add('speaking');
     const s = (1 + v.level * 1.5).toFixed(2);
     dot.style.transform = `scale(${s})`;
-    dot.style.boxShadow = `0 0 ${Math.round(6 + v.level * 20)}px rgba(45,212,191,${(0.45 + v.level * 0.55).toFixed(2)})`;
+    const g = Math.round(6 + v.level * 20), h = Math.round(16 + v.level * 46);   // inner glow + outer haze
+    dot.style.boxShadow = `0 0 ${g}px rgba(45,212,191,${(0.45 + v.level * 0.55).toFixed(2)}), `
+      + `0 0 ${h}px ${Math.round(h * 0.5)}px rgba(170,255,244,${(0.14 + v.level * 0.42).toFixed(2)})`;
   } else if (speaking) {
     speaking = false;
     dot.classList.remove('speaking');
