@@ -81,6 +81,7 @@ function trayMenu() {
       {label: 'On the desktop only',     type: 'radio', checked: chk('layer','desktop'), click: pick('layer','desktop')},
     ]},
     {type: 'separator'},
+    {label: 'How it works ▶', click: () => { if (!win) rebuild(); if (win) win.webContents.send('show-tour'); }},
     {label: 'Setup / pick again…', click: openSetup},
     {label: win && win.isVisible() ? 'Hide' : 'Show', click: () => { if (!win) rebuild(); else (win.isVisible() ? win.hide() : win.show()); tray.setContextMenu(trayMenu()); }},
     {label: 'Quit', click: () => app.quit()},

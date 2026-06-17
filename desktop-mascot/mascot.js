@@ -163,6 +163,34 @@ async function pollVoice() {
   }
 }
 
+// First-run orientation: highlight the mascot, then the dot toggle, with short captions. Replayable.
+const hint = document.getElementById('hint');
+let tourTimers = [];
+function clearTour() {
+  tourTimers.forEach(clearTimeout); tourTimers = [];
+  if (hint) hint.classList.remove('show');
+  img.classList.remove('highlight'); dot.classList.remove('highlight');
+}
+function showTour() {
+  if (!hint) return;
+  clearTour();
+  const beats = [
+    {el: img, html: '<b>This is VERITY.</b> Drag me · click me · right-click for options.'},
+    {el: dot, html: 'The dot ↓ — <b>click to switch voice</b> (read-out ↔ live talk-back). It pulses when I talk.'},
+  ];
+  let i = 0;
+  (function beat() {
+    img.classList.remove('highlight'); dot.classList.remove('highlight');
+    if (i >= beats.length) { clearTour(); return; }
+    const b = beats[i++];
+    b.el.classList.add('highlight');
+    hint.innerHTML = b.html; hint.classList.add('show');
+    tourTimers.push(setTimeout(beat, 4800));
+  })();
+}
+// click anywhere dismisses the tour (doesn't block the click's normal action)
+window.addEventListener('mousedown', () => { if (hint && hint.classList.contains('show')) clearTour(); }, true);
+
 let flourishTimer = null;
 function startLoops() {
   clearInterval(flourishTimer);
@@ -172,8 +200,11 @@ function startLoops() {
 (async () => {
   if (!window.verity) { render({mascot: 'hawk'}); stage.addEventListener('click',
     () => render({mascot: cfg.mascot === 'hawk' ? 'sun' : (cfg.mascot === 'sun' ? 'avani' : 'hawk')})); return; }   // browser-preview fallback cycles all 3
-  render(await window.verity.getCfg());
+  const bootCfg = await window.verity.getCfg();
+  render(bootCfg);
   window.verity.onCfg((c) => { render(c); startLoops(); });   // live updates from the tray/setup
+  if (window.verity.onShowTour) window.verity.onShowTour(() => showTour());   // tray "How it works"
+  if (!bootCfg.toured) { setTimeout(showTour, 1200); if (window.verity.saveCfg) window.verity.saveCfg({toured: true}); }
   if (window.verity.getVoiceMode) applyVoiceMode(await window.verity.getVoiceMode());
   pollProxy(); setInterval(pollProxy, 5000);
   setInterval(pollVoice, 80);   // audio-reactive dot (pulses to the TTS pace while talking back)
