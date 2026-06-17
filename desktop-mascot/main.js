@@ -56,6 +56,16 @@ function rebuild() {                                // re-apply config to the li
 function trayMenu() {
   const c = loadCfg();
   const pick = (k, v) => () => { const n = {...loadCfg(), [k]: v, configured: true}; saveCfg(n); rebuild(); tray.setContextMenu(trayMenu()); };
+  // Voice picks also mirror to the state files the voice loop reads, so they take effect live.
+  const pickV = (k, v) => () => {
+    saveCfg({...loadCfg(), [k]: v, configured: true});
+    try {
+      const sd = path.join(os.homedir(), '.verity-harness'); fs.mkdirSync(sd, {recursive: true});
+      if (k === 'readout') fs.writeFileSync(path.join(sd, 'tts-style'), v);
+      if (k === 'interactive') fs.writeFileSync(path.join(sd, 'voice-mode'), v === 'ptt' ? 'interactive' : 'tldr');
+    } catch {}
+    rebuild(); tray.setContextMenu(trayMenu());
+  };
   const chk = (k, v) => c[k] === v;
   return Menu.buildFromTemplate([
     {label: 'VERITY — installed & watching', enabled: false},
@@ -79,6 +89,23 @@ function trayMenu() {
     {label: 'Position', submenu: [
       {label: 'In front of all windows', type: 'radio', checked: chk('layer','front'),   click: pick('layer','front')},
       {label: 'On the desktop only',     type: 'radio', checked: chk('layer','desktop'), click: pick('layer','desktop')},
+    ]},
+    {label: 'Voice', submenu: [
+      {label: 'Speak: Silent',  type: 'radio', checked: chk('voice','off') || !c.voice, click: pickV('voice','off')},
+      {label: 'Speak: TL;DR',   type: 'radio', checked: chk('voice','tldr'), click: pickV('voice','tldr')},
+      {label: 'Speak: Full',    type: 'radio', checked: chk('voice','full'), click: pickV('voice','full')},
+      {type: 'separator'},
+      {label: 'Style: Standard (warm)',          type: 'radio', checked: chk('readout','standard') || !c.readout, click: pickV('readout','standard')},
+      {label: 'Style: LCARS / J.A.R.V.I.S.',     type: 'radio', checked: chk('readout','lcars'), click: pickV('readout','lcars')},
+      {label: 'Style: AISHA (Gen-Z)',            type: 'radio', checked: chk('readout','aisha'), click: pickV('readout','aisha')},
+      {type: 'separator'},
+      {label: 'Engine: Free · Voicebox', type: 'radio', checked: chk('voiceengine','oss') || !c.voiceengine, click: pickV('voiceengine','oss')},
+      {label: 'Engine: OpenAI',          type: 'radio', checked: chk('voiceengine','openai'), click: pickV('voiceengine','openai')},
+      {label: 'Engine: ElevenLabs',      type: 'radio', checked: chk('voiceengine','elevenlabs'), click: pickV('voiceengine','elevenlabs')},
+      {label: 'Engine: Hybrid',          type: 'radio', checked: chk('voiceengine','hybrid'), click: pickV('voiceengine','hybrid')},
+      {type: 'separator'},
+      {label: 'Talk back: Off',          type: 'radio', checked: chk('interactive','off') || !c.interactive, click: pickV('interactive','off')},
+      {label: 'Talk back: Push-to-talk', type: 'radio', checked: chk('interactive','ptt'), click: pickV('interactive','ptt')},
     ]},
     {type: 'separator'},
     {label: 'How it works ▶', click: () => { if (!win) rebuild(); if (win) win.webContents.send('show-tour'); }},

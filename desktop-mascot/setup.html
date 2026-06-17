@@ -8,6 +8,11 @@
     background:#0c1417; cursor:pointer; font-size:13px; transition:all .15s; }
   .opt:hover { border-color:#2dd4bf55; } .opt.sel { border-color:#2dd4bf; background:#0e1c1d; box-shadow:0 0 10px #2dd4bf33; }
   .opt img { height:54px; display:block; margin:0 auto 4px; }
+  .vsel { width:100%; padding:10px 9px; border:1.5px solid #1f3a3a; border-radius:9px; background:#0c1417;
+    color:#eafffb; font-size:13px; cursor:pointer; box-sizing:border-box; appearance:none;
+    background-image:linear-gradient(45deg,transparent 50%,#2dd4bf 50%),linear-gradient(135deg,#2dd4bf 50%,transparent 50%);
+    background-position:calc(100% - 16px) 18px, calc(100% - 11px) 18px; background-size:5px 5px,5px 5px; background-repeat:no-repeat; }
+  .vsel:focus { outline:none; border-color:#2dd4bf; box-shadow:0 0 10px #2dd4bf33; }
   .go { margin-top:22px; width:100%; padding:12px; border:none; border-radius:9px; background:#2dd4bf; color:#04201c;
     font-weight:800; font-size:15px; cursor:pointer; } .go:hover { background:#5ff6e4; }
   .note { color:#586872; font-size:11.5px; margin-top:12px; text-align:center; }
@@ -52,32 +57,32 @@
     <div class="opt" data-v="full">Speak full responses</div>
   </div>
 
-  <div class="q vopt" style="display:none">6 · Readout style</div>
-  <div class="row vopt" id="readout" style="display:none">
-    <div class="opt sel" data-v="standard">Standard — clear &amp; neutral</div>
-    <div class="opt" data-v="lcars">LCARS / J.A.R.V.I.S. — crisp AI computer</div>
-    <div class="opt" data-v="aisha">AISHA — Gen-Z · AAVE · sassy</div>
-  </div>
+  <div class="q vopt">6 · Readout style</div>
+  <select class="vsel vopt" id="readout">
+    <option value="standard">Standard — warm &amp; emotive</option>
+    <option value="lcars">LCARS / J.A.R.V.I.S. — terse AI computer</option>
+    <option value="aisha">AISHA — Gen-Z · AAVE · sassy</option>
+  </select>
 
-  <div class="q vopt" style="display:none">7 · Voice engine</div>
-  <div class="row vopt" id="voiceengine" style="display:none">
-    <div class="opt sel" data-v="oss">Free · open-source on-device (Voicebox)</div>
-    <div class="opt" data-v="openai">OpenAI · realtime</div>
-    <div class="opt" data-v="elevenlabs">ElevenLabs · premium</div>
-    <div class="opt" data-v="hybrid">Hybrid · local read-outs + realtime chat</div>
-  </div>
-  <p class="note vopt" style="display:none;text-align:left;color:#586872;margin-top:6px">Free = on-device, ~1–3s delay (fine for read-outs). OpenAI realtime = instant &amp; conversational (your key, billed per minute). <b>Hybrid</b> = free local for read-outs, realtime only while you're talking back — cheapest path to a real-time feel.</p>
+  <div class="q vopt">7 · Voice engine</div>
+  <select class="vsel vopt" id="voiceengine">
+    <option value="oss">Free · open-source on-device (Voicebox)</option>
+    <option value="openai">OpenAI · realtime</option>
+    <option value="elevenlabs">ElevenLabs · premium</option>
+    <option value="hybrid">Hybrid · local read-outs + realtime chat</option>
+  </select>
+  <p class="note vopt" style="text-align:left;color:#586872;margin-top:6px">Free = on-device, ~1–3s delay (fine for read-outs). OpenAI realtime = instant &amp; conversational (your key, billed per minute). <b>Hybrid</b> = free local read-outs, realtime only while you're talking back — cheapest path to a real-time feel.</p>
   <input type="password" id="apikey" placeholder="Paste your OpenAI / ElevenLabs API key" style="display:none;margin-top:8px;width:100%;padding:9px;border:1.5px solid #1f3a3a;border-radius:8px;background:#0c1417;color:#eafffb;font-size:12.5px;box-sizing:border-box"/>
   <input type="text" id="elvoiceid" placeholder="ElevenLabs voice ID (optional — use a specific voice)" style="display:none;margin-top:6px;width:100%;padding:9px;border:1.5px solid #1f3a3a;border-radius:8px;background:#0c1417;color:#eafffb;font-size:12.5px;box-sizing:border-box"/>
 
-  <div class="q vopt" style="display:none">8 · Which voice?</div>
-  <div class="row vopt" id="voicesrc" style="display:none">
-    <div class="opt sel" data-v="default">Default voice (matches your style)</div>
-    <div class="opt" data-v="upload">Upload a voice clip</div>
-    <div class="opt" data-v="clone">Clone a voice</div>
-  </div>
+  <div class="q vopt">8 · Which voice?</div>
+  <select class="vsel vopt" id="voicesrc">
+    <option value="default">Default voice (matches your style)</option>
+    <option value="upload">Upload a voice clip</option>
+    <option value="clone">Clone a voice</option>
+  </select>
   <input type="file" id="voicefile" accept="audio/*" style="display:none;margin-top:8px;width:100%;color:#8fb8b1;font-size:12px"/>
-  <p class="note vopt" style="display:none;text-align:left;color:#586872;margin-top:6px">Default voices — <b>Standard:</b> warm female · <b>LCARS / J.A.R.V.I.S.:</b> British male · <b>AISHA:</b> Black female. Upload or clone overrides it; your clip stays on-device. (Cloning is the opt-in research workflow — supply a voice you have the rights to.)</p>
+  <p class="note vopt" style="text-align:left;color:#586872;margin-top:6px">Default voices — <b>Standard:</b> warm female · <b>LCARS / J.A.R.V.I.S.:</b> British male · <b>AISHA:</b> Black female. Upload or clone overrides it; your clip stays on-device. (Cloning is the opt-in research workflow — supply a voice you have the rights to.)</p>
 
   <div class="q">9 · Talk back to it? (interactive)</div>
   <div class="row" id="interactive">
@@ -108,21 +113,27 @@
     // moot when "Silent" is picked. Only the engine key/voice-ID fields + the upload/clone file picker
     // stay conditional (shown for the engine/source that needs them).
     document.querySelectorAll('.vopt').forEach(el => { el.style.display = el.classList.contains('row') ? 'flex' : ''; });
+    // tile groups (mascot, speak, talk-back, …) — click to select
     document.querySelectorAll('.row').forEach(row => {
       row.addEventListener('click', e => {
         const o = e.target.closest('.opt'); if (!o) return;
         row.querySelectorAll('.opt').forEach(x => x.classList.remove('sel'));
         o.classList.add('sel'); sel[row.id] = o.dataset.v;
-        if (row.id === 'voiceengine') {
-          const en = sel.voiceengine;
-          document.getElementById('apikey').style.display = (en === 'openai' || en === 'elevenlabs' || en === 'hybrid') ? 'block' : 'none';
-          document.getElementById('elvoiceid').style.display = (en === 'elevenlabs') ? 'block' : 'none';
-        }
-        if (row.id === 'voice' || row.id === 'voicesrc') {
-          const needFile = sel.voice !== 'off' && (sel.voicesrc === 'upload' || sel.voicesrc === 'clone');
-          document.getElementById('voicefile').style.display = needFile ? 'block' : 'none';
-        }
       });
+    });
+    // dropdowns (readout style, engine, which-voice) — sync to sel + reveal conditional fields
+    function syncEngine() {
+      const en = sel.voiceengine;
+      document.getElementById('apikey').style.display = (en === 'openai' || en === 'elevenlabs' || en === 'hybrid') ? 'block' : 'none';
+      document.getElementById('elvoiceid').style.display = (en === 'elevenlabs') ? 'block' : 'none';
+    }
+    function syncSrc() {
+      document.getElementById('voicefile').style.display = (sel.voicesrc === 'upload' || sel.voicesrc === 'clone') ? 'block' : 'none';
+    }
+    ['readout','voiceengine','voicesrc'].forEach(id => {
+      const s = document.getElementById(id);
+      if (sel[id]) s.value = sel[id];
+      s.addEventListener('change', () => { sel[id] = s.value; if (id === 'voiceengine') syncEngine(); if (id === 'voicesrc') syncSrc(); });
     });
     document.getElementById('voicefile').addEventListener('change', e => {
       const f = e.target.files[0];
