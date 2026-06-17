@@ -343,6 +343,15 @@ def run_verified(goal: str, executor: Executor | None = None,
         prior = recall(goal)
         if prior and verbose:
             print(f"[memory] recalled {prior.count('- goal:')} relevant prior outcome(s)")
+        # Also inherit cross-path LESSONS (what the swarm + synthesize learned) so every spawn — not just
+        # the swarm — remembers how similar goals were solved. (Same membank the rest of the harness writes.)
+        try:
+            from . import membank
+            lesson = membank.recall(goal, budget_chars=700)
+            if lesson and not lesson.startswith("[membank"):
+                prior = (prior + "\n" if prior else "") + lesson
+        except Exception:
+            pass
     # DETERMINISTIC trigger: the harness decides when discovery is warranted — the
     # model is never asked to remember to do it.
     do_discover = discover is True or (discover == "auto" and _should_discover(goal))
