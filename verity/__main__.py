@@ -7,6 +7,7 @@
   python3 -m verity providers [name]   # how to wire FREE LLM access
   python3 -m verity solve "<goal>"     # full discipline scaffold (real shell)
 """
+import json
 import os
 import sys
 
@@ -398,6 +399,19 @@ def main(argv: list[str]) -> None:
                   "  observe→act loop for any macOS app. Learn it: verity desktop skills get desktop",
                   file=sys.stderr); sys.exit(2)
         sys.exit(_sp.run([ad, *rest]).returncode)
+    elif cmd == "voice":
+        from . import voice as _v
+        sub = rest[0] if rest else "status"
+        if sub == "say":
+            if len(rest) < 2:
+                print("usage: verity voice say \"<text>\"", file=sys.stderr); sys.exit(2)
+            r = _v.say(" ".join(rest[1:]), verbose=True)
+            if not r.get("spoke"):
+                print(f"[voice] did not speak: {r.get('reason','')}", file=sys.stderr)
+        elif sub == "listen":
+            print(json.dumps(_v.listen(), indent=2))
+        else:
+            print(_v.status())
     elif cmd == "loop":
         if not rest:
             print("usage: loop \"<goal>\" [--exec]   (--exec = allowlisted shell, else plan-only)",
