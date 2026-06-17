@@ -410,6 +410,14 @@ def main(argv: list[str]) -> None:
                 print(f"[voice] did not speak: {r.get('reason','')}", file=sys.stderr)
         elif sub == "listen":
             print(json.dumps(_v.listen(), indent=2))
+        elif sub == "train":
+            if len(rest) < 3:
+                print("usage: verity voice train <style> <clip-path>  (style = standard|lcars|aisha|avani|…)\n"
+                      "  registers a rights-clean clip YOU supply as that style's voice (sources nothing).",
+                      file=sys.stderr); sys.exit(2)
+            print(json.dumps(_v.train(rest[1], rest[2]), indent=2))
+        elif sub == "watch":
+            _v.watch()
         else:
             print(_v.status())
     elif cmd == "loop":

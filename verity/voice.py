@@ -24,8 +24,10 @@ import os
 import pathlib
 import shutil
 import subprocess
+import time
 
 _HOME = pathlib.Path.home()
+_VOICES = _HOME / ".verity-harness" / "voices"            # per-style trained voice references live here
 _CFG = _HOME / ".verity-harness" / "mascot.json"
 _STYLE_FILES = ("~/.verity-harness/tts-style", "~/.openclaw/state/tts-style")
 _MODE_FILE = _HOME / ".verity-harness" / "voice-mode"
@@ -173,6 +175,86 @@ def _say_futron(text: str) -> bool:
         return False
 
 
+def _voice_ref(style: str):
+    p = _VOICES / f"{style}.wav"
+    return str(p) if p.exists() else None
+
+
+def _say_clone(text: str, style: str) -> bool:
+    """Speak in a TRAINED voice — futron-tts (Qwen3 zero-shot clone). Per-style ref wins; else a 'default'
+    or 'avani' trained voice covers every style (so one trained AVANI voice voices all responses)."""
+    ref = _voice_ref(style) or _voice_ref("default") or _voice_ref("avani")
+    if not ref:
+        return False
+    tts = shutil.which("futron-tts") or os.path.expanduser("~/.openclaw/bin/futron-tts")
+    if not (os.path.exists(tts) or shutil.which("futron-tts")):
+        return False
+    import tempfile
+    out = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
+    env = dict(os.environ, FUTRON_TTS_REF_AUDIO=ref)
+    try:
+        r = subprocess.run([tts, "generate", "--text", text[:2000], "--output", out],
+                           env=env, timeout=300, capture_output=True)
+        if r.returncode == 0 and os.path.exists(out) and os.path.getsize(out) > 1000:
+            player = shutil.which("play") or shutil.which("afplay")
+            if player:
+                subprocess.run([player, out], timeout=300, capture_output=True)
+            os.unlink(out)
+            return True
+    except Exception:
+        pass
+    try:
+        os.unlink(out)
+    except Exception:
+        pass
+    return False
+
+
+def train(style: str, clip_path: str) -> dict:
+    """Register a rights-clean clip as the voice for a style. Clones what YOU supply — sources nothing.
+    Converts to 24k-mono WAV (ffmpeg) into ~/.verity-harness/voices/<style>.wav for the OSS clone path."""
+    style = (style or "").strip().lower()
+    src = os.path.expanduser(clip_path or "")
+    if not style:
+        return {"ok": False, "error": "need a style name (standard|lcars|aisha|avani|veri|…)"}
+    if not os.path.exists(src):
+        return {"ok": False, "error": f"clip not found: {src}"}
+    _VOICES.mkdir(parents=True, exist_ok=True)
+    dst = _VOICES / f"{style}.wav"
+    try:
+        ff = shutil.which("ffmpeg")
+        if ff:
+            subprocess.run([ff, "-y", "-i", src, "-ar", "24000", "-ac", "1", str(dst)],
+                           capture_output=True, timeout=120)
+        if not dst.exists() or dst.stat().st_size < 1000:
+            shutil.copy(src, dst)
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    return {"ok": dst.exists(), "style": style, "ref": str(dst),
+            "note": "speak it: readout-style=" + style + " + engine=oss → the OSS path clones from this reference."}
+
+
+def watch(interval: float = 5.0):
+    """Daemon: watch ~/.verity-harness/voices/incoming/ for <style>.<ext> clips and auto-train each.
+    Drop a rights-clean clip named by its style; it gets registered. Sources nothing — only processes drops."""
+    inbox, done = _VOICES / "incoming", _VOICES / "trained"
+    inbox.mkdir(parents=True, exist_ok=True)
+    done.mkdir(parents=True, exist_ok=True)
+    print(f"[voice-train] watching {inbox}\n  drop <style>.wav|mp3|m4a|flac  (style = standard|lcars|aisha|avani|veri)")
+    while True:
+        try:
+            for f in sorted(inbox.iterdir()):
+                if f.is_file() and f.suffix.lower() in (".wav", ".mp3", ".m4a", ".flac", ".ogg"):
+                    print(f"[voice-train] {f.name} -> {train(f.stem, str(f))}")
+                    try:
+                        f.rename(done / f.name)
+                    except Exception:
+                        pass
+        except Exception as e:
+            print(f"[voice-train] scan error: {e}")
+        time.sleep(interval)
+
+
 def _say_os(text: str, style: str) -> bool:
     """Zero-dep speech floor — macOS `say -v <per-style voice>` (or `espeak`/`spd-say` on Linux)."""
     say = shutil.which("say")
@@ -210,6 +292,8 @@ def say(text: str, verbose: bool = False) -> dict:
         used = "elevenlabs"
     elif eng in ("oss", "hybrid") and _say_voicebox(spoken, c["style"]):
         used = "voicebox"
+    if not used and eng in ("oss", "hybrid") and _say_clone(spoken, c["style"]):  # TRAINED per-style voice
+        used = "clone:" + c["style"]
     if not used and _say_futron(spoken):          # existing AVANI voice (Kokoro/RVC) — keep her voice, not generic
         used = "futron-cli (AVANI)"
     if not used and _say_os(spoken, c["style"]):  # zero-dep floor only when no AVANI voice path exists
