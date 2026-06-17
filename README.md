@@ -574,11 +574,19 @@ its result (and, optionally, you talk back). All of it is configured in the one 
   - **LCARS / J.A.R.V.I.S.** — terse, technical, emotionless computer cadence (*"Acknowledged. Two systems updated; one awaits authorization."*).
   - **AISHA** — Gen-Z, expressive, a little sassy.
 - **Engine** — **Voicebox** (free, open-source, on-device — the default, no per-word cloud cost), **OpenAI**
-  (realtime), or **ElevenLabs** — the latter two with your own API key (kept on-device), plus an optional
-  **ElevenLabs voice ID** to pin a specific voice.
+  (realtime), **ElevenLabs**, or **Hybrid** — the paid ones with your own API key (kept on-device), plus an
+  optional **ElevenLabs voice ID** to pin a specific voice.
+- **Hybrid (best of both)** — free on-device TTS for read-outs (~1–3s, no cost), and **real-time only when
+  you talk back** (OpenAI Realtime, billed per minute). You get the instant conversational feel exactly when
+  it matters, and pay nothing for the bulk read-outs. Real-time interactivity is **opt-in and costly** —
+  labeled as such in the setup so the free path's slight delay is never a surprise.
 - **Voice** — a **per-style default** (Standard → warm female · LCARS/J.A.R.V.I.S. → British male ·
   AISHA → Black female), **upload a clip**, or **clone** one (on-device; the opt-in research workflow).
 - **Talk back** — optional push-to-talk (on-device Whisper) so you drive any attached LLM by voice.
+- **Platforms** — the voice layer runs on **macOS, Windows, and Linux** (Voicebox supports all three; the
+  cloud engines are network-based, so they're platform-agnostic). The desktop *mascot* is Electron
+  (macOS/Windows/Linux). **Android/iOS** is a separate mobile path on the roadmap — there the harness leans
+  on the OS's native TTS/STT (or a paired-desktop relay) rather than the desktop app.
 
 ### The voice-clone workflow — a runnable proof of agentic capability
 VERITY ships an **opt-in example workflow** (not pre-made voices) that lets *your own* LLM do the whole
