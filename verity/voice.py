@@ -161,6 +161,18 @@ def _say_voicebox(text: str, style: str) -> bool:
     return False
 
 
+def _say_futron(text: str) -> bool:
+    """Reuse an existing AVANI-voice CLI if present (futron-cli-speak → Kokoro/RVC AVANI voice).
+    Preferred over the plain-`say` floor so we keep AVANI's actual voice, not a generic system one."""
+    cli = shutil.which("futron-cli-speak") or os.path.expanduser("~/.openclaw/bin/futron-cli-speak")
+    if not (os.path.exists(cli) or shutil.which("futron-cli-speak")):
+        return False
+    try:
+        return subprocess.run([cli, text[:5000]], timeout=300).returncode == 0
+    except Exception:
+        return False
+
+
 def _say_os(text: str, style: str) -> bool:
     """Zero-dep speech floor — macOS `say -v <per-style voice>` (or `espeak`/`spd-say` on Linux)."""
     say = shutil.which("say")
@@ -198,7 +210,9 @@ def say(text: str, verbose: bool = False) -> dict:
         used = "elevenlabs"
     elif eng in ("oss", "hybrid") and _say_voicebox(spoken, c["style"]):
         used = "voicebox"
-    if not used and _say_os(spoken, c["style"]):
+    if not used and _say_futron(spoken):          # existing AVANI voice (Kokoro/RVC) — keep her voice, not generic
+        used = "futron-cli (AVANI)"
+    if not used and _say_os(spoken, c["style"]):  # zero-dep floor only when no AVANI voice path exists
         used = "os-floor"
     if verbose:
         print(f"[voice] engine={eng}->{used} style={c['style']} mode={c['speak']}\n  «{spoken}»")
