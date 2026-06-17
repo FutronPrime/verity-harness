@@ -354,6 +354,35 @@ def main(argv: list[str]) -> None:
                              gate_cmd=gate_cmd, deadline_s=deadline, verbose=True)
             print(f"\n=== result ===\ndone={r.done} verified={r.verified_steps} "
                   f"failed={r.failed_steps}\n{r.summary}")
+    elif cmd == "synthesize":
+        if not rest:
+            print("usage: synthesize \"<goal>\" [--build] [--gate \"<verify cmd>\"] [--deadline <s>]\n"
+                  "  Builds whatever DIGITAL capability the goal needs: decompose → reuse-first discover →\n"
+                  "  plan → [build if missing] → verify → register. Plan-only unless --build + --gate given\n"
+                  "  (the gate is the objective 'it works' test — no claiming done without it).",
+                  file=sys.stderr); sys.exit(2)
+        build = "--build" in rest
+        gate = deadline = None
+        toks = list(rest)
+        for flag in ("--gate", "--deadline"):
+            if flag in toks:
+                i = toks.index(flag)
+                val = toks[i + 1] if i + 1 < len(toks) else None
+                if val is None:
+                    print(f"{flag} needs a value", file=sys.stderr); sys.exit(2)
+                if flag == "--gate":
+                    gate = val
+                else:
+                    try: deadline = float(val)
+                    except ValueError:
+                        print("--deadline must be seconds", file=sys.stderr); sys.exit(2)
+                del toks[i:i + 2]
+        goal = " ".join(x for x in toks if x != "--build")
+        from .synthesize import synthesize
+        synthesize(goal, build=build, gate=gate, deadline=deadline, verbose=True)
+    elif cmd in ("synth-list", "synthesized"):
+        from .synthesize import list_capabilities
+        print(list_capabilities())
     elif cmd == "loop":
         if not rest:
             print("usage: loop \"<goal>\" [--exec]   (--exec = allowlisted shell, else plan-only)",
