@@ -4,11 +4,27 @@ A runnable demonstration of `verity synthesize` doing a **real multi-stage agent
 sources a voice reference, processes it, clones it into the local voice engine (Voicebox), wires it as a
 readout style, and verifies it plays — end to end, with the harness's verify-before-done discipline.
 
-> **VERITY ships this *workflow*, never any voices.** You supply the reference, and **you are responsible
-> for the rights to whatever you clone.** Use your own recording, a CC0 / royalty-free voice, or a voice you
-> are licensed to use. Do **not** clone a real person's voice or a copyrighted character to redistribute or
-> advertise — that is voice misappropriation / IP infringement, and the liability is yours. The harness
-> won't stop you from pointing it at a file; the law still applies. Keep it to voices you own or are licensed for.
+## ⚖️ Research & personal-use only — legal notice (read before running)
+
+This workflow is provided **solely for research, education, and private demonstration of agentic
+capability.** It is **NOT** licensed or intended for commercial use, monetization, public distribution,
+broadcast, advertising, publication, or any other public consumption.
+
+- **VERITY ships this *workflow / code only* — never any voice models, samples, or generated audio.**
+- **Do not** use it to clone, imitate, synthesize, or reproduce the voice or likeness of **any real
+  person** without that person's explicit prior written consent, **nor** the voice of any **copyrighted or
+  trademarked character or work.**
+- **You** are solely responsible for obtaining all rights, licenses, and consents for any reference you
+  supply, and for compliance with all applicable laws — including right-of-publicity / likeness,
+  copyright, trademark, and voice-cloning / synthetic-media ("deepfake") statutes in your jurisdiction.
+- Permissible references: **your own recordings**, **CC0 / public-domain** audio, **royalty-free** voices,
+  or a voice you are **explicitly licensed** to use.
+- The maintainers distribute no audio, endorse no particular use, and accept **no liability**; the software
+  is provided "as is," without warranty. The harness will not police what file you point it at — **the law
+  still applies, and the responsibility is entirely yours.**
+
+By running this workflow you confirm your use is non-commercial research/personal demonstration and that
+you hold the necessary rights to your reference audio.
 
 ## What it shows
 A single goal fans out into the kind of multi-step plan a capable agent should run on its own:

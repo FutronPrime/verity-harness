@@ -586,6 +586,10 @@ multi-stage agentic task. **You supply the reference** (your own recording, a ro
 voice you're licensed to use) and **you are responsible for the rights** to anything you clone — VERITY
 distributes the *workflow*, never the voices. Run it, watch your model build the capability itself.
 
+> **For research & personal demonstration only — not for commercial use, monetization, public distribution,
+> or advertising.** Do not clone a real person's voice or a copyrighted character for distribution or
+> impersonation. Full notice: [`examples/voice-clone-workflow.md`](examples/voice-clone-workflow.md).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
