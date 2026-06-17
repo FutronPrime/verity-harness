@@ -19,7 +19,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="VerityPromo"
         component={VerityPromo}
-        durationInFrames={680}   // sting(120) + HUD gameplay(480) + CTA(80) @ 30fps ≈ 22.7s
+        durationInFrames={885}   // sting(75) + HUD gameplay(690) + CTA(120) @ 30fps ≈ 29.5s (fits 25.5s VO)
         fps={30}
         width={1920}
         height={1080}

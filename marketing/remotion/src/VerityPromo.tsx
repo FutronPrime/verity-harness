@@ -103,9 +103,9 @@ const CTA: React.FC = () => {
 export const VerityPromo: React.FC = () => {
   return (
     <AbsoluteFill style={{backgroundColor: BG}}>
-      <Sequence durationInFrames={120}><VerityIntro /></Sequence>
-      <Sequence from={120} durationInFrames={480}><HudGameplay /></Sequence>
-      <Sequence from={600} durationInFrames={80}><CTA /></Sequence>
+      <Sequence durationInFrames={75}><VerityIntro /></Sequence>
+      <Sequence from={75} durationInFrames={690}><HudGameplay /></Sequence>
+      <Sequence from={765} durationInFrames={120}><CTA /></Sequence>
     </AbsoluteFill>
   );
 };
