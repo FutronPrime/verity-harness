@@ -71,7 +71,42 @@ def build():
     return head + "\n" + "\n".join(S) + "\n</svg>\n"
 
 
+def build_hook():
+    """Variant 2 — the scary-stat hook (single big claim) for X virality."""
+    S = []
+    hawk, (hw, hh) = _b64_hawk(300)
+    S.append(f'<path d="M64 66 L96 130 L128 66 L116 66 L96 106 L76 66 Z" fill="{CYAN}"/>')
+    t(S, 142, 104, "VERITY", 40, INK, "hv")
+    t(S, 144, 130, "THE TRUTH HARNESS", 13, CYAN, "mono", "start", 5)
+    t(S, 64, 250, "Even a frontier model gets", 30, GRY, "nar")
+    t(S, 64, 330, "~80% of CURRENT facts", 64, INK, "hv")
+    t(S, 64, 398, "WRONG", 64, MAG, "hv")
+    t(S, 360, 398, "from memory.", 40, GRY, "nar")
+    t(S, 64, 462, "Its training cutoff is in the past. VERITY makes it LOOK THINGS UP", 19, INK, "nar")
+    t(S, 64, 490, "instead of confabulating.  Same model: 20% → 88%.  🔒 and its memory can't touch your files.", 16, CYAN, "nar")
+    if hawk:
+        S.append(f'<image href="{hawk}" x="{W-hw-44}" y="64" width="{hw}" height="{hh}" opacity="0.95"/>')
+    S.append(f'<path d="{cut(64, H-72, W-128, 40, 12)}" fill="#0c1417" stroke="{CYAN}" stroke-width="1.3"/>')
+    t(S, 84, H-46, "⭐ open-source · zero-dependency · model-agnostic", 16, INK, "hv")
+    t(S, W-84, H-46, "github.com/FutronPrime/verity-harness", 16, CYAN, "mono", "end")
+    head = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" '
+            f'font-family="\'Arial Narrow\',\'Helvetica Neue\',Arial,sans-serif" role="img">'
+            '<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">'
+            '<stop offset="0" stop-color="#070a0d"/><stop offset="1" stop-color="#03070b"/></linearGradient>'
+            '<pattern id="scan" width="3" height="3" patternUnits="userSpaceOnUse">'
+            '<rect width="3" height="1" fill="#0c1a1d" opacity="0.5"/></pattern>'
+            "<style>.mono{font-family:'SF Mono','Menlo',monospace}.hv{font-family:'Arial Black',Arial,sans-serif;font-weight:900}"
+            ".nar{font-family:'Arial Narrow',Arial,sans-serif}</style></defs>"
+            f'<rect width="{W}" height="{H}" fill="url(#bg)"/><rect width="{W}" height="{H}" fill="url(#scan)"/>'
+            f'<path d="M16,16 H{W-48} L{W-16},48 V{H-16} H64 L16,{H-64} Z" fill="none" stroke="#1f5c54" stroke-width="2"/>'
+            f'<rect x="16" y="{H-8}" width="{W-32}" height="4" fill="{MAG}"/>')
+    return head + "\n" + "\n".join(S) + "\n</svg>\n"
+
+
 if __name__ == "__main__":
-    out = os.path.join(ROOT, "assets/promo-card.svg")
-    open(out, "w").write(build())
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "hook":
+        out = os.path.join(ROOT, "assets/promo-hook.svg"); open(out, "w").write(build_hook())
+    else:
+        out = os.path.join(ROOT, "assets/promo-card.svg"); open(out, "w").write(build())
     print(f"wrote {out}")
