@@ -105,6 +105,15 @@ REGISTRY = [
     {"name": "ripienaar/free-for-dev", "url": "https://github.com/ripienaar/free-for-dev",
      "kind": "awesome", "tags": ["free", "tier", "hosting", "saas", "api", "infra", "deploy", "service"],
      "note": "Free-tier SaaS/infra for developers — check before paying for hosting/APIs/services."},
+
+    # ── desktop/GUI automation — the harness's "hands" (observe→decide→act in any app) ──────────
+    {"name": "per-simmons/agent-desktop", "url": "https://github.com/per-simmons/agent-desktop",
+     "kind": "tool", "tags": ["desktop", "gui", "automation", "cua", "computer-use", "click", "type",
+                              "accessibility", "control", "app", "macos", "hands", "automate", "interact"],
+     "note": "VERITY's desktop HANDS — drive any macOS app via the accessibility tree (snapshot→find→"
+             "click/type/select/toggle). Reliable structured control, not pixel-clicking. Install: "
+             "`npm i -g agent-desktop`; in-harness wrapper: `verity desktop <subcommand>`. Reach for this "
+             "for ANY GUI task — opening apps, filling forms, clicking through flows — before deferring to the user."},
 ]
 
 _BUILD_HINTS = ("build", "create", "implement", "make", "add", "write a", "develop", "design",

@@ -7,6 +7,7 @@
   python3 -m verity providers [name]   # how to wire FREE LLM access
   python3 -m verity solve "<goal>"     # full discipline scaffold (real shell)
 """
+import os
 import sys
 
 from .config import summary, TIERS, Tier
@@ -383,6 +384,20 @@ def main(argv: list[str]) -> None:
     elif cmd in ("synth-list", "synthesized"):
         from .synthesize import list_capabilities
         print(list_capabilities())
+    elif cmd == "desktop":
+        # VERITY's desktop HANDS — passthrough to agent-desktop (observe→act on any macOS app via the
+        # accessibility tree). Lets the harness drive GUIs autonomously instead of deferring to the user.
+        import shutil as _sh, subprocess as _sp
+        ad = _sh.which("agent-desktop") or os.path.expanduser("~/.npm-global/bin/agent-desktop")
+        if not os.path.exists(ad) and not _sh.which("agent-desktop"):
+            print("agent-desktop not installed (VERITY's desktop hands). Install: npm i -g agent-desktop\n"
+                  "Then: verity desktop snapshot | find | click | type | select | screenshot | ...",
+                  file=sys.stderr); sys.exit(2)
+        if not rest:
+            print("usage: verity desktop <snapshot|find|click|type|select|screenshot|...>  (wraps agent-desktop)\n"
+                  "  observe→act loop for any macOS app. Learn it: verity desktop skills get desktop",
+                  file=sys.stderr); sys.exit(2)
+        sys.exit(_sp.run([ad, *rest]).returncode)
     elif cmd == "loop":
         if not rest:
             print("usage: loop \"<goal>\" [--exec]   (--exec = allowlisted shell, else plan-only)",
