@@ -1,0 +1,1 @@
+Watch close. An LLM wrote this Tetris — but only because VERITY made it run the test before it could claim done. Same model. The only thing that changed is the discipline. That's the bet: the harness matters as much as the model. Open-source. Model-agnostic. Yours. VERITY — the truth, not a fable. Clone it on GitHub. The link is right there. Go make your model earn the word done.
