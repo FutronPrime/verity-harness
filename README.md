@@ -16,7 +16,9 @@
 **VERITY** is Latin (`veritas`) for **truth**. They banned the fiction — this is the open-source truth,
 and it can't be revoked.*
 
-### The open-source, model-agnostic Fable killer.
+### The open-source Fable alternative — frontier-grade discipline on models you own.
+
+*(model-agnostic · zero-dependency · local-first — the open-source way to get Fable-grade reliability without Fable.)*
 
 Make the models you **own** — a local 8B *or* a frontier flagship — verify, self-correct, and punch
 above their weight. Anthropic's **Fable** and **Mythos** can be banned, suspended, or priced out

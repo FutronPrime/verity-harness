@@ -36,11 +36,11 @@ def build():
     hawk, (hw, hh) = _b64_hawk(330)
     # V chevron mark
     S.append(f'<path d="M64 70 L104 150 L144 70 L128 70 L104 118 L80 70 Z" fill="{CYAN}"/>')
-    t(S, 162, 118, "VERITY", 60, INK, "hv")
-    t(S, 165, 150, "THE TRUTH HARNESS", 17, CYAN, "mono", "start", 6)
-    t(S, 64, 210, "Make ANY LLM verify instead of assume,", 27, INK, "nar")
-    t(S, 64, 244, "persist instead of quit, reuse before reinventing.", 27, INK, "nar")
-    t(S, 64, 282, "Open-source · zero-dependency · model-agnostic · a local floor you own.", 16.5, GRY, "nar")
+    t(S, 162, 116, "VERITY", 58, INK, "hv")
+    t(S, 165, 146, "THE OPEN-SOURCE FABLE ALTERNATIVE", 14.5, CYAN, "mono", "start", 3)
+    t(S, 64, 206, "Make ANY LLM verify instead of assume,", 27, INK, "nar")
+    t(S, 64, 240, "persist instead of quit, reuse before reinventing.", 27, INK, "nar")
+    t(S, 64, 280, "Frontier-grade discipline on models you own · zero-dependency · a local floor.", 16.5, GRY, "nar")
     # proof stats row — same model, harness off→on
     stats = [("ACCURACY", "20→88%"), ("CODING", "60→93%"), ("COORDINATION", "20→100%")]
     bx, bw, gap = 64, 230, 18
@@ -77,7 +77,7 @@ def build_hook():
     hawk, (hw, hh) = _b64_hawk(300)
     S.append(f'<path d="M64 66 L96 130 L128 66 L116 66 L96 106 L76 66 Z" fill="{CYAN}"/>')
     t(S, 142, 104, "VERITY", 40, INK, "hv")
-    t(S, 144, 130, "THE TRUTH HARNESS", 13, CYAN, "mono", "start", 5)
+    t(S, 144, 130, "THE OPEN-SOURCE FABLE ALTERNATIVE", 12.5, CYAN, "mono", "start", 2)
     t(S, 64, 250, "Even a frontier model gets", 30, GRY, "nar")
     t(S, 64, 330, "~80% of CURRENT facts", 64, INK, "hv")
     t(S, 64, 398, "WRONG", 64, MAG, "hv")

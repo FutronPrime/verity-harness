@@ -5,8 +5,12 @@
 # VERITY — Marketing & Launch Playbook
 
 ## 1. Positioning (the one-liner)
-**VERITY · The Truth Harness — the open-source, model-agnostic way to make *any* LLM verify instead of
-assume, persist instead of quit, and reuse before reinventing — with a local failover floor you own.**
+**VERITY — the open-source Fable alternative: a zero-dependency harness that makes *any* LLM verify
+instead of assume, persist instead of quit, and reuse before reinventing — with a local failover floor you own.**
+
+> ⭐ **LEAD WITH "open-source Fable alternative" EVERYWHERE** — title, first line, hashtags, topics. It's
+> the highest-traffic search term and the correct category. (Honest framing: it's the open-source *path to*
+> Fable-grade reliability on models you own — not a weight clone. Never claim it IS Fable or matches its raw IQ.)
 
 Sub-positioning by audience:
 - *For agent builders fighting hallucination:* "Stop your agent from being confidently wrong."
@@ -50,7 +54,7 @@ The killer stat: *even a frontier model gets ~80% of CURRENT facts wrong from me
 ## 5. READY-TO-FIRE COPY
 
 ### A. X launch thread (lead)
-1/ Your AI agent's biggest problem isn't intelligence — it's *discipline*. It guesses when it should look things up, quits when it should persist, and says "done" when nothing was checked. VERITY fixes that for ANY model. Open-source, zero-dependency. 🧵
+1/ Your AI agent's biggest problem isn't intelligence — it's *discipline*. It guesses when it should look things up, quits when it should persist, and says "done" when nothing was checked. VERITY — **the open-source Fable alternative** — fixes that for ANY model. Zero-dependency. 🧵
 2/ The bet: what makes a frontier model *feel* reliable isn't only raw IQ — it's judgment under process. Look up current facts. Verify before declaring done. Don't quit on the first wall. Reuse before reinventing. Those are **transplantable**.
 3/ Proof = same model, harness OFF→ON, the only change is the discipline:
 • accuracy 20%→88%
@@ -71,7 +75,7 @@ Every number reproducible on your own models.
 - "Zero pip installs. Pure Python stdlib. `git clone` → an agent that verifies, persists, and reuses before reinventing — on any model, with a local floor you own. github.com/FutronPrime/verity-harness"
 
 ### C. Reddit — r/LocalLLaMA (title + body)
-**Title:** VERITY — a zero-dependency "discipline harness" that makes any local model verify instead of hallucinate (with a local Ollama failover floor)
+**Title:** VERITY — the open-source Fable alternative: a zero-dependency harness that makes any local model verify instead of hallucinate (with a local Ollama failover floor)
 **Body:**
 I got tired of agents being confidently wrong, quitting on the first wall, and saying "done" without checking anything — so I built VERITY: a pure-stdlib (no pip) harness that gates an LLM on *code conditions*, not vibes.
 What it does, same model harness off→on (all reproducible): accuracy 20%→88% (flagship) / 8%→91% (cheap+local), research 44%→100%, coding 60%→93%, coordination 20%→100%.
@@ -79,7 +83,7 @@ Why r/LocalLLaMA might care specifically: it's **model-agnostic** and **local-fi
 Repo (MIT, zero-dep): github.com/FutronPrime/verity-harness — would love feedback on the eval methodology (it's `verity eval`, deterministic, runs on your models).
 
 ### D. Hacker News — Show HN
-**Title:** Show HN: VERITY – zero-dependency harness that makes any LLM verify instead of assume
+**Title:** Show HN: VERITY – the open-source Fable alternative (zero-dep harness that makes any LLM verify instead of assume)
 **Body:** Same model, only the harness changes: accuracy 20%→88%, coding 60%→93%, coordination 20%→100% — every number reproducible (`verity eval` on your own models). Pure Python stdlib (no deps), model-agnostic, with a local Ollama failover floor you own. The honest finding baked into the benchmark: even a frontier model gets ~80% of *current* facts wrong from memory, so the harness forces it to look things up. Memory layer is add-only and can't touch your files; the self-evolution loop is gated so it can't self-corrupt. github.com/FutronPrime/verity-harness
 
 ### E. Product Hunt
@@ -88,14 +92,15 @@ Repo (MIT, zero-dep): github.com/FutronPrime/verity-harness — would love feedb
 **First comment:** Built this because I was tired of agents being confidently wrong. The benchmark is honest — it even shows the run where the harness caught its *own* bad eval. Reproduce any number on your own models. Feedback welcome!
 
 ### F. Tagline variants
+- **"The open-source Fable alternative."**  ← lead tagline (highest-traffic, correct category)
 - "The Truth Harness."
 - "Make any model think like Fable — without Fable."
 - "Verify, don't assume. Persist, don't quit. Reuse, don't reinvent."
 - "Frontier discipline. Any model. Zero dependencies."
 
 ### G. Hashtags / tags
-`#LLM #AIagents #opensource #LocalLLaMA #selfhosted #Python #MachineLearning #AI #agents #Ollama #hallucination #AItools`
-GitHub topics: `llm` `ai-agent` `agents` `local-llm` `openai-compatible` `hallucination` `self-hosted` `python` `zero-dependency` `llm-agnostic`
+`#Fable #FableAlternative #OpenSourceAI #LLM #AIagents #opensource #LocalLLaMA #selfhosted #Python #Ollama #hallucination #AItools`
+GitHub topics (LIVE): `fable` `fable-alternative` `open-source-fable` `llm` `ai-agents` `local-llm` `openai-compatible` `hallucination` `self-hosted` `python` `zero-dependency` `ollama`
 
 ---
 
