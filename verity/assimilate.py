@@ -68,6 +68,7 @@ class Channel:
     handle: str = ""                       # e.g. "@MarketMondays" — resolved lazily
     goals: list[str] = field(default_factory=list)
     schedule_hint: str = ""                # e.g. "Mon 18:00" — for schedule-learned scouting
+    live: bool = False                     # channel posts LIVESTREAMS the RSS feed misses → also scout /streams
 
 
 @dataclass
@@ -76,6 +77,7 @@ class Config:
     channels: list[Channel] = field(default_factory=list)
     watch_skill: str = ""                  # path to claude-watch/scripts/watch.py
     max_videos_per_run: int = 3
+    include_streams: bool = True           # also pull each channel's /streams tab (RSS misses livestreams)
     # ── audio "hearing" (DJ's call: Gemini hears singing/comedic-timing/emotion that Whisper-text misses) ──
     gemini_cli: str = "gemini"                            # the installed Gemini CLI binary
     gemini_model: str = "gemini-3.1-pro-preview"          # VERIFIED live (OpenRouter registry 2026-06-18)
@@ -123,6 +125,7 @@ def load_config() -> Config:
             gemini_model=raw.get("gemini_model", d.gemini_model),
             gemini_transcriber=raw.get("gemini_transcriber", d.gemini_transcriber),
             genie_prefs=raw.get("genie_prefs", d.genie_prefs),
+            include_streams=raw.get("include_streams", d.include_streams),
         )
     cfg = default_config()
     save_config(cfg)
@@ -195,10 +198,46 @@ def scout_channel(channel_id: str, limit: int = 15) -> list[dict]:
     return vids
 
 
-def scout_new(channel_id: str, mark: bool = False) -> list[dict]:
-    """Videos not seen before. If mark=True, record them as seen."""
+def scout_streams(channel_id: str, limit: int = 8) -> list[dict]:
+    """Recent LIVESTREAMS/premieres via yt-dlp's /streams tab — the RSS feed misses these entirely
+    (verified 2026-06-18: Alex Finn's whole LIVE output is absent from his RSS). Currently-live and
+    upcoming streams are skipped (nothing to assimilate yet); completed VODs are returned."""
+    import shutil
+    if not shutil.which("yt-dlp"):
+        return []
+    url = f"https://www.youtube.com/channel/{channel_id}/streams"
+    try:
+        p = subprocess.run(
+            ["yt-dlp", "--flat-playlist", "--no-warnings", "-I", f"1:{limit}",
+             "--print", "%(id)s\t%(title)s\t%(live_status)s", url],
+            capture_output=True, text=True, timeout=90)
+    except Exception:
+        return []
+    out = []
+    for line in (p.stdout or "").strip().splitlines():
+        parts = line.split("\t")
+        if len(parts) < 2 or not parts[0]:
+            continue
+        vid, title = parts[0], parts[1]
+        live_status = parts[2] if len(parts) > 2 else ""
+        if live_status in ("is_live", "is_upcoming"):   # can't assimilate a stream that hasn't finished
+            continue
+        out.append({"video_id": vid, "title": title, "published": "",
+                    "url": f"https://youtu.be/{vid}", "description": "",
+                    "channel_id": channel_id, "is_live_vod": True})
+    return out
+
+
+def scout_new(channel_id: str, mark: bool = False, include_streams: bool = False) -> list[dict]:
+    """Videos not seen before (RSS + optionally the /streams tab). If mark=True, record as seen."""
     seen = _load_seen()
-    fresh = [v for v in scout_channel(channel_id) if v["video_id"] not in seen]
+    items = scout_channel(channel_id)
+    if include_streams:
+        have = {v["video_id"] for v in items}
+        for s in scout_streams(channel_id):
+            if s["video_id"] not in have:
+                items.append(s); have.add(s["video_id"])
+    fresh = [v for v in items if v["video_id"] not in seen]
     if mark and fresh:
         seen |= {v["video_id"] for v in fresh}
         _save_seen(seen)
@@ -572,7 +611,7 @@ def run(do_watch: bool = False, max_videos: int = 0, verbose: bool = True) -> di
                 print(f"[scout] {ch.name}: no channel_id (set channel_id or a resolvable handle)")
             continue
         try:
-            fresh = scout_new(cid, mark=True)
+            fresh = scout_new(cid, mark=True, include_streams=(cfg.include_streams or ch.live))
         except Exception as e:
             if verbose:
                 print(f"[scout] {ch.name}: feed error: {e}")
@@ -657,10 +696,12 @@ def gemini_watch(media: str, intent: str = "", visual: bool = False,
 DIGEST_DIR = STATE_DIR / "digests"
 
 
-def digest(budget: int = 2, scout_only: bool = False, visual: bool = False,
+def digest(budget: int = 2, scout_only: bool = False, visual: bool = True,
            smart: bool = False, cfg: "Config | None" = None, verbose: bool = True) -> dict:
     # smart=False → DETERMINISTIC triage (instant, zero tokens): the daily job stays cheap; the only
     # token spend is the budgeted Gemini watches. smart=True opts into LLM triage for finer filtering.
+    # visual=True (DEFAULT) → Gemini SEES the video (on-screen content), not just hears it — the whole
+    # point of "watch" is the visual intel. include_streams catches livestreams the RSS feed misses.
     cfg = cfg or load_config()
     DIGEST_DIR.mkdir(parents=True, exist_ok=True)
     from datetime import date
@@ -671,7 +712,7 @@ def digest(budget: int = 2, scout_only: bool = False, visual: bool = False,
         if not cid:
             continue
         try:
-            fresh = scout_new(cid, mark=True)     # mark so tomorrow's brief won't repeat them
+            fresh = scout_new(cid, mark=True, include_streams=(cfg.include_streams or ch.live))
         except Exception as e:
             if verbose:
                 print(f"[digest] {ch.name}: feed error: {e}")
@@ -845,7 +886,7 @@ def cli(rest: list[str]) -> None:
     elif sub == "digest":
         # the scheduler entry point: free scout+triage daily, budgeted Gemini-watch, daily brief.
         scout_only = "--scout-only" in args
-        visual = "--visual" in args
+        visual = "--no-visual" not in args     # SEE by default; the visual intel is the whole point
         smart = "--smart" in args
         budget = 2
         if "--budget" in args:
