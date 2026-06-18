@@ -792,6 +792,14 @@ You have a REAL SHELL (ShellExecutor). That means you can:
       no-API-key path that works is the real browser client (attach media via clipboard paste).
   • YOUTUBE TRANSCRIPT (no key, via yt-dlp):  youtube_transcript('https://youtu.be/ID')
       (run `pip install yt-dlp` first if missing)
+  • WATCH / ASSIMILATE A VIDEO — SEE it, not just read a transcript (the whole point of "watch"):
+      python3 -m verity assimilate watch '<url>' --intent "what to learn"
+      Scene-change frames + transcript (claude-watch) for agent frame-reading, OR headless Gemini
+      multimodal that SEES on-screen content AND hears the audio. Related:
+        assimilate digest    → scout your YouTube channels (RSS + LIVESTREAMS) → triage → daily brief
+        assimilate listen <m> --mode performance → Gemini hears singing/comedic-timing/emotion
+        assimilate persona <video> --name X      → Digital Double dossier (looks/voice/mannerisms)
+      Use it to learn a how-to before doing a task, or to watch-for-the-user and summarize.
   • INSTALL any tool you need, then use it:
       pip install <pkg>      npm install -g <pkg>      brew install <tool>
       e.g. yt-dlp (video), jq (json), gh (github), pandoc, ripgrep, pdftotext

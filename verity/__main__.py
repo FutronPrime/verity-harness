@@ -6,6 +6,7 @@
   python3 -m verity failover-test      # prove Tier1→Tier0 failover
   python3 -m verity providers [name]   # how to wire FREE LLM access
   python3 -m verity solve "<goal>"     # full discipline scaffold (real shell)
+  python3 -m verity assimilate digest  # WATCH video for intel: scout channels → see (Gemini) → brief
 """
 import json
 import os

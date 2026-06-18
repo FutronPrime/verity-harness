@@ -22,6 +22,7 @@ conditions**, not by hoping the model behaves.
 | `verity ask "..."` | One prompt through the **failover chain** (cloud model → 2nd provider → local floor). |
 | `verity solve "..."` | The full agentic loop on a goal: pre-flight search → act → **verify** → self-correct, with an optional objective gate (`--gate "<test cmd>"`) and wall-clock stop (`--deadline`). |
 | `verity swarm "..."` | **Multi-agent**: plan → parallel research/execute → adversarial critic → synthesize. Every sub-agent is the same caliber as the lead and bound by the same gates. |
+| `verity assimilate <sub>` | **Watch video for intel** — give the agent a video input. Scout YouTube channels (RSS **+ livestreams**) → triage → *see* it (scene-change frames or headless Gemini multimodal) → summarize. `digest` = the scheduled daily brief; `listen` = hear performance/emotion; `persona` = a Digital Double dossier. See `docs/ASSIMILATE.md`. |
 | `verity models <provider>` | Read the **live OpenRouter registry** — current model ids, not stale guesses. |
 | `verity eval [--flagship]` | The reproducible A/B proof: same model, naive vs harness, on current-info traps. |
 | `verity demo ["<build task>"]` | The vibe check: same model builds a real app (Tetris) raw vs harnessed, then **runs + plays both in a headless browser** and fixes what doesn't work. Artifacts + screenshots in `./demo-out/`. |
@@ -49,6 +50,9 @@ conditions**, not by hoping the model behaves.
 - **Grunt-worker research arsenal** — agents reach Google/Brave + GitHub + Reddit + HN + StackOverflow,
   read X posts & long-form Articles, pull YouTube transcripts, browse walled pages, drive
   browser/CUA automation past blockers, and (optional) NotebookLM for deep source-grounded synthesis.
+- **Watch video, not just read it** — `verity assimilate` gives the agent a video input: scout
+  channels (RSS + livestreams), triage against your goals, *see* on-screen content (scene-change
+  frames or Gemini multimodal) and *hear* the performance, then summarize — on a budgeted daily schedule.
 - **Receipts** — every gate logs to a decision ledger you can read back.
 - **Universal** — works for any OpenAI-compatible model; wires into Claude Code, the Codex app/CLI, and Gemini.
 

@@ -328,6 +328,34 @@ pure-stdlib. (For other walled platforms — Reddit, YouTube, Bilibili, LinkedIn
 [Agent Reach](https://github.com/Panniantong/Agent-Reach), a multi-backend router VERITY surfaces
 via `system_web_tools()`.)
 
+## Watch a video — assimilate it for intel (`verity assimilate`)
+
+Reading the web is one input; the one an agent normally *can't* take is a **video**. `verity assimilate`
+gives it that input — and the point is to **watch** (see), not just transcribe.
+
+```bash
+verity assimilate watch "<url>" --intent "break down the hook"   # see + hear one video
+verity assimilate digest --budget 2                              # scout your channels → daily brief
+```
+
+Four stages, triage-first so a channel backlog can't burn your budget:
+
+- **Scout** — poll YouTube channels via RSS **and the `/streams` tab** (the RSS feed misses
+  livestreams — a creator's entire LIVE output can be invisible to it). No API key.
+- **Filter** — score new videos against your learning goals. Deterministic by default (instant, zero
+  tokens); `--smart` for LLM triage.
+- **Assimilate** — *see* it: scene-change frames for an agent to read directly
+  (built on [claude-watch](https://github.com/taoufik123-collab/claude-watch)), **or** headless
+  **Gemini multimodal** that reads on-screen content and hears the audio — cheap enough to schedule.
+- **Synthesize** — a structured brief (TL;DR, key moments, what was shown, entities, takeaways) into
+  bounded memory.
+
+Plus `assimilate listen --mode performance` (Gemini *hears* singing / comedic timing / emotion that a
+text transcript drops) and `assimilate persona <video> --name X` (a structured **Digital Double**
+dossier — looks, voice, mannerisms — for faithful recreation). Wire `digest` to a daily scheduler and
+you wake up to a budgeted brief of everything worth your time across your channels. Full guide:
+[`docs/ASSIMILATE.md`](docs/ASSIMILATE.md).
+
 ## Multi-agent swarm (the Mythos/Fable shape — self-contained)
 
 A single disciplined model is good; a **swarm of specialized disciplined agents** is the shape
