@@ -13,6 +13,30 @@ const CFG = path.join(os.homedir(), '.verity-harness', 'mascot.json');
 const DEFAULTS = {mascot: 'hawk', animations: 'full', layer: 'front', frequency: 'med', configured: false};
 function loadCfg() { try { return {...DEFAULTS, ...JSON.parse(fs.readFileSync(CFG, 'utf8'))}; } catch { return {...DEFAULTS}; } }
 function saveCfg(c) { try { fs.mkdirSync(path.dirname(CFG), {recursive: true}); fs.writeFileSync(CFG, JSON.stringify(c)); } catch {} }
+
+// ── live two-way voice ────────────────────────────────────────────────────────
+// When interactive voice is ON we open a TERMINAL running `verity voice listen` (press-ENTER mode).
+// Why a terminal and not a background spawn: press-ENTER needs stdin, AND a Terminal-hosted process
+// gets the macOS Microphone prompt cleanly (a deep Electron-spawned child does not). Hold-key/PTT would
+// need Input Monitoring, which macOS won't reliably grant to a spawned process — so press-ENTER it is.
+const { spawn } = require('child_process');
+const REPO = path.join(__dirname, '..');
+let listenLaunched = false;
+function startListen(c) {
+  if (listenLaunched || (c.interactive || 'off') !== 'ptt') return;
+  try {
+    const inner = `cd ${JSON.stringify(REPO)} && clear && echo '=== VERITY live voice — press ENTER, talk, press ENTER to send ===' && python3 -m verity voice listen`;
+    spawn('osascript', ['-e', `tell application "Terminal" to do script ${JSON.stringify(inner)}`,
+                        '-e', 'tell application "Terminal" to activate']);
+    listenLaunched = true;
+  } catch (e) {}
+}
+function stopListen() {
+  if (!listenLaunched) return;
+  try { spawn('pkill', ['-f', 'verity voice listen']); } catch {}
+  listenLaunched = false;
+}
+function syncListen(c) { c = c || loadCfg(); if ((c.interactive || 'off') === 'ptt') startListen(c); else stopListen(); }
 // A mascot is OFFERED only if its assets are present. hawk/sun/logo ship with the repo; AVANI is a
 // private easter egg — her assets are NOT in the public repo (gitignored), so she appears ONLY on a
 // build that has them locally. Same code everywhere; availability is data-driven, no fork needed.
@@ -124,8 +148,8 @@ function buildTray() {
 }
 
 ipcMain.handle('get-cfg', () => ({...loadCfg(), _avani: hasAvani()}));
-ipcMain.on('save-cfg', (_e, c) => { saveCfg({...loadCfg(), ...c}); rebuild(); if (tray) tray.setContextMenu(trayMenu()); });
-ipcMain.on('setup-done', (_e, c) => { saveCfg({...loadCfg(), ...c, configured: true}); if (setupWin) setupWin.close(); rebuild(); if (tray) tray.setContextMenu(trayMenu()); });
+ipcMain.on('save-cfg', (_e, c) => { saveCfg({...loadCfg(), ...c}); rebuild(); syncListen(); if (tray) tray.setContextMenu(trayMenu()); });
+ipcMain.on('setup-done', (_e, c) => { saveCfg({...loadCfg(), ...c, configured: true}); if (setupWin) setupWin.close(); rebuild(); syncListen(); if (tray) tray.setContextMenu(trayMenu()); });
 // Custom drag (so the mascot is both DRAGGABLE and CLICKABLE — app-region drag ate the clicks).
 ipcMain.on('move-window', (_e, dx, dy) => { if (win) { const [x, y] = win.getPosition(); win.setPosition(Math.round(x + dx), Math.round(y + dy)); } });
 // Right-click the MASCOT → pop the same menu the tray has, at the cursor.
@@ -157,6 +181,7 @@ else {
     buildTray();
     if (!cfg.configured) openSetup();              // first run → onboarding picker
     else createWindow(cfg);
+    syncListen(cfg);                               // start the push-to-talk loop if it's configured
     if (app.dock) app.dock.hide();
   });
 }

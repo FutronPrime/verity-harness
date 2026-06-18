@@ -82,14 +82,28 @@
     <option value="clone">Clone a voice</option>
   </select>
   <input type="file" id="voicefile" accept="audio/*" style="display:none;margin-top:8px;width:100%;color:#8fb8b1;font-size:12px"/>
-  <p class="note vopt" style="text-align:left;color:#586872;margin-top:6px">Default voices — <b>Standard:</b> warm female · <b>LCARS / J.A.R.V.I.S.:</b> British male · <b>AISHA:</b> Black female. Upload or clone overrides it; your clip stays on-device. (Cloning is the opt-in research workflow — supply a voice you have the rights to.)</p>
+  <p class="note vopt" style="text-align:left;color:#586872;margin-top:6px">Default voices — <b>Standard:</b> warm female · <b>LCARS:</b> Federation Computer · <b>J.A.R.V.I.S.:</b> British male · <b>AISHA:</b> Black female (cloned). Each personality speaks in its own voice. Upload or clone overrides it; your clip stays on-device. (Cloning is the opt-in research workflow — supply a voice you have the rights to.)</p>
 
   <div class="q">9 · Talk back to it? (interactive)</div>
   <div class="row" id="interactive">
     <div class="opt sel" data-v="off">Off</div>
-    <div class="opt" data-v="ptt">Push-to-talk · voice → action</div>
+    <div class="opt" data-v="ptt">Push-to-talk · hold a key to talk</div>
   </div>
-  <p class="note" style="text-align:left;color:#586872;margin-top:8px">Read-outs are <b>free</b> on-device (Voicebox) — or use your ElevenLabs plan/credits if you picked it. <b>Real-time talk-back is interactive but costly</b> — it streams through OpenAI Realtime (billed per minute), so turn it on only when you want a live conversation. Talk-back uses on-device Whisper; the setup grants the mic/Accessibility permissions for you.</p>
+  <p class="note" style="text-align:left;color:#586872;margin-top:8px"><b>Live two-way conversation, 100% free &amp; on-device</b> — Whisper transcribes you, the active personality replies in its own voice. Run <code>verity voice listen --ptt</code> and <b>hold Right-Shift while you talk, release to send</b> (no clipping, no false triggers — ideal with decks running). Change the key with <code>VERITY_PTT_KEY</code> or <code>~/.verity-harness/ptt-key</code> (e.g. <code>space</code>, <code>z</code>, <code>ctrl_r</code>); plain <code>verity voice listen</code> is hands-free. First run grants Microphone (+ Input Monitoring for push-to-talk). Point it at your real mic with <code>~/.verity-harness/mic</code> if your default input is Serato.</p>
+
+  <div class="q pttrow" id="pttkeyq" style="display:none;margin-top:10px">↳ Push-to-talk key — hold this to talk</div>
+  <select class="vsel pttrow" id="pttkey" style="display:none">
+    <option value="shift_r">Right-Shift (default)</option>
+    <option value="shift_l">Left-Shift</option>
+    <option value="space">Space bar</option>
+    <option value="ctrl_r">Right-Control</option>
+    <option value="cmd_r">Right-Command (⌘)</option>
+    <option value="alt_r">Right-Option (⌥)</option>
+    <option value="caps_lock">Caps-Lock</option>
+    <option value="f13">F13</option>
+    <option value="__custom">Custom key…</option>
+  </select>
+  <input type="text" id="pttkeycustom" maxlength="20" placeholder="custom key: a single char (z) or pynput name (f5, ctrl_l)" class="pttrow" style="display:none;margin-top:6px;width:100%;padding:9px;border:1.5px solid #1f3a3a;border-radius:8px;background:#0c1417;color:#eafffb;font-size:12.5px;box-sizing:border-box"/>
 
   <button class="go" id="go">Add it 🦅</button>
   <p class="note">Drag the mascot to move it · click it for an animation · right-click the tray “V” to change anything later.</p>
@@ -97,7 +111,7 @@
   <script>
     const sel = {mascot:'hawk', animations:'full', layer:'front', frequency:'med',
                  voice:'off', readout:'standard', voiceengine:'oss', voicesrc:'default',
-                 interactive:'off', voicefile:'', apikey:'', elvoiceid:''};
+                 interactive:'off', voicefile:'', apikey:'', elvoiceid:'', pttkey:'shift_r'};
     // AVANI is a private easter egg — only offered when her assets are present locally (not in the
     // public repo). Hide the option + its note otherwise.
     (async () => {
@@ -119,7 +133,23 @@
         const o = e.target.closest('.opt'); if (!o) return;
         row.querySelectorAll('.opt').forEach(x => x.classList.remove('sel'));
         o.classList.add('sel'); sel[row.id] = o.dataset.v;
+        if (row.id === 'interactive') syncPtt();
       });
+    });
+    // push-to-talk key picker — only shown when "Push-to-talk" is selected
+    function syncPtt() {
+      const on = sel.interactive === 'ptt';
+      document.querySelectorAll('.pttrow').forEach(e => { e.style.display = on ? (e.tagName === 'SELECT' || e.id === 'pttkeycustom' ? 'block' : 'block') : 'none'; });
+      if (on) document.getElementById('pttkeycustom').style.display =
+        (document.getElementById('pttkey').value === '__custom') ? 'block' : 'none';
+    }
+    document.getElementById('pttkey').addEventListener('change', e => {
+      const custom = document.getElementById('pttkeycustom');
+      if (e.target.value === '__custom') { custom.style.display = 'block'; custom.focus(); sel.pttkey = (custom.value.trim() || 'shift_r'); }
+      else { custom.style.display = 'none'; sel.pttkey = e.target.value; }
+    });
+    document.getElementById('pttkeycustom').addEventListener('input', e => {
+      if (document.getElementById('pttkey').value === '__custom') sel.pttkey = (e.target.value.trim() || 'shift_r');
     });
     // dropdowns (readout style, engine, which-voice) — sync to sel + reveal conditional fields
     function syncEngine() {

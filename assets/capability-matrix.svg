@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 516" font-family="'Arial Narrow','Helvetica Neue',Arial,sans-serif" role="img"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#070a0d"/><stop offset="1" stop-color="#03060a"/></linearGradient><pattern id="scan" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="1" fill="#0c1a1d" opacity="0.5"/></pattern><style>.mono{font-family:'SF Mono','Menlo',monospace}.hv{font-family:'Arial Black',Arial,sans-serif;font-weight:900}.nar{font-family:'Arial Narrow',Arial,sans-serif}</style></defs><rect width="1240" height="516" fill="url(#bg)"/><rect width="1240" height="516" fill="url(#scan)"/><path d="M16,16 H1190 L1224,50 V500 H66 L16,450 Z" fill="none" stroke="#1f5c54" stroke-width="2"/><rect x="16" y="508" width="1208" height="4" fill="#d6299e"/>
+<text x="40" y="52" class="mono" font-size="12.5" fill="#2dd4bf" text-anchor="start" letter-spacing="2">/// VERITY // CAPABILITY × MODEL SWEEP · SAME MODEL ± THE HARNESS · LIVE A/B</text>
+<text x="44" y="100" class="hv" font-size="34" fill="#eafffb" text-anchor="start">ONE RULE, EVERY MODEL, EVERY CAPABILITY.</text>
+<rect x="46" y="112" width="430" height="3" fill="#d6299e"/>
+<text x="44" y="140" class="nar" font-size="13.5" fill="#8fb8b1" text-anchor="start">Each cell: naive (harness OFF) → harness ON, on the same model. Green = the discipline lifted it. Numbers are live, ledger-logged runs — reproducible on your own models.</text>
+<text x="56" y="198" class="mono" font-size="12" fill="#2dd4bf" text-anchor="start" letter-spacing="1">>> MODEL</text>
+<text x="390" y="198" class="mono" font-size="11.5" fill="#2dd4bf" text-anchor="middle" letter-spacing="1">ACCURACY</text>
+<text x="570" y="198" class="mono" font-size="11.5" fill="#2dd4bf" text-anchor="middle" letter-spacing="1">CODING</text>
+<text x="750" y="198" class="mono" font-size="11.5" fill="#2dd4bf" text-anchor="middle" letter-spacing="1">MEMORY</text>
+<text x="930" y="198" class="mono" font-size="11.5" fill="#2dd4bf" text-anchor="middle" letter-spacing="1">RESEARCH</text>
+<text x="1110" y="198" class="mono" font-size="11.5" fill="#2dd4bf" text-anchor="middle" letter-spacing="1">COORD.</text>
+<path d="M48,210 L1184,210 L1200,226 L1200,270 L58,270 L48,260 Z" fill="#0a0f12" stroke="#16343a" stroke-width="1.1"/>
+<text x="64" y="244" class="hv" font-size="15" fill="#eafffb" text-anchor="start">claude-opus-4.8</text>
+<text x="390" y="237" class="hv" font-size="16" fill="#2dd4bf" text-anchor="middle">3→14</text>
+<text x="390" y="253" class="mono" font-size="10.5" fill="#8fb8b1" text-anchor="middle">of 16   +11</text>
+<rect x="315" y="265" width="150" height="5" rx="1.5" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="315" y="265" width="131" height="5" rx="1.5" fill="#2dd4bf" opacity="0.9"/>
+<text x="570" y="237" class="hv" font-size="16" fill="#2dd4bf" text-anchor="middle">3→5</text>
+<text x="570" y="253" class="mono" font-size="10.5" fill="#8fb8b1" text-anchor="middle">of 5   +2</text>
+<rect x="495" y="265" width="150" height="5" rx="1.5" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="495" y="265" width="150" height="5" rx="1.5" fill="#2dd4bf" opacity="0.9"/>
+<text x="750" y="237" class="hv" font-size="16" fill="#2dd4bf" text-anchor="middle">0→1</text>
+<text x="750" y="253" class="mono" font-size="10.5" fill="#8fb8b1" text-anchor="middle">of 1   +1</text>
+<rect x="675" y="265" width="150" height="5" rx="1.5" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="675" y="265" width="150" height="5" rx="1.5" fill="#2dd4bf" opacity="0.9"/>
+<text x="930" y="244" class="mono" font-size="13" fill="#586872" text-anchor="middle">·</text>
+<text x="1110" y="244" class="mono" font-size="13" fill="#586872" text-anchor="middle">·</text>
+<path d="M48,280 L1184,280 L1200,296 L1200,340 L58,340 L48,330 Z" fill="#0a0f12" stroke="#16343a" stroke-width="1.1"/>
+<text x="64" y="314" class="hv" font-size="15" fill="#eafffb" text-anchor="start">gpt-4o-mini</text>
+<text x="390" y="307" class="hv" font-size="16" fill="#2dd4bf" text-anchor="middle">1→15</text>
+<text x="390" y="323" class="mono" font-size="10.5" fill="#8fb8b1" text-anchor="middle">of 16   +14</text>
+<rect x="315" y="335" width="150" height="5" rx="1.5" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="315" y="335" width="140" height="5" rx="1.5" fill="#2dd4bf" opacity="0.9"/>
+<text x="570" y="307" class="hv" font-size="16" fill="#2dd4bf" text-anchor="middle">2→4</text>
+<text x="570" y="323" class="mono" font-size="10.5" fill="#8fb8b1" text-anchor="middle">of 5   +2</text>
+<rect x="495" y="335" width="150" height="5" rx="1.5" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="495" y="335" width="120" height="5" rx="1.5" fill="#2dd4bf" opacity="0.9"/>
+<text x="750" y="307" class="hv" font-size="16" fill="#2dd4bf" text-anchor="middle">0→1</text>
+<text x="750" y="323" class="mono" font-size="10.5" fill="#8fb8b1" text-anchor="middle">of 1   +1</text>
+<rect x="675" y="335" width="150" height="5" rx="1.5" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="675" y="335" width="150" height="5" rx="1.5" fill="#2dd4bf" opacity="0.9"/>
+<text x="930" y="307" class="hv" font-size="16" fill="#2dd4bf" text-anchor="middle">2→5</text>
+<text x="930" y="323" class="mono" font-size="10.5" fill="#8fb8b1" text-anchor="middle">of 5   +3</text>
+<rect x="855" y="335" width="150" height="5" rx="1.5" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="855" y="335" width="150" height="5" rx="1.5" fill="#2dd4bf" opacity="0.9"/>
+<text x="1110" y="307" class="hv" font-size="16" fill="#2dd4bf" text-anchor="middle">1→5</text>
+<text x="1110" y="323" class="mono" font-size="10.5" fill="#8fb8b1" text-anchor="middle">of 5   +4</text>
+<rect x="1035" y="335" width="150" height="5" rx="1.5" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="1035" y="335" width="150" height="5" rx="1.5" fill="#2dd4bf" opacity="0.9"/>
+<path d="M48,350 L1184,350 L1200,366 L1200,410 L58,410 L48,400 Z" fill="#0a0f12" stroke="#16343a" stroke-width="1.1"/>
+<text x="64" y="384" class="hv" font-size="15" fill="#eafffb" text-anchor="start">local-qwen-4b</text>
+<text x="390" y="377" class="hv" font-size="16" fill="#2dd4bf" text-anchor="middle">0→9</text>
+<text x="390" y="393" class="mono" font-size="10.5" fill="#8fb8b1" text-anchor="middle">of 16   +9</text>
+<rect x="315" y="405" width="150" height="5" rx="1.5" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="315" y="405" width="84" height="5" rx="1.5" fill="#2dd4bf" opacity="0.9"/>
+<text x="570" y="384" class="mono" font-size="13" fill="#586872" text-anchor="middle">err</text>
+<text x="750" y="377" class="hv" font-size="16" fill="#2dd4bf" text-anchor="middle">0→1</text>
+<text x="750" y="393" class="mono" font-size="10.5" fill="#8fb8b1" text-anchor="middle">of 1   +1</text>
+<rect x="675" y="405" width="150" height="5" rx="1.5" fill="#0c1417" stroke="#1f3a3a"/>
+<rect x="675" y="405" width="150" height="5" rx="1.5" fill="#2dd4bf" opacity="0.9"/>
+<text x="930" y="384" class="mono" font-size="13" fill="#586872" text-anchor="middle">·</text>
+<text x="1110" y="384" class="mono" font-size="13" fill="#586872" text-anchor="middle">·</text>
+<text x="64" y="454" class="hv" font-size="15" fill="#2dd4bf" text-anchor="start">AGGREGATE  naive 12 → harness 60   (+48 across all graded cells)</text>
+<text x="64" y="478" class="nar" font-size="11.5" fill="#586872" text-anchor="start">Gradeable A/B axes shown. Web-browsing/scraping/trending ≈ RESEARCH; goals/automation ≈ COORD.; app/site-build ≈ CODING. (Design/content-gen are separate FUTRON subsystems, not VERITY.)</text>
+</svg>

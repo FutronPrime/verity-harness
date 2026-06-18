@@ -409,7 +409,8 @@ def main(argv: list[str]) -> None:
             if not r.get("spoke"):
                 print(f"[voice] did not speak: {r.get('reason','')}", file=sys.stderr)
         elif sub == "listen":
-            print(json.dumps(_v.listen(), indent=2))
+            # default = press-ENTER (reliable, mic-only); --ptt = hold key (needs Input Monitoring); --vad = hands-free
+            print(json.dumps(_v.listen(ptt=("--ptt" in rest), vad=("--vad" in rest)), indent=2))
         elif sub == "train":
             if len(rest) < 3:
                 print("usage: verity voice train <style> <clip-path>  (style = standard|lcars|aisha|avani|…)\n"
