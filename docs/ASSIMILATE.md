@@ -46,6 +46,26 @@ python3 -m verity assimilate run --watch --max 2     # …and assimilate the top
 python3 -m verity assimilate import-genie            # merge channels from an external taste profile
 python3 -m verity assimilate listen <media> --mode performance   # Gemini HEARS it (below)
 python3 -m verity assimilate persona <video> --name "Mom"        # Digital Double Dossier (below)
+python3 -m verity assimilate digest --scout-only                 # free daily brief (no watching)
+python3 -m verity assimilate digest --budget 2                   # brief + assimilate top 2 (cheap Gemini)
+```
+
+## Daily digest + scheduling (`digest`)
+
+The scheduler entry point. **Scout + triage are deterministic by default — instant, zero tokens**,
+so they run daily across the whole roster (315 new → 85 relevant in ~9s on a 26-channel test). The
+only token spend is the budgeted watches: `--budget N` assimilates the top N new videos (rotated, at
+most one per channel/run, so the roster spreads itself across days instead of spiking). Add `--smart`
+to use LLM triage instead of keyword triage. Each run writes `~/.verity-harness/digests/<date>.md`:
+assimilated summaries + a "worth watching" queue + an off-goal list.
+
+Install as a daily LaunchAgent (macOS) — a wrapper sources your keys (LaunchAgents don't inherit
+shell env) and runs the digest:
+
+```bash
+# wrapper: futron-assimilate-cron  → cd repo, source keys, `verity assimilate digest "$@"`
+# plist:   ~/Library/LaunchAgents/com.futron.assimilate-digest.plist  (daily 7:45, --budget 2)
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.futron.assimilate-digest.plist
 ```
 
 ## Hearing, not just transcribing (`listen`)
@@ -68,10 +88,13 @@ be honored and faithfully recreated. Carries an explicit purpose-and-consent hea
 
 ## Note on "seeing"
 
-`claude-watch` emits frames + transcript + a skeleton `report.md`. **Full visual
-assimilation** happens when an **agent** (Claude Code / a multimodal tier) `Read`s the
-frame JPEGs and fills the report. Run fully headless with no vision model in the loop and
-you still get a useful **transcript-level** synthesis — `watch` flags this honestly.
+Two tiers, both real:
+- **Headless (cheap, autonomous):** `gemini_watch` / `digest` route through **Gemini**, which ingests
+  the whole video — it *sees* on-screen content and *hears* the audio — then synthesizes a structured
+  brief. Far cheaper than Claude Opus, so scheduled assimilation is affordable. This closes the old
+  "headless can only read the transcript" gap.
+- **Premium (deep one-offs):** `watch` via `claude-watch` emits frames an **agent** (Claude Code)
+  `Read`s directly for maximum-fidelity visual analysis.
 
 Public URLs + local files only (no login/cookies). Best under 10 min; use `--start/--end`
 for longer videos. Full spec lives in the FUTRON brain:

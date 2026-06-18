@@ -329,14 +329,24 @@ def gemini_listen(media: str, mode: str = "performance", model: str = "",
         except Exception as e:
             return {"ok": False, "note": f"transcriber error: {e}"}
     # performance mode → the Gemini CLI (DJ wants the 3.1-pro-preview CLI path) with @file attach.
+    # The CLI's @ attaches LOCAL files only — it can't fetch a URL — so localize the audio first.
     import shutil
     if not shutil.which(cfg.gemini_cli):
         return {"ok": False, "note": f"gemini CLI '{cfg.gemini_cli}' not on PATH"}
-    ref = media if media.startswith("http") else os.path.abspath(media)
+    tmp_audio = ""
+    if media.startswith("http"):
+        tmp_audio = _download_audio(media)
+        if not tmp_audio:
+            return {"ok": False, "mode": mode,
+                    "note": "couldn't localize audio for the performance pass (need yt-dlp+ffmpeg); "
+                            "pass a local clip, or use --mode transcript"}
+        ref = tmp_audio
+    else:
+        ref = os.path.abspath(media)
     prompt = f"{PERFORMANCE_PROMPT}\n\nMedia to analyze: @{ref}"
-    cmd = [cfg.gemini_cli, "-m", model, "-p", prompt]
     try:
-        p = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
+        p = subprocess.run([cfg.gemini_cli, "-m", model, "-p", prompt],
+                           capture_output=True, text=True, timeout=900)
         return {"ok": p.returncode == 0, "mode": mode, "model": model,
                 "text": (p.stdout or "").strip()[:20000],
                 "note": p.stderr[-400:] if p.returncode else "performance analysis via gemini CLI"}
@@ -344,6 +354,30 @@ def gemini_listen(media: str, mode: str = "performance", model: str = "",
         return {"ok": False, "note": "gemini CLI timed out (>15min) — try a shorter clip/--start/--end"}
     except Exception as e:
         return {"ok": False, "note": f"gemini CLI error: {e}"}
+    finally:
+        if tmp_audio:
+            try:
+                os.remove(tmp_audio)
+            except OSError:
+                pass
+
+
+def _download_audio(url: str) -> str:
+    """Download a compact audio file for a Gemini performance pass (the CLI @ needs a local file)."""
+    import shutil, tempfile
+    if not shutil.which("yt-dlp"):
+        return ""
+    stem = os.path.join(tempfile.gettempdir(), "assim-audio-" + _slug(url)[:24])
+    try:
+        subprocess.run(["yt-dlp", "-q", "--no-warnings", "-f", "bestaudio/best",
+                        "-x", "--audio-format", "m4a", "-o", stem + ".%(ext)s", url],
+                       capture_output=True, text=True, timeout=600)
+    except Exception:
+        return ""
+    for ext in ("m4a", "mp3", "webm", "opus", "wav"):
+        if os.path.exists(stem + "." + ext):
+            return stem + "." + ext
+    return ""
 
 
 # ── PERSONA / DIGITAL DOUBLE — molecular-level human assimilation ────────────────
@@ -571,9 +605,10 @@ def run(do_watch: bool = False, max_videos: int = 0, verbose: bool = True) -> di
 # far cheaper than burning Claude Opus tokens — so autonomous, scheduled assimilation is now both
 # possible AND affordable. Claude-in-the-loop stays the premium tier for deep one-offs.
 def gemini_watch(media: str, intent: str = "", visual: bool = False,
-                 cfg: "Config | None" = None) -> dict:
+                 with_performance: bool = False, cfg: "Config | None" = None) -> dict:
     """Headless watch via Gemini: multimodal read of the video → structured brief through the intent
-    lens. Returns {ok, analysis, transcript_len, performance, model}."""
+    lens. with_performance=True adds the (heavier) vocal/emotion pass — off by default so the daily
+    digest stays lean. Returns {ok, analysis, transcript_len, performance, model}."""
     cfg = cfg or load_config()
     import shutil
     transcript = ""
@@ -593,7 +628,7 @@ def gemini_watch(media: str, intent: str = "", visual: bool = False,
         transcript = (a.get("stdout", "") or "")[:8000]
     if not transcript:
         return {"ok": False, "analysis": "", "note": "no transcript (need gemini transcriber or claude-watch)"}
-    perf = gemini_listen(media, mode="performance", cfg=cfg)  # the vocal/emotion layer
+    perf = gemini_listen(media, mode="performance", cfg=cfg) if with_performance else {"ok": False}
     synth = (
         f"You watched a video. Through the lens of '{intent or 'general interest'}', write a tight "
         "structured brief: \n**TL;DR** (3-5 bullets) · **Key moments** (timestamps if present) · "
@@ -623,7 +658,9 @@ DIGEST_DIR = STATE_DIR / "digests"
 
 
 def digest(budget: int = 2, scout_only: bool = False, visual: bool = False,
-           cfg: "Config | None" = None, verbose: bool = True) -> dict:
+           smart: bool = False, cfg: "Config | None" = None, verbose: bool = True) -> dict:
+    # smart=False → DETERMINISTIC triage (instant, zero tokens): the daily job stays cheap; the only
+    # token spend is the budgeted Gemini watches. smart=True opts into LLM triage for finer filtering.
     cfg = cfg or load_config()
     DIGEST_DIR.mkdir(parents=True, exist_ok=True)
     from datetime import date
@@ -641,7 +678,7 @@ def digest(budget: int = 2, scout_only: bool = False, visual: bool = False,
             continue
         goals = ch.goals or cfg.learning_goals
         for v in fresh:
-            t = triage(v["title"], v["description"], goals)
+            t = triage(v["title"], v["description"], goals, use_llm=smart)
             new_items.append({**v, "channel": ch.name, "intent": ", ".join(goals[:3]), **t})
     keepers = sorted([v for v in new_items if v.get("keep")], key=lambda x: x["score"], reverse=True)
     picked, seen_ch = [], set()
@@ -809,12 +846,13 @@ def cli(rest: list[str]) -> None:
         # the scheduler entry point: free scout+triage daily, budgeted Gemini-watch, daily brief.
         scout_only = "--scout-only" in args
         visual = "--visual" in args
+        smart = "--smart" in args
         budget = 2
         if "--budget" in args:
             i = args.index("--budget")
             try: budget = int(args[i + 1])
             except (IndexError, ValueError): pass
-        r = digest(budget=budget, scout_only=scout_only, visual=visual)
+        r = digest(budget=budget, scout_only=scout_only, visual=visual, smart=smart)
         print(json.dumps(r, indent=2))
 
     elif sub == "run":
