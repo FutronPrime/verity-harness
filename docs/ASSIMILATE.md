@@ -59,6 +59,14 @@ most one per channel/run, so the roster spreads itself across days instead of sp
 to use LLM triage instead of keyword triage. Each run writes `~/.verity-harness/digests/<date>.md`:
 assimilated summaries + a "worth watching" queue + an off-goal list.
 
+**Watching = SEEING.** The point of "watch" is the *visual* intel, not a transcript — so the digest
+defaults to `visual` (Gemini reads on-screen content, not just audio). `--no-visual` opts out.
+
+**Livestreams.** A channel's RSS feed misses livestreams/premieres (verified: a creator's entire LIVE
+output can be absent from RSS). Scout also pulls the `/streams` tab via yt-dlp and merges it
+(`include_streams`, default on; per-channel `live: true` to force it). In-progress/upcoming streams are
+skipped; completed VODs are assimilated like any video.
+
 Install as a daily LaunchAgent (macOS) — a wrapper sources your keys (LaunchAgents don't inherit
 shell env) and runs the digest:
 
