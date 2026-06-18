@@ -440,6 +440,12 @@ def main(argv: list[str]) -> None:
         print(fetch_tweet(rest[0]))
     elif cmd in ("web-setup", "x-setup"):
         _cmd_web_setup()
+    elif cmd in ("assimilate", "watch-learn", "assim"):
+        # FUTRON Assimilation Loop: Scout (YouTube RSS) → Filter (triage vs goals) →
+        # Assimilate (claude-watch: scene frames + transcript) → Synthesize (membank).
+        # Turns video into queryable knowledge, triage-first so a backlog can't nuke tokens.
+        from . import assimilate as _assim
+        _assim.cli(rest)
     else:
         print(f"unknown command: {cmd}", file=sys.stderr); sys.exit(2)
 
