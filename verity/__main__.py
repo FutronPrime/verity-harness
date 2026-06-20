@@ -183,6 +183,21 @@ def main(argv: list[str]) -> None:
         if len(rest) < 2:
             print('usage: doc <path> "<query>"', file=sys.stderr); sys.exit(2)
         print(query_doc(rest[0], " ".join(rest[1:])))
+    elif cmd in ("video", "transcribe", "watch"):
+        # Transcribe/analyse a video — NO captions required (Gemini multimodal). RULE 7: never skip a video.
+        #   verity video <youtube_url> [--summary] [--model gemini-2.5-flash]
+        from .video import transcribe
+        url = next((a for a in rest if not a.startswith("--")), "")
+        if not url:
+            print('usage: verity video <youtube_url> [--summary] [--model <id>]', file=sys.stderr); sys.exit(2)
+        model = "gemini-2.5-flash"
+        if "--model" in rest:
+            i = rest.index("--model")
+            model = rest[i + 1] if i + 1 < len(rest) else model
+        try:
+            print(transcribe(url, model=model, summary=("--summary" in rest)))
+        except RuntimeError as e:
+            print(f"[video] {e}", file=sys.stderr); sys.exit(1)
     elif cmd in ("models", "registry"):
         # AUTHORITATIVE model lookup — read the live OpenRouter registry instead of guessing current
         # model ids from stale training. The right way to answer 'what's the newest X model'.

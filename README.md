@@ -386,8 +386,17 @@ via `system_web_tools()`.)
 
 ## Watch a video — assimilate it for intel (`verity assimilate`)
 
-Reading the web is one input; the one an agent normally *can't* take is a **video**. `verity assimilate`
-gives it that input — and the point is to **watch** (see), not just transcribe.
+Reading the web is one input; the one an agent normally *can't* take is a **video** — and "it has no
+captions" is **not an excuse to skip it** (RULE 7). Gemini is multimodal: hand it a public URL and it
+**watches** the video (visuals + on-screen UI + audio). Built-in, zero-dependency, works on a **free** Gemini
+key:
+
+```bash
+verity video "<url>"             # full verbatim transcript (no captions needed)
+verity video "<url>" --summary   # structured brief (thesis, steps, commands shown, takeaways)
+```
+
+`verity assimilate` builds on the same engine for a richer "scout + watch + report" flow:
 
 ```bash
 verity assimilate watch "<url>" --intent "break down the hook"   # see + hear one video

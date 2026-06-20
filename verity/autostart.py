@@ -92,6 +92,16 @@ agents talk direct to the API) — so apply these gates MANUALLY, every task. No
    (Real lapse 2026-06-15: called a QA backend a "global model outage" from empty responses + 4 port
    probes; the shim log showed ONE expired OAuth token, fixable with one command. The assumption cost
    the real answer and produced a weak "can't fix it" result. Don't repeat it.)
+ • RULE 7 — NEVER SKIP / QUIT / "CAN'T" (BLOCKER — THIS IS THE WHOLE POINT OF VERITY): "I can't" / "skip
+   it" / "no way to" / "give up" / "not possible" is BANNED until you have ACTUALLY ATTEMPTED ≥2 concrete
+   approaches AND searched for an existing tool/skill/OSS that does it. ~75% of "can't" is laziness — not
+   even trying. Before deferring, ask: did I check for an existing tool (REUSE-FIRST)? try a second method?
+   use the automation/CUA/browser/API I already have? read the docs? The ONLY real boundary is a genuine
+   human gate (password/2FA/CAPTCHA/biometrics/payment/account-creation/destructive op) — name the EXACT
+   one. "It needs setup / has no captions / isn't supported" is a TASK, not a boundary.
+   (Real lapse 2026-06-20: a video had no captions, so the agent said "skip it" — while holding a working
+   Gemini key AND a multimodal-transcribe tool that ingests no-caption videos. Pure unattempted laziness.
+   The fix was one command. NEVER do this — find the solution, you almost always CAN.)
  • CURRENT MODELS — READ THE REGISTRY, DON'T GUESS (BLOCKER): model names move monthly and your
    TRAINING IS STALE. Before naming, choosing, or wiring ANY model id ("the newest X is…", routing
    config, "use model Y"), query the live registry: `python3 -m verity models <provider>` (e.g.
@@ -221,6 +231,14 @@ _GATES_MD = """<!-- VERITY-GATES:start (managed by `verity autostart` — re-run
   (platform API, GitHub, Reddit, X, YouTube, Google, StackOverflow). "Errored / empty / timed out" is a
   SYMPTOM, not a diagnosis — find the ROOT CAUSE first. (Real lapse: a QA backend was called a "global
   outage" from empty responses; the log showed one expired OAuth token, fixable in one command.)
+- **Rule 7 — never skip / quit / "can't" (BLOCKER — the WHOLE POINT of VERITY):** "I can't" / "skip it" /
+  "no way" / "give up" / "not possible" is BANNED until you've ACTUALLY ATTEMPTED ≥2 concrete approaches AND
+  searched for an existing tool/skill/OSS that does it. ~75% of "can't" is laziness — not even trying. Check
+  REUSE-FIRST, try a second method, use the automation/CUA/browser/API you already have, read the docs. The
+  only real boundary is a genuine human gate (password/2FA/CAPTCHA/biometrics/payment/destructive) — name the
+  EXACT one. "Needs setup / no captions / not supported" is a TASK, not a boundary. (Real lapse: a video had
+  no captions → agent said "skip it" while holding a working key + a multimodal transcriber that ingests
+  no-caption videos. One command. Find the solution — you almost always CAN.)
 - **Current models — read the registry, don't guess (BLOCKER):** before naming/choosing/wiring any
   model id, run `python3 -m verity models <provider>` (deepseek, claude-opus, gemini, kimi, qwen3,
   grok…). Names move monthly and training is stale; the OpenRouter /models API is ground truth.

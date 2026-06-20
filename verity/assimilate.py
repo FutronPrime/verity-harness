@@ -79,9 +79,9 @@ class Config:
     max_videos_per_run: int = 3
     include_streams: bool = True           # also pull each channel's /streams tab (RSS misses livestreams)
     # ── audio "hearing" (DJ's call: Gemini hears singing/comedic-timing/emotion that Whisper-text misses) ──
-    gemini_cli: str = "gemini"                            # the installed Gemini CLI binary
-    gemini_model: str = "gemini-3.1-pro-preview"          # VERIFIED live (OpenRouter registry 2026-06-18)
-    gemini_transcriber: str = "futron-gemini-transcribe"  # FUTRON multimodal transcriber (reuse-first)
+    gemini_cli: str = ""                                  # (deprecated path; the built-in transcriber is used)
+    gemini_model: str = "gemini-2.5-flash"                # works on the FREE Gemini tier; multimodal video
+    gemini_transcriber: str = "python3 -m verity video"   # BUILT-IN, self-contained (no external tool needed)
     # external taste profile to import channels FROM (FUTRON genie prefs; generic fallback = none)
     genie_prefs: str = os.environ.get(
         "GENIE_PREFS_PATH",
