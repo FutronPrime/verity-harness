@@ -877,6 +877,80 @@ def listen(ptt: bool = False, vad: bool = False) -> dict:
     return {"ready": True, "ended": True, "turns": turns, "persona": style}
 
 
+def _paste_into_focused(text: str, submit: bool = False, app: str = None) -> bool:
+    """Type `text` into the focused app via CLIPBOARD PASTE (robust for long / unicode text vs char-by-char
+    keystroke). If `app` is given, bring it to the front first. submit=True presses Return after.
+    Needs macOS Accessibility for the terminal/osascript (System Events keystroke)."""
+    try:
+        if app:
+            subprocess.run(["osascript", "-e", f'tell application "{app}" to activate'],
+                           capture_output=True, timeout=10)
+            time.sleep(0.4)
+        p = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
+        p.communicate(text.encode("utf-8"))
+        r = subprocess.run(["osascript", "-e",
+                            'tell application "System Events" to keystroke "v" using command down'],
+                           capture_output=True, timeout=10)
+        if submit:
+            time.sleep(0.25)
+            subprocess.run(["osascript", "-e", 'tell application "System Events" to key code 36'],
+                           capture_output=True, timeout=10)   # key code 36 = Return
+        return r.returncode == 0
+    except Exception:
+        return False
+
+
+def dictate(ptt: bool = False, vad: bool = False, submit: bool = False, app: str = None) -> dict:
+    """VOICE INPUT bridge — you speak, your words are TYPED into the focused app (your real assistant's
+    prompt box). This makes voice an I/O layer over WHATEVER agent you already run — Claude Code, Codex, a
+    chat box — instead of a separate throwaway chatbot. Pair it with the persona-voiced output (the
+    auto-speak TL;DR of the agent's reply) and you have a full two-way voice loop with your REAL assistant,
+    which keeps all its context, memory, and tools (its 'hands').
+    INTEGRATED so users don't have to wire a 3rd-party dictation app — but they still CAN (e.g. Wispr Flow):
+    just don't run this, and dictate with whatever you prefer.
+    Modes: default press-ENTER (reliable, terminal-focused) — pair with --app to paste into another app;
+           --ptt hold-key anywhere (seamless, needs Input Monitoring); --vad hands-free.
+    --submit presses Return after pasting. Needs macOS Accessibility granted to the terminal."""
+    if not shutil.which("rec"):
+        return {"ready": False, "needs": ["sox for mic capture: brew install sox"]}
+    if not (shutil.which("whisper") or os.path.exists(os.path.expanduser("~/Library/Python/3.14/bin/whisper"))):
+        return {"ready": False, "needs": ["whisper STT: pip install openai-whisper"]}
+    mode = "press-ENTER" if not (ptt or vad) else ("hold-key PTT (needs Input Monitoring)" if ptt else "hands-free VAD")
+    tgt = f"app '{app}'" if app else "the focused app"
+    print(f"[verity] VOICE DICTATE → types your speech into {tgt} · mode: {mode}"
+          f"{' · auto-submit' if submit else ''}. (Ctrl-C to stop)", flush=True)
+    n = 0
+    try:
+        while True:
+            if ptt:
+                wav = _record_turn_ptt()
+            elif vad:
+                time.sleep(0.3)
+                print("  …listening — just talk (pause to send)…", flush=True)
+                wav = _record_turn()
+            else:
+                try:
+                    cmd = input("\n  ▶ press ENTER, speak, ENTER to type ('q' quits): ")
+                except EOFError:
+                    break
+                if cmd.strip().lower() in ("q", "quit", "exit"):
+                    break
+                wav = _record_until_enter()
+            if not wav:
+                print("  (didn't catch that — try again)", flush=True); continue
+            text = _transcribe(wav)
+            try: os.unlink(wav)
+            except Exception: pass
+            if not text or len(text) < 2:
+                print("  (silence — try again)", flush=True); continue
+            ok = _paste_into_focused(text, submit=submit, app=app)
+            print(f"  {'typed' if ok else 'FAILED to type (grant Accessibility?)'}: {text}", flush=True)
+            n += 1
+    except KeyboardInterrupt:
+        print("\n[verity] dictate ended.", flush=True)
+    return {"ok": True, "typed": n}
+
+
 def status() -> str:
     c = cfg()
     floor = "say" if shutil.which("say") else ("espeak/spd-say" if (shutil.which("espeak") or shutil.which("spd-say")) else "NONE")

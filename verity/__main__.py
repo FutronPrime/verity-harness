@@ -412,6 +412,15 @@ def main(argv: list[str]) -> None:
         elif sub == "listen":
             # default = press-ENTER (reliable, mic-only); --ptt = hold key (needs Input Monitoring); --vad = hands-free
             print(json.dumps(_v.listen(ptt=("--ptt" in rest), vad=("--vad" in rest)), indent=2))
+        elif sub == "dictate":
+            # VOICE INPUT into your REAL assistant: mic -> Whisper -> types into the focused app.
+            # --ptt hold-key (seamless) · --vad hands-free · --submit press Return after · --app "<Name>" target app
+            _app = None
+            if "--app" in rest:
+                _i = rest.index("--app")
+                _app = rest[_i + 1] if _i + 1 < len(rest) else None
+            print(json.dumps(_v.dictate(ptt=("--ptt" in rest), vad=("--vad" in rest),
+                                        submit=("--submit" in rest), app=_app), indent=2))
         elif sub == "train":
             if len(rest) < 3:
                 print("usage: verity voice train <style> <clip-path>  (style = standard|lcars|aisha|avani|…)\n"
