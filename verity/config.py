@@ -100,9 +100,14 @@ TIERS: list[Tier] = (
 # cheap model. Defaults to the same tiers (safe everywhere); set LLM_VERIFIER_MODEL
 # to a small/cheap model id for real savings.
 _V_MODEL = os.environ.get("LLM_VERIFIER_MODEL", "")
+# The verifier can live on a DIFFERENT provider than the workhorse (true cross-model ensemble): set
+# LLM_VERIFIER_URL / LLM_VERIFIER_API_KEY to point the cross-examiner at its own endpoint. Defaults to the
+# workhorse's tier-1 endpoint/key when unset.
+_V_URL = os.environ.get("LLM_VERIFIER_URL", _T1_URL)
+_V_KEY = os.environ.get("LLM_VERIFIER_API_KEY", _T1_KEY)
 VERIFIER_TIERS: list[Tier] = (
-    [Tier(name="verifier", protocol="openai", base_url=_T1_URL, model=_V_MODEL,
-          api_key=_T1_KEY, timeout_s=45), TIERS[-1]]
+    [Tier(name="verifier", protocol="openai", base_url=_V_URL, model=_V_MODEL,
+          api_key=_V_KEY, timeout_s=60), TIERS[-1]]
     if _V_MODEL else TIERS
 )
 
