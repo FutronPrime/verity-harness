@@ -686,17 +686,22 @@ def _record_until_enter():
     return None
 
 
+class _PTTUnavailable(Exception):
+    """Raised when push-to-talk can't run (no pynput / Input Monitoring). Callers must NOT silently fall
+    back to continuous recording — that loops Whisper forever and overloads RAM. Stop with a clear message."""
+
+
 def _record_turn_ptt(max_s: int = 30):
     """Push-to-talk: record ONLY while the PTT key (Right-Shift) is held; send on release. Zero false
     triggers — best for noisy environments. Needs pynput + macOS Input Monitoring grant (prompted once).
-    Falls back to hands-free if pynput is unavailable."""
+    Raises _PTTUnavailable if it can't run — NEVER silently falls back to continuous recording."""
     rec = shutil.which("rec")
     if not rec:
         return None
     try:
         from pynput import keyboard
     except Exception:
-        return _record_turn(max_s)
+        raise _PTTUnavailable("pynput not installed (pip install pynput)")
     out = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
     target, _ = _resolve_ptt_key(_ptt_key_name())
     st = {"proc": None}
@@ -716,8 +721,11 @@ def _record_turn_ptt(max_s: int = 30):
         if st["proc"]:
             try: st["proc"].wait(timeout=2)
             except Exception: pass
+    except _PTTUnavailable:
+        raise
     except Exception:
-        return _record_turn(max_s)   # pynput blocked (no Input Monitoring grant) -> fall back
+        # pynput listener blocked (no Input Monitoring grant) — DON'T fall back to continuous recording.
+        raise _PTTUnavailable("Input Monitoring not granted (System Settings → Privacy → Input Monitoring)")
     if os.path.exists(out) and os.path.getsize(out) > 4000:
         return out
     try: os.unlink(out)
@@ -855,7 +863,11 @@ def listen(ptt: bool = False, vad: bool = False) -> dict:
                     say("Aight, catch you later.", force=True); break
                 wav = _record_until_enter()   # records until you press ENTER again (proven method)
             elif ptt:
-                wav = _record_turn_ptt()
+                try:
+                    wav = _record_turn_ptt()
+                except _PTTUnavailable as e:
+                    print(f"  [PTT unavailable: {e}] — run without --ptt (press-ENTER) or with --vad.", flush=True)
+                    break
             else:   # hands-free (VAD): settle first so we don't catch the tail of our own reply
                 time.sleep(0.4)
                 print("  …listening — just talk (pause to send)…", flush=True)
@@ -928,7 +940,11 @@ def dictate(ptt: bool = False, vad: bool = False, submit: bool = False, app: str
     try:
         while True:
             if ptt:
-                wav = _record_turn_ptt()
+                try:
+                    wav = _record_turn_ptt()
+                except _PTTUnavailable as e:
+                    print(f"  [PTT unavailable: {e}] — run without --ptt (press-ENTER) or with --vad.", flush=True)
+                    break
             elif vad:
                 time.sleep(0.3)
                 print("  …listening — just talk (pause to send)…", flush=True)
