@@ -14,7 +14,28 @@ NO hardcoded secrets — keys come from environment variables only.
 from __future__ import annotations
 
 import os
+import pathlib
 from dataclasses import dataclass
+
+# ── Persistent tier config (so you don't have to export env vars every shell) ──
+# Drop your tier wiring in ~/.verity-harness/verity.env as KEY=VALUE lines (e.g. point a tier at a local
+# OAuth shim that wraps your claude/codex/gemini CLI, or any OpenAI-compatible endpoint). Loaded BEFORE the
+# tiers are read; real environment variables still win over the file. This is the public-repo "wire YOUR
+# brain once" mechanism — frontier-via-CLI for subscription users, local Ollama for local-model users.
+def _load_env_file() -> None:
+    p = pathlib.Path(os.path.expanduser("~/.verity-harness/verity.env"))
+    try:
+        for line in p.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            k, v = k.strip(), v.strip().strip('"').strip("'")
+            os.environ.setdefault(k, v)   # real env wins; file fills the gaps
+    except Exception:
+        pass
+
+_load_env_file()
 
 
 @dataclass(frozen=True)

@@ -178,6 +178,32 @@ python3 -m verity failover-test # PROVE: cloud down → local floor answers ✅
 Optional cloud tier (frontier-class while available): `export LLM_TIER1_API_KEY=<key>`
 (OpenRouter gives one key → hundreds of models).
 
+### Wire YOUR brain once — `~/.verity-harness/verity.env`
+
+No env-export juggling. Drop your tier wiring in `~/.verity-harness/verity.env` (loaded automatically; real
+env vars still win):
+
+```ini
+LLM_TIER1_URL=<your OpenAI-compatible endpoint>   # workhorse
+LLM_TIER1_MODEL=<model id>
+LLM_TIER1_API_KEY=<key or "not-used">
+LLM_VERIFIER_MODEL=<a DIFFERENT model>            # the cross-examiner (see below)
+```
+
+**Frontier on a flat-fee subscription (no metered API):** if you already pay for ChatGPT Plus / Claude Max /
+Google AI, run a tiny localhost shim that subprocess-calls your `codex` / `claude` / `gemini` CLI and exposes
+it as one OpenAI-compatible endpoint — then point a tier at it. Zero per-token cost. Tip: put your
+*token-generous* sub as the workhorse `TIER1`, and reserve a stingier one (e.g. Claude's tighter allowance)
+as the sparing `VERIFIER`.
+
+### Cross-model ensemble — beat any single model
+
+The calibration/humility gate runs a **challenger** against every confident conclusion. Set
+`LLM_VERIFIER_MODEL` to a **different frontier brain than the workhorse**, and that challenger *cross-examines*
+the workhorse's answer — two frontier models catching errors **either one alone would ship**. A single model
+can't do that; an ensemble can. It fires sparingly (≈1 call per conclusion), so the strong challenger costs
+little. Leave `LLM_VERIFIER_MODEL` unset and it degrades to same-model self-check.
+
 ## Architecture
 
 <p align="center">

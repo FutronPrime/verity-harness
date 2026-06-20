@@ -430,7 +430,11 @@ def run_verified(goal: str, executor: Executor | None = None,
             draft = str(step.get("summary", step.get("thought", "")))
             if calibrate and not calibrated_once and draft.strip():
                 from .calibrate import humility_gate
-                cal = humility_gate(draft, transcript, cross_check_tiers=tiers, verbose=verbose)
+                from .config import VERIFIER_TIERS
+                # Challenge with the VERIFIER tier (a DIFFERENT frontier brain when LLM_VERIFIER_MODEL is set)
+                # so the conclusion is cross-examined by another model — true ensemble, catches errors the
+                # workhorse alone would ship. Falls back to the main tiers if no separate verifier is configured.
+                cal = humility_gate(draft, transcript, cross_check_tiers=(VERIFIER_TIERS or tiers), verbose=verbose)
                 if cal.needs_recheck:
                     calibrated_once = True
                     transcript += (
