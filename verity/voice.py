@@ -266,10 +266,13 @@ def _say_elevenlabs(text: str, voiceid: str, apikey: str) -> bool:
         #   $VERITY_EL_SPEED (default 0.9)  — slow the PACE. <1 = slower.
         # Implemented as asetrate (shifts pitch) + atempo (restores/sets tempo), so pitch and pace are
         # controlled separately with no chipmunk artifact.
-        try: _pace = float(os.getenv("VERITY_EL_SPEED", "0.9"))
-        except Exception: _pace = 0.9
-        try: _pitch = float(os.getenv("VERITY_EL_PITCH", "0.95"))
-        except Exception: _pitch = 0.95
+        # DEFAULT = NATURAL (1.0/1.0): play AISHA exactly as ElevenLabs renders her — no pitch/tempo
+        # post-processing (DJ 2026-06-20: "stop speeding up her voice, normal speed is fine"). The knobs
+        # remain for anyone who wants to deepen/slow on purpose; at 1.0 the ffmpeg pass below is skipped.
+        try: _pace = float(os.getenv("VERITY_EL_SPEED", "1.0"))
+        except Exception: _pace = 1.0
+        try: _pitch = float(os.getenv("VERITY_EL_PITCH", "1.0"))
+        except Exception: _pitch = 1.0
         ff = shutil.which("ffmpeg")
         if ff and (_pitch < 0.99 or _pace < 0.99):
             sr = 24000
