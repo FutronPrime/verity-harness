@@ -47,12 +47,41 @@ _VOICES = _HOME / ".verity-harness" / "voices"            # per-style trained vo
 _CFG = _HOME / ".verity-harness" / "mascot.json"
 _STYLE_FILES = ("~/.verity-harness/tts-style", "~/.openclaw/state/tts-style")
 _MODE_FILE = _HOME / ".verity-harness" / "voice-mode"
-# Spoken TL;DR runs LOCAL-FIRST (Rule 26): the frontier shim (:11445 / gpt-5.5) is ~19s per call via a
-# vendor-CLI subprocess — unusable for live speech. Default to the fast local Ollama model (~1s).
-# Override to restore cloud quality: FUTRON_SHIM_URL=http://127.0.0.1:11445/... FUTRON_TTS_MODEL=gpt-5.5
+# Spoken TL;DR runs LOCAL-FIRST: an OAuth-bridge shim that spawns a vendor CLI per call can be ~19s/call —
+# unusable for live speech — so default to a fast local Ollama model (~1s). Point these at any
+# OpenAI-compatible endpoint+model to trade speed for cloud quality:
+#   FUTRON_SHIM_URL=<your /chat/completions endpoint>   FUTRON_TTS_MODEL=<your model id>
 _SHIM = os.getenv("FUTRON_SHIM_URL", "http://127.0.0.1:11434/v1/chat/completions")
 _TTS_MODEL = os.getenv("FUTRON_TTS_MODEL", "qwen2.5:3b-instruct")
 _VOICEBOX = os.getenv("VOICEBOX_URL", "http://127.0.0.1:17493")
+# ── Conversation BRAIN (provider-agnostic) ──────────────────────────────────────────────────────────
+# VERITY's spoken replies + persona TL;DRs are written by WHATEVER LLM THE USER ALREADY RUNS — you wire it
+# at install. We do NOT assume a multi-LLM rig, and we DON'T bundle a tiny persona model: a sub-1B model is
+# too flat to carry a persona, so the user's OWN model writes the persona build + reply in the background.
+# Resolution order (first match wins):
+#   1. env:   VERITY_VOICE_BRAIN_URL / _MODEL  (OpenAI-compatible endpoint), or VERITY_VOICE_BRAIN_CMD
+#             (a CLI that takes the prompt as its last arg and prints ONLY the reply — codex/claude/gemini)
+#   2. file:  ~/.verity-harness/brain.json  ->  {"url": "...", "model": "...", "cmd": "..."}
+#   3. default: local Ollama with WHATEVER model the user set via VERITY_BRAIN_FALLBACK_MODEL. If unset and
+#             nothing is wired, the persona reply degrades gracefully (no separate writer) — wire your model.
+# Examples a user might wire: their own OpenAI/Anthropic key+url, an Ollama/LM Studio model, or a local
+# OAuth-bridge shim that exposes subscription models over an OpenAI-compatible port. See docs/BRAIN_SETUP.md.
+_BRAIN_DEFAULT_URL = "http://127.0.0.1:11434/v1/chat/completions"   # local Ollama (only if a model is set)
+_BRAIN_DEFAULT_MODEL = os.getenv("VERITY_BRAIN_FALLBACK_MODEL", "")   # NO bundled model — user wires their own
+
+
+def _brain_cfg():
+    """Resolve (url, model, cmd) for the conversation brain — env > brain.json > user's own local model."""
+    url = os.getenv("VERITY_VOICE_BRAIN_URL", "")
+    model = os.getenv("VERITY_VOICE_BRAIN_MODEL", "")
+    cmd = os.getenv("VERITY_VOICE_BRAIN_CMD", "")
+    if not (url or model or cmd):
+        try:
+            j = json.loads((_HOME / ".verity-harness" / "brain.json").read_text())
+            url, model, cmd = j.get("url", ""), j.get("model", ""), j.get("cmd", "")
+        except Exception:
+            pass
+    return (url or _BRAIN_DEFAULT_URL, model or _BRAIN_DEFAULT_MODEL, cmd)
 # Per-style Kokoro preset voice (local neural TTS). Public repo: run a kokoro-onnx server (or the
 # voxsona-server) and set KOKORO_URL. standard = af_heart (warm female); override via env.
 _KOKORO_URL = os.getenv("KOKORO_URL", "http://127.0.0.1:9102/v1/tts")
@@ -161,13 +190,62 @@ def _strip(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+# ── ElevenLabs budget guard ─────────────────────────────────────────────────────────────────────────
+# AISHA's premium ElevenLabs voice is used SPARINGLY + RANDOMLY and hard-capped per month so it can never
+# drain credits (paid cloud TTS can silently rack up cost). When the gate says no, the caller falls through to a
+# FREE local voice — she still speaks, just not in the paid voice. Tunable:
+#   VERITY_EL_MONTHLY_CAP  monthly character/credit cap (default 25000)
+#   VERITY_EL_PROBABILITY  chance any given line uses the paid voice (default 0.25 = ~1 in 4)
+_EL_USAGE = _HOME / ".verity-harness" / "elevenlabs-usage.json"
+_EL_CAP = int(os.getenv("VERITY_EL_MONTHLY_CAP", "25000"))
+_EL_PROB = float(os.getenv("VERITY_EL_PROBABILITY", "0.25"))
+
+
+def _el_month() -> str:
+    # stdlib only; avoid argless datetime.now() bans elsewhere — read the system clock via time.strftime
+    return time.strftime("%Y-%m")
+
+
+def _el_usage() -> dict:
+    try:
+        d = json.loads(_EL_USAGE.read_text())
+        if d.get("month") == _el_month():
+            return d
+    except Exception:
+        pass
+    return {"month": _el_month(), "used": 0}
+
+
+def _el_budget_ok(n_chars: int, force: bool = False) -> bool:
+    """True if the paid ElevenLabs voice may speak this line: under the monthly cap AND (unless force) it
+    wins the sparing random roll. force=True (e.g. an explicit `verity voice say`) skips the random gate
+    but still respects the hard cap."""
+    import random
+    u = _el_usage()
+    if u["used"] + max(0, n_chars) > _EL_CAP:
+        return False                      # hard monthly cap — never exceed
+    if not force and random.random() > _EL_PROB:
+        return False                      # sparing/random: most lines use the free voice
+    return True
+
+
+def _el_record(n_chars: int) -> None:
+    u = _el_usage()
+    u["used"] += max(0, n_chars)
+    try:
+        _EL_USAGE.parent.mkdir(parents=True, exist_ok=True)
+        _EL_USAGE.write_text(json.dumps(u))
+    except Exception:
+        pass
+
+
 def _say_elevenlabs(text: str, voiceid: str, apikey: str) -> bool:
     import urllib.request
     key = apikey or _get_cred("ELEVENLABS_API_KEY")
     vid = voiceid or _get_cred("ELEVENLABS_VOICE_ID")
     if not key or not vid:
         return False
-    # CLEAN settings — the exact ones DJ confirmed sound like her. The API `speed` param adds a high-pitch
+    # CLEAN settings — tuned for a natural-sounding clone. The API `speed` param adds a high-pitch
     # artifact, so we do NOT send it; pacing is slowed AFTER, via ffmpeg atempo (pitch-preserving).
     vs = {"stability": 0.45, "similarity_boost": 0.8}
     body = json.dumps({"text": text[:5000], "model_id": "eleven_turbo_v2_5", "voice_settings": vs}).encode()
@@ -178,6 +256,7 @@ def _say_elevenlabs(text: str, voiceid: str, apikey: str) -> bool:
         audio = urllib.request.urlopen(req, timeout=60).read()
         if len(audio) < 1000:
             return False
+        _el_record(len(text))   # the paid API call succeeded — bank the spend against the monthly cap
         import tempfile
         f = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
         f.write(audio); f.close()
@@ -469,12 +548,17 @@ def say(text: str, verbose: bool = False, force: bool = False, realtime: bool = 
     # Per-style Kokoro preset voice (e.g. standard = af_heart) — local neural, fast.
     if not used and _say_kokoro(spoken, style):
         used = "kokoro:" + style
-    # AISHA's clean, exactly-her voice is ElevenLabs — make it her DEFAULT whenever a voice id is set
-    # (the local KokoClone clone has an inherent static artifact, so it's fallback-only for no-key users).
+    # AISHA's clean, exactly-her voice is ElevenLabs — but used SPARINGLY + RANDOMLY under a hard monthly
+    # cap (never drain credits). When the budget gate says no, we skip EL and fall through to the FREE
+    # local voice below — she still speaks, just not in the paid voice. Only an explicit engine=elevenlabs
+    # config opts into the paid voice every time (skips the random roll, still respects the cap). The
+    # conversation loop passes force=True only to speak-when-muted — that must NOT bypass the sparing roll.
+    _el_intentional = (eng == "elevenlabs")
     if not used and (realtime or eng == "elevenlabs" or (style == "aisha" and el_vid)) \
+            and _el_budget_ok(len(spoken), force=_el_intentional) \
             and _say_elevenlabs(spoken, el_vid, c["apikey"]):
         used = "elevenlabs:" + style
-    # FREE local cloned voice — voxsona-server /tts (KokoClone text→clone, ~3s). DJ-approved as the
+    # FREE local cloned voice — voxsona-server /tts (KokoClone text→clone, ~3s). A solid free path for the
     # aisha free path ("sounds just like AISHA"). Default when NOT on the paid elevenlabs engine; saves
     # cloud cost, fully on-device + open-source. (NOT the say-overlay /convert — that sounded white/distorted.)
     if not used and _say_voxsona_overlay(spoken, style):
@@ -494,7 +578,7 @@ def say(text: str, verbose: bool = False, force: bool = False, realtime: bool = 
 
 def _mic_device():
     """Resolve the input device for sox: $VERITY_MIC, else ~/.verity-harness/mic file, else system default.
-    Critical on DJ rigs where the default input is Serato Virtual Audio, not the actual microphone."""
+    Critical on rigs where the default input is a virtual audio device (e.g. DJ/DAW software), not the mic."""
     m = os.getenv("VERITY_MIC")
     if m:
         return m.strip()
@@ -575,7 +659,12 @@ def _record_until_enter():
         return None
     out = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
     try:
+        # stdin=DEVNULL is CRITICAL: without it, sox `rec` shares the terminal stdin and consumes the
+        # ENTER keystrokes meant for the input() prompts below — both input()s then return instantly,
+        # rec is killed before capturing audio, the file is <4000 bytes, and the loop spins on
+        # "didn't catch that" forever. Detaching rec's stdin fixes it.
         proc = subprocess.Popen([rec, "-q", out, "rate", "16k", "channels", "1"],
+                                stdin=subprocess.DEVNULL,
                                 stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
         try:
             input("  🎤 recording… press ENTER to send: ")
@@ -594,7 +683,7 @@ def _record_until_enter():
 
 def _record_turn_ptt(max_s: int = 30):
     """Push-to-talk: record ONLY while the PTT key (Right-Shift) is held; send on release. Zero false
-    triggers — best for noisy/DJ environments. Needs pynput + macOS Input Monitoring grant (prompted once).
+    triggers — best for noisy environments. Needs pynput + macOS Input Monitoring grant (prompted once).
     Falls back to hands-free if pynput is unavailable."""
     rec = shutil.which("rec")
     if not rec:
@@ -649,24 +738,71 @@ def _transcribe(wav: str) -> str:
     return ""
 
 
-def _persona_reply(user_text: str, style: str) -> str:
-    """Conversational LLM reply IN the active persona (local-first via _SHIM)."""
-    import urllib.request
+def _brain_label() -> str:
+    """Human-readable name of the active conversation brain (for the live banner)."""
+    url, model, cmd = _brain_cfg()
+    if cmd:
+        return f"cmd:{cmd.split()[0]}"
+    if not model:
+        return "unset (wire your LLM → ~/.verity-harness/brain.json)"
+    host = "shim" if ":11445" in url else ("local" if ":11434" in url else url)
+    return f"{model}@{host}"
+
+
+def _brain_messages(user_text: str, style: str, history=None):
+    """Build the chat messages: persona system prompt + recent turns + this turn."""
     sysp = (_PERSONA.get(style, _PERSONA["standard"]) + " You are in a LIVE voice conversation — reply in "
             "1-3 spoken sentences, natural and conversational, no markdown/lists/code/URLs. Stay fully in "
             "character. ENGLISH ONLY.")
-    body = json.dumps({"model": _TTS_MODEL, "reasoning_effort": "none",
-                       "messages": [{"role": "system", "content": sysp},
-                                    {"role": "user", "content": user_text[:2000]}],
-                       "temperature": 0.8, "max_tokens": 200}).encode()
+    msgs = [{"role": "system", "content": sysp}]
+    for turn in (history or [])[-8:]:          # last ~4 exchanges keep it contextual without bloating
+        msgs.append(turn)
+    msgs.append({"role": "user", "content": user_text[:2000]})
+    return msgs
+
+
+def _brain_via_cmd(user_text: str, style: str, history=None) -> str:
+    """Route the turn through a CLI brain (Codex / Claude Code / Gemini / futron-chatgpt-plus).
+    The command gets the FULL spoken prompt (persona + short history + user) as its last arg and must
+    print ONLY the reply on stdout. Lets the voice loop talk to whatever LLM the user already drives."""
+    parts = _brain_cfg()[2].split()
+    sysp = (_PERSONA.get(style, _PERSONA["standard"]) + " Reply in 1-3 spoken sentences, in character, "
+            "no markdown/code/URLs, ENGLISH ONLY.")
+    convo = "\n".join(f"{t['role']}: {t['content']}" for t in (history or [])[-6:])
+    prompt = (sysp + ("\n\n" + convo if convo else "") + f"\nuser: {user_text[:2000]}\nassistant:")
     try:
-        req = urllib.request.Request(_SHIM, data=body, headers={"Content-Type": "application/json"})
-        d = json.loads(urllib.request.urlopen(req, timeout=30).read())
-        return (d.get("choices", [{}])[0].get("message", {}).get("content", "") or "").strip()
-    except urllib.error.URLError:
-        return ""
+        r = subprocess.run(parts + [prompt], capture_output=True, text=True, timeout=120)
+        return (r.stdout or "").strip()
     except Exception:
         return ""
+
+
+def _persona_reply(user_text: str, style: str, history=None) -> str:
+    """Conversational reply IN the active persona, from the USER'S OWN LLM.
+    Routing: VERITY_VOICE_BRAIN_CMD (CLI) → configured URL/MODEL (brain.json / env) → optional local model.
+    The user wires their own LLM; if nothing is configured the reply degrades gracefully (returns "")."""
+    import urllib.request
+    b_url, b_model, b_cmd = _brain_cfg()
+    if b_cmd:
+        out = _brain_via_cmd(user_text, style, history)
+        if out:
+            return out
+    msgs = _brain_messages(user_text, style, history)
+    # the user's configured LLM, then an optional local model (only if one is set). Skip tiers with no model.
+    for url, model, tmo in ((b_url, b_model, 90), (_BRAIN_DEFAULT_URL, _BRAIN_DEFAULT_MODEL, 30)):
+        if not model:
+            continue
+        body = json.dumps({"model": model, "reasoning_effort": "none", "messages": msgs,
+                           "temperature": 0.8, "max_tokens": 220}).encode()
+        try:
+            req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+            d = json.loads(urllib.request.urlopen(req, timeout=tmo).read())
+            out = (d.get("choices", [{}])[0].get("message", {}).get("content", "") or "").strip()
+            if out:
+                return out
+        except Exception:
+            continue   # primary unreachable → fall through to the local fast model
+    return ""
 
 
 def listen(ptt: bool = False, vad: bool = False) -> dict:
@@ -686,8 +822,8 @@ def listen(ptt: bool = False, vad: bool = False) -> dict:
     enter = not (ptt or vad)
     mode = ("press-ENTER to talk (reliable, mic-only)" if enter
             else (f"hold {_ptt_key_name()} (needs Input Monitoring)" if ptt else "hands-free (VAD)"))
-    print(f"[verity] LIVE voice — persona={style} ({STYLE_DESC.get(style,'?')}) · mode: {mode}. "
-          f"Mic: {_mic_device() or 'system default'}. (Ctrl-C to exit)", flush=True)
+    print(f"[verity] LIVE voice — persona={style} ({STYLE_DESC.get(style,'?')}) · brain={_brain_label()} · "
+          f"mode: {mode}. Mic: {_mic_device() or 'system default'}. (Ctrl-C to exit)", flush=True)
     # Probe the mic once so the macOS Microphone prompt fires now (the only permission ENTER-mode needs).
     try:
         _r = shutil.which("rec")
@@ -702,6 +838,7 @@ def listen(ptt: bool = False, vad: bool = False) -> dict:
         pass
     say("I'm listening.", force=True)
     turns = 0
+    history = []   # rolling [{role,content}] so the brain holds the thread of the conversation
     try:
         while True:
             if enter:
@@ -728,8 +865,11 @@ def listen(ptt: bool = False, vad: bool = False) -> dict:
             print(f"  you: {user}", flush=True)
             if re.search(r"\b(goodbye|good bye|stop listening|that'?s all|end conversation)\b", user, re.I):
                 say("Aight, catch you later.", force=True); break
-            reply = _persona_reply(user, style) or "Say that again?"
+            reply = _persona_reply(user, style, history) or "Say that again?"
             print(f"  {style}: {reply}", flush=True)
+            history.append({"role": "user", "content": user})
+            history.append({"role": "assistant", "content": reply})
+            del history[:-12]                        # keep the last ~6 exchanges in context
             say(reply, force=True, realtime=True)   # ALWAYS speak, FAST cloud voice (ElevenLabs ~0.6s)
             turns += 1
     except KeyboardInterrupt:
@@ -746,7 +886,7 @@ def status() -> str:
         f"  readout    : {c['style']}  ({STYLE_DESC.get(c['style'],'?')} default voice)\n"
         f"  engine     : {c['engine']}\n"
         f"  voice src  : {c['voicesrc']}" + (f"  voice-id={c['voiceid']}" if c['voiceid'] else "") + "\n"
-        f"  interactive: {'on' if c['interactive'] else 'off'} (listen loop: not built yet)\n"
+        f"  interactive: {'on' if c['interactive'] else 'off'}  ·  conversation brain: {_brain_label()}\n"
         f"  OS floor   : {floor}\n"
-        "  say:  verity voice say \"<text>\"   ·   listen:  verity voice listen"
+        "  say:  verity voice say \"<text>\"   ·   listen:  verity voice listen  (press ENTER, talk, ENTER)"
     )
