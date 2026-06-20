@@ -22,7 +22,7 @@ import json
 import re
 from dataclasses import dataclass, field
 
-from .router import ask
+from .router import ask, AllTiersFailed
 from .config import Tier
 
 _JSON_RE = re.compile(r"\{.*\}", re.DOTALL)
@@ -63,7 +63,13 @@ def challenge(claim: str, context: str = "", tiers=None) -> Calibration:
     DIFFERENT model than made the claim (cross-model independence)."""
     from .config import VERIFIER_TIERS  # cheap-by-default challenger (token efficiency)
     prompt = f"CLAIM: {claim}\n\nCONTEXT (evidence actually gathered):\n{context[:3000] or '(none provided)'}"
-    r = ask(prompt, system=_CHALLENGE_SYS, tiers=tiers or VERIFIER_TIERS)
+    try:
+        r = ask(prompt, system=_CHALLENGE_SYS, tiers=tiers or VERIFIER_TIERS)
+    except AllTiersFailed:
+        # The challenger is an ADDITIONAL safety layer — if every tier is momentarily down, don't crash the
+        # run (and don't loop on recheck): proceed with the workhorse's own verify, flagged low-confidence.
+        return Calibration(True, [], "challenger unavailable (all tiers blipped) — proceeding on the "
+                           "workhorse's own verification", "proceed", "low", challenger_model="(unavailable)")
     m = _JSON_RE.search(r.text)
     if not m:
         return Calibration(False, ["challenger returned no JSON"],

@@ -15,12 +15,35 @@ import json
 import os
 import re
 import subprocess
+import time
 from dataclasses import dataclass, field
 
-from .router import ask
+from .router import ask, AllTiersFailed
 from .loop import Executor, PlanOnlyExecutor, parse_step_json
 
 _JSON_RE = re.compile(r"\{.*\}", re.DOTALL)
+
+# Per-STEP resilience: the router already retries each tier on transient errors, but if EVERY tier blips at
+# the same instant (a momentary provider-wide hiccup) it raises AllTiersFailed. Without this, that one blip
+# crashes a whole multi-step run. Retry the entire step a few times with backoff so a transient all-tiers
+# outage is survived, not fatal. Only a SUSTAINED outage (all tiers down for the full window) still fails.
+_STEP_RETRIES = int(os.environ.get("VERITY_STEP_RETRIES", "3"))
+_STEP_BACKOFF = float(os.environ.get("VERITY_STEP_BACKOFF", "6"))   # seconds, linear (6s, 12s, 18s)
+
+
+def ask_resilient(*args, **kwargs):
+    """ask() that survives a TRANSIENT all-tiers blip — retries the whole call before giving up."""
+    for i in range(_STEP_RETRIES):
+        try:
+            return ask(*args, **kwargs)
+        except AllTiersFailed:
+            if i == _STEP_RETRIES - 1:
+                raise
+            wait = min(_STEP_BACKOFF * (i + 1), 30)
+            if kwargs.get("verbose") or (len(args) > 0 and False):
+                pass
+            print(f"[resilient] all tiers blipped — retry {i+1}/{_STEP_RETRIES-1} in {wait:.0f}s", flush=True)
+            time.sleep(wait)
 
 
 # ─── 1. DECOMPOSE (pluggable) ─────────────────────────────────────────────────
@@ -74,7 +97,7 @@ class Verdict:
 def verify(goal: str, action: str, observation: str, tiers=None) -> Verdict:
     from .config import VERIFIER_TIERS  # cheap-by-default verifier (token efficiency)
     prompt = f"GOAL: {goal}\nACTION: {action}\nOBSERVED RESULT:\n{observation[:2000]}"
-    r = ask(prompt, system=_VERIFY_SYS, tiers=tiers or VERIFIER_TIERS)
+    r = ask_resilient(prompt, system=_VERIFY_SYS, tiers=tiers or VERIFIER_TIERS)
     m = _JSON_RE.search(r.text)
     if not m:
         return Verdict(ok=False, reason="verifier returned no JSON")
@@ -386,7 +409,7 @@ def run_verified(goal: str, executor: Executor | None = None,
         # (the 'turn-47' failure: summarization is lossy, "don't do X" constraints evaporate).
         if n > 1 and n % 4 == 0:
             transcript += f"\n[REANCHOR] Stay on the original GOAL: {goal}\n"
-        reply = ask(transcript, system=_STEP_SYS, **_kw)
+        reply = ask_resilient(transcript, system=_STEP_SYS, **_kw)
         step = parse_step_json(reply.text)  # robust: survives weak-model malformed JSON
         action = str(step.get("action", "")).strip()
 
