@@ -335,12 +335,62 @@ def _preflight(goal: str, verbose: bool = False) -> str:
     return findings
 
 
+# ─── SPEC pre-flight — objective done-criterion + task-matched verification (loop-engineering #1) ─────
+# A loop is only as good as its done-check. Before any step, restate the goal as a CHECKABLE spec: an
+# OBJECTIVE stop-condition (not "looks good"/"until satisfied"), the verification method MATCHED to the task
+# (run a test / compare stdout / screenshot+inspect / check flow), and any ambiguities to pin down. This is
+# the "grill/align + objective-done + task-matched-verify" lesson distilled from agentic-workflow practice.
+_SPEC_SYS = (
+    "Turn the GOAL into a CHECKABLE SPEC before any work begins. Be concrete and OBJECTIVE. "
+    "Respond ONLY JSON: {"
+    '"done_criterion": "a verifiable condition for DONE — a measurable check, NOT \\"looks good\\"/\\"until '
+    'satisfied\\" (e.g. \\"script prints exactly UP: <N> models\\", \\"pytest exits 0\\", \\"GET returns 200\\")", '
+    '"verification": "the concrete check MATCHED to THIS task (run a test / execute & compare stdout / '
+    'screenshot & inspect / check output flow) and the exact command/method to run it", '
+    '"assumptions": ["any requirement the goal leaves open — state the assumption you will make"]}'
+)
+
+
+def _spec(goal: str, verbose: bool = False) -> str:
+    """One-shot pre-flight: objective done-criterion + task-matched verification + surfaced assumptions.
+    Best-effort — never breaks the run."""
+    try:
+        r = ask_resilient(f"GOAL: {goal}", system=_SPEC_SYS)
+        m = _JSON_RE.search(getattr(r, "text", ""))
+        if not m:
+            return ""
+        d = json.loads(m.group(0))
+        parts = []
+        if d.get("done_criterion"):
+            parts.append("DONE-CRITERION (objective; declare done ONLY when this is VERIFIABLY true): "
+                         + str(d["done_criterion"]))
+        if d.get("verification"):
+            parts.append("VERIFICATION (the check matched to THIS task — actually run it): "
+                         + str(d["verification"]))
+        amb = d.get("assumptions") or []
+        if amb:
+            parts.append("ASSUMPTIONS (goal left these open — proceed on these, flag if wrong): "
+                         + "; ".join(str(a) for a in amb[:4]))
+        spec = "\n".join(parts)
+        if verbose and spec:
+            print(f"[spec] done-criterion: {str(d.get('done_criterion',''))[:90]}")
+        try:
+            from . import ledger
+            ledger.log(ledger.DECISION, trigger="spec: objective done-criterion",
+                       outcome=str(d.get("done_criterion", ""))[:200])
+        except Exception:
+            pass
+        return spec
+    except Exception:  # noqa: BLE001 — spec is additive; never break the run
+        return ""
+
+
 def run_verified(goal: str, executor: Executor | None = None,
                  max_steps: int = 10, max_consecutive_fail: int = 3,
                  calibrate: bool = True, tiers=None, use_memory: bool = True,
                  persistence: int = 2, discover: str | bool = "auto",
                  preflight: str | bool = "auto", gate_cmd: str | None = None,
-                 deadline_s: float | None = None,
+                 deadline_s: float | None = None, spec: str | bool = "auto",
                  verbose: bool = True) -> ScaffoldResult:
     """think → act → VERIFY → recover → CALIBRATE, with persistent MEMORY across
     runs. Every gate is a DETERMINISTIC enforcer — it fires on a code condition, not
@@ -383,13 +433,21 @@ def run_verified(goal: str, executor: Executor | None = None,
     # live internet into the model's knowledge base). Same deterministic gating as discovery.
     do_preflight = preflight is True or (preflight == "auto" and _should_discover(goal))
     preflighted = _preflight(goal, verbose=verbose) if do_preflight else ""
+    # SPEC pre-flight: pin an OBJECTIVE done-criterion + task-matched verification before stepping (a loop is
+    # only as good as its done-check). Gated like preflight — skip for trivial goals.
+    do_spec = spec is True or (spec == "auto" and _should_discover(goal))
+    specced = _spec(goal, verbose=verbose) if do_spec else ""
     transcript = (f"WORKING DIRECTORY: {os.getcwd()}\n"
                   + (prior + "\n" if prior else "")
                   + ("CURRENT BEST APPROACH — LIVE web findings, CURRENT (post your training cutoff), so "
                      "they SUPERSEDE your training. APPLY THESE over your priors; where a value/id/name "
                      "appears here, use it verbatim — do NOT fall back to memory:\n" + preflighted + "\n"
                      if preflighted else "")
-                  + (discovered + "\n" if discovered else "") + f"GOAL: {goal}\n")
+                  + (discovered + "\n" if discovered else "")
+                  + ("SPEC — hold yourself to THIS; do NOT declare done until the DONE-CRITERION is "
+                     "VERIFIABLY met (run the VERIFICATION), and do not stop on 'looks good':\n" + specced + "\n"
+                     if specced else "")
+                  + f"GOAL: {goal}\n")
     consecutive_fail = 0
     nudged = 0
     giveup_nudged = 0

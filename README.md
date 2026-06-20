@@ -286,6 +286,10 @@ r = run_verified("find and fix the off-by-one bug in utils.py",
   "no free option") is the most expensive assumption. Before any such claim stands, the harness
   forces a search where solutions live. *(Live example: "X has no free posting API" → forced
   search → `twikit`, which posts free. The model had asserted the opposite from memory.)*
+- **Spec pre-flight** — before stepping, the goal is pinned to an **objective done-criterion** (a measurable
+  stop, *not* "looks good"/"until satisfied"), a **task-matched verification** (run a test / compare stdout /
+  screenshot+inspect / check flow), and **surfaced assumptions** (the goal's ambiguities). A loop is only as
+  good as its done-check — this sets a checkable one up front. (Auto for non-trivial goals; `spec=` to force/skip.)
 - **Verify gate** — after each action, an adversarial check: *did this really work?*
   Catches failed commands an optimistic loop would rubber-stamp.
 - **Evidence gate** — refuses to declare "done" on a fact question with zero
