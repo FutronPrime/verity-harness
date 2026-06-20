@@ -523,15 +523,17 @@ def _say_voxsona_overlay(text: str, style: str) -> bool:
     return False
 
 
-def say(text: str, verbose: bool = False, force: bool = False, realtime: bool = False) -> dict:
+def say(text: str, verbose: bool = False, force: bool = False, realtime: bool = False,
+        tldr: bool = False) -> dict:
     """Speak `text` per the resolved config. force=True speaks it IN FULL regardless of the speak-mode
     setting. realtime=True prefers the FAST cloud voice (ElevenLabs) over the slower local clone — for
-    live conversation, where a ~0.6s reply matters and the local clone (~3s, more under CPU load) lags."""
+    live conversation, where a ~0.6s reply matters and the local clone (~3s, more under CPU load) lags.
+    tldr=True ALWAYS summarises into a short persona line first (used to voice an agent's full response)."""
     c = cfg()
     if c["speak"] == "off" and not force:
         return {"spoke": False, "reason": "speak mode is OFF"}
     spoken = _strip(text)
-    if c["speak"] == "tldr" and not force:
+    if tldr or (c["speak"] == "tldr" and not force):
         spoken = _tldr(spoken, c["style"])
     if len(spoken) < 2:
         return {"spoke": False, "reason": "nothing to say"}
@@ -952,6 +954,68 @@ def dictate(ptt: bool = False, vad: bool = False, submit: bool = False, app: str
     except KeyboardInterrupt:
         print("\n[verity] dictate ended.", flush=True)
     return {"ok": True, "typed": n}
+
+
+def _last_response_block(raw: str) -> str:
+    """Pull the last assistant-looking block out of mixed CLI output (strip ANSI + shell prompts)."""
+    text = re.sub(r"\x1b\[[0-9;]*[a-zA-Z]", "", raw).strip()
+    out = []
+    for ln in reversed(text.split("\n")):
+        s = ln.strip()
+        if not s:
+            if out:
+                break
+            continue
+        if re.match(r"^(\$|>|>>>|❯|➜|#|\?|gemini>|codex>)", s):
+            break
+        out.insert(0, s)
+    return re.sub(r"[*_#`]", "", " ".join(out)).strip()
+
+
+def pipe(argv) -> dict:
+    """Wrap a CLI agent (codex/gemini/etc): mirror its output live, and when it pauses or exits, speak the
+    last response block as a persona TL;DR — so ANY CLI assistant's replies get voiced, even without a Stop
+    hook. The public version of the FUTRON cli-tts pipe. Usage: verity voice pipe <cmd> [args...]."""
+    import pty
+    import select
+    if not argv:
+        return {"ok": False, "error": "usage: verity voice pipe <cmd> [args...]"}
+    pause = float(os.getenv("VERITY_PIPE_PAUSE", "2.5"))
+    buf, last, spoke = "", time.time(), True
+    try:
+        pid, fd = pty.fork()
+    except Exception as e:
+        return {"ok": False, "error": f"pty.fork failed: {e}"}
+    if pid == 0:
+        try:
+            os.execvp(argv[0], argv)
+        except Exception:
+            os._exit(127)
+    try:
+        while True:
+            r, _, _ = select.select([fd], [], [], 0.5)
+            if r:
+                try:
+                    data = os.read(fd, 4096)
+                except OSError:
+                    break
+                if not data:
+                    break
+                os.write(1, data)            # mirror to the user's terminal in real time
+                buf += data.decode(errors="ignore")
+                last, spoke = time.time(), False
+            elif not spoke and (time.time() - last) > pause:
+                resp = _last_response_block(buf)
+                if len(resp) >= 15:
+                    say(resp, force=True, tldr=True)   # persona TL;DR of the agent's reply
+                buf, spoke = "", True
+    except KeyboardInterrupt:
+        pass
+    if not spoke:
+        resp = _last_response_block(buf)
+        if len(resp) >= 15:
+            say(resp, force=True, tldr=True)
+    return {"ok": True}
 
 
 def status() -> str:

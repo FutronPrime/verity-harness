@@ -83,3 +83,28 @@ If you wire a paid TTS voice (e.g. ElevenLabs) for the persona, VERITY uses it *
 a hard monthly cap so it can't drain credits. Tune with `VERITY_EL_MONTHLY_CAP` (default 25000) and
 `VERITY_EL_PROBABILITY` (default 0.25 = ~1 in 4 lines use the paid voice; the rest use a free local voice).
 Usage is tracked in `~/.verity-harness/elevenlabs-usage.json` and resets monthly.
+
+## Voicing YOUR agent's replies (the unified loop)
+
+VERITY is meant to be an I/O shell over the assistant you ALREADY run — your speech in, its reply voiced
+back — not a separate chatbot. The reply side reads your real agent's output and speaks a persona summary:
+
+**Claude Code** — install the Stop hook (`hooks/speak-response.sh`). Add to `~/.claude/settings.json`:
+```json
+"Stop": [ { "matcher": "", "hooks": [
+  { "type": "command", "command": "/ABSOLUTE/PATH/TO/verity-harness/hooks/speak-response.sh" } ] } ]
+```
+Each turn it reads your last assistant message, summarises it in the persona, and speaks it.
+
+**Codex / Gemini / any CLI agent** — no hook needed, just wrap it:
+```bash
+verity voice pipe codex          # mirrors output live, voices each reply as a persona TL;DR
+verity voice pipe gemini chat
+```
+
+**Input** — use your app's built-in mic (Claude Code, Codex desktop, etc. have one), any 3rd-party dictation
+(e.g. Wispr Flow), or the integrated `verity voice dictate` for setups with no native mic.
+
+**Dependency:** the reply side needs your agent to EXPOSE its output — a Stop hook (Claude Code), a readable
+transcript, or a CLI you can wrap with `pipe`. No exposure → nothing to read → no voiced reply. Persona +
+voice are selectable (`tts-style`: standard/aisha/lcars/jarvis); paid voices stay capped + sparing.

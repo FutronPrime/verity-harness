@@ -404,11 +404,15 @@ def main(argv: list[str]) -> None:
         from . import voice as _v
         sub = rest[0] if rest else "status"
         if sub == "say":
-            if len(rest) < 2:
-                print("usage: verity voice say \"<text>\"", file=sys.stderr); sys.exit(2)
-            r = _v.say(" ".join(rest[1:]), verbose=True)
+            words = [w for w in rest[1:] if w != "--tldr"]
+            if not words:
+                print("usage: verity voice say [--tldr] \"<text>\"", file=sys.stderr); sys.exit(2)
+            r = _v.say(" ".join(words), verbose=True, force=True, tldr=("--tldr" in rest))
             if not r.get("spoke"):
                 print(f"[voice] did not speak: {r.get('reason','')}", file=sys.stderr)
+        elif sub == "pipe":
+            # wrap a CLI agent and speak its replies as persona TL;DRs: verity voice pipe <cmd> [args...]
+            print(json.dumps(_v.pipe(rest[1:]), indent=2))
         elif sub == "listen":
             # default = press-ENTER (reliable, mic-only); --ptt = hold key (needs Input Monitoring); --vad = hands-free
             print(json.dumps(_v.listen(ptt=("--ptt" in rest), vad=("--vad" in rest)), indent=2))
