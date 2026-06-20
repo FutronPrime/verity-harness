@@ -204,6 +204,16 @@ the workhorse's answer — two frontier models catching errors **either one alon
 can't do that; an ensemble can. It fires sparingly (≈1 call per conclusion), so the strong challenger costs
 little. Leave `LLM_VERIFIER_MODEL` unset and it degrades to same-model self-check.
 
+### Latency: put the WORKHORSE on a fast endpoint
+
+The workhorse runs on **every step**, so its per-call latency dominates long-horizon goals. Subscription-CLI
+shims (subprocess-spawning `codex`/`claude` per request) are flat-fee but slow — measured **~18s/call** here vs
+**~2–3s** for a real HTTP API. So for multi-step builds: point **`LLM_TIER1` (workhorse) at a fast direct API**
+and keep the slow flat-fee shim for the **sparing verifier + failover** only (they fire ≈once per conclusion,
+so their latency is amortized). Measured 6× per-step speedup. Pick a workhorse model that returns content
+directly — *thinking* models (e.g. some `-pro` previews) can exhaust a small token budget on reasoning and
+return empty; a `-flash` or a content-returning `-pro` is the safe workhorse.
+
 ## Architecture
 
 <p align="center">
