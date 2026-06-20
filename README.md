@@ -178,6 +178,22 @@ python3 -m verity failover-test # PROVE: cloud down → local floor answers ✅
 Optional cloud tier (frontier-class while available): `export LLM_TIER1_API_KEY=<key>`
 (OpenRouter gives one key → hundreds of models).
 
+### Works off ONE model (you don't need every provider)
+
+VERITY does **not** require accounts on multiple LLMs. Set just `LLM_TIER1_*` to a **single model** and the
+full discipline still runs — the same model self-checks its own conclusions (the verify + humility/calibration
+gates fire in self-check mode). Easiest zero-cost path: a **free Gemini API key**
+([aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey); the free `-flash` tier is generous):
+
+```ini
+LLM_TIER1_URL=https://generativelanguage.googleapis.com/v1beta/openai
+LLM_TIER1_MODEL=gemini-3-flash-preview
+LLM_TIER1_API_KEY=YOUR_FREE_GEMINI_KEY
+```
+
+Have a second provider? Add `LLM_VERIFIER_MODEL` (a *different* brain) for cross-model challenge — see below.
+A ready-to-edit template ships as [`verity.env.example`](verity.env.example).
+
 ### Wire YOUR brain once — `~/.verity-harness/verity.env`
 
 No env-export juggling. Drop your tier wiring in `~/.verity-harness/verity.env` (loaded automatically; real
