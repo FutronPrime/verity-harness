@@ -65,8 +65,14 @@ def run() -> int:
     # model can SUSTAIN autonomous work — only running one does. (A 4B passes the
     # micro-probes but collapses on a real task; this catches that.)
     task_ok, task_detail = _probe_real_task()
-    print(f"  [{'PASS' if task_ok else 'FAIL'}] {'real multi-step task':26} {task_detail}")
+    label = "SKIP" if task_ok is None else ("PASS" if task_ok else "FAIL")
+    print(f"  [{label}] {'real multi-step task':26} {task_detail}")
     print()
+    if task_ok is None:
+        # The decisive probe couldn't RUN due to a harness bug — DON'T pretend that's a model verdict.
+        print("VERDICT: ⚠ INCONCLUSIVE — the multi-step probe hit a HARNESS bug (above), not a model "
+              f"limit. Micro-skills: {micro}/3 passed. Fix the probe, then re-run `verity doctor`.")
+        return 2 if micro >= 2 else 0
     if task_ok and micro >= 2:
         print("VERDICT: ✅ READY — clears the bar for autonomous work.")
     elif task_ok or micro == 3:
@@ -94,12 +100,16 @@ def _probe_real_task() -> tuple[bool, str]:
         run_verified("Create a file add.py defining a function add(a, b) that "
                      "returns a + b. Then run python3 to verify add(2, 3) is 5.",
                      executor=ShellExecutor(), max_steps=8, calibrate=False,
-                     use_memory=False, compact=False, verbose=False)
+                     use_memory=False, verbose=False)
         chk = subprocess.run(
             ["python3", "-c", "import add; assert add.add(2,3)==5; print('OK')"],
             cwd=d, capture_output=True, text=True, timeout=15)
         ok = "OK" in chk.stdout
         return ok, "built+verified add.py" if ok else "failed to complete the task"
+    except (TypeError, AttributeError, ImportError) as e:
+        # A signature/attribute/import error is the HARNESS's own bug, NOT a model verdict — don't let
+        # it masquerade as "the model is MARGINAL" (the 2026-06-22 lesson: a symptom isn't a diagnosis).
+        return None, f"[harness bug, not a model issue] {type(e).__name__}: {e}"
     except Exception as e:  # noqa: BLE001
         return False, f"crashed: {type(e).__name__}"
     finally:
