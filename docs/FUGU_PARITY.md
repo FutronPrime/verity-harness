@@ -159,6 +159,16 @@ harness grows into its own customized expert**, learning the subjects that user 
 the community's own artifacts. That is the difference between a fixed model and a system that does its
 own on-the-job training — and no proprietary endpoint can give you a *per-user* learned brain you own.
 
+**Memory stays bounded — by design, on both axes.** A system that saves and evolves must not grow
+without limit. Two separate guarantees: (1) *Injection* — everything that reaches the prompt is hard
+char-capped (membank recall 700–1500 chars + 90-day recency decay, playbook 6000, routing 2000, the
+one discovered champion ~600, loop hints top-3). The sum per session is ~10–15KB — it cannot bloat the
+context. (2) *Disk* — the append-only stores self-bound: membank enforces a row cap every ~256 writes
+(evicting transient rows first, preserving durable lessons by recency+access+scope), and `verity gc`
+caps the ledger (retention window), discovery pool, and stale guard counters. So the harness gets
+smarter over time without the store ever running away. Tunable: `VERITY_MEMBANK_MAX`,
+`VERITY_LEDGER_KEEP_DAYS`, `VERITY_DISCOVER_POOL_MAX`.
+
 This is the same loop the broader agentic-loops movement is converging on (prior art / reuse:
 [serenakeyitan/awesome-agent-loops](https://github.com/serenakeyitan/awesome-agent-loops),
 [AlessandroAnnini/agent-loop](https://github.com/AlessandroAnnini/agent-loop),

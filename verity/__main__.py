@@ -408,6 +408,11 @@ def main(argv: list[str]) -> None:
             print(f"Loop Library — {len(ls)} loops. `verity looplib <query>`, `… get <slug>`, `… --seed-discover`.")
             for lp in ls[:50]:
                 print(f"  {lp.get('number')} [{lp.get('category',{}).get('slug')}] {lp.get('slug')}: {lp.get('title')}")
+    elif cmd == "gc":
+        # Memory maintenance — keep the self-evolving stores BOUNDED over the long horizon (membank rows,
+        # ledger day-files, guard counters, discovery pool). Injection is already char-capped; this caps DISK.
+        from . import maintenance
+        maintenance.gc(verbose=True)
     elif cmd == "solve":
         if not rest:
             print("usage: solve \"<goal>\" [--discover] [--gate \"<test/build/lint cmd>\"] "

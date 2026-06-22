@@ -129,7 +129,9 @@ def _project(project: str | None) -> str:
 
 
 def capture(content: str, scope: str = "fact", project: str | None = None) -> str:
-    """ADD-only write. Dedups identical content (hash). Returns a short status line."""
+    """ADD-only write. Dedups identical content (hash). Returns a short status line.
+    Self-bounding: ~every 256th insert it enforces the row cap so the store can't grow unbounded
+    over months (recall is already char-budgeted, but the TABLE shouldn't grow forever either)."""
     content = (content or "").strip()
     if not content:
         return "[membank: empty, skipped]"
@@ -145,9 +147,57 @@ def capture(content: str, scope: str = "fact", project: str | None = None) -> st
         if _fts(c):
             c.execute("INSERT INTO mem_fts(rowid,content,entities) VALUES(?,?,?)", (rid, content, _entities(content)))
         c.commit()
+        if rid and rid % 256 == 0:        # cheap periodic cap — no per-write cost
+            try:
+                prune()
+            except Exception:  # noqa: BLE001 — maintenance must never break a write
+                pass
         return f"[membank #{rid} saved · {scope} · {_project(project)}]"
     except sqlite3.IntegrityError:
         return "[membank: duplicate, already stored]"
+    finally:
+        c.close()
+
+
+def count() -> int:
+    c = _conn()
+    try:
+        return c.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
+    finally:
+        c.close()
+
+
+def prune(max_rows: int | None = None) -> dict:
+    """Bound the store: keep the highest-VALUE rows, evict the rest. Value = recency (90-day decay) +
+    access-count + a bonus for DURABLE scopes (lessons/decisions/errors) — so hard-won lessons survive
+    and transient handoffs age out first. No-op until the table exceeds the cap. Returns a summary.
+    Cap via VERITY_MEMBANK_MAX (default 5000). Recall stays bounded regardless; this caps DISK growth."""
+    max_rows = max_rows or int(os.environ.get("VERITY_MEMBANK_MAX", "5000"))
+    c = _conn()
+    try:
+        total = c.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
+        if total <= max_rows:
+            return {"total": total, "evicted": 0, "cap": max_rows}
+        now = time.time()
+        rows = c.execute("SELECT id,scope,created_at,access_count FROM memories").fetchall()
+        scored = []
+        for rid, scope, created, acc in rows:
+            recency = max(0.0, 1.0 - (now - (created or now)) / (90 * 86400))
+            keep = recency * 2 + min(acc or 0, 5) * 0.4 + (1.5 if scope in DURABLE else 0)
+            scored.append((keep, rid))
+        scored.sort(key=lambda x: -x[0])              # highest-value first
+        evict_ids = [rid for _, rid in scored[max_rows:]]
+        if evict_ids:
+            ph = ",".join("?" * len(evict_ids))
+            c.execute(f"DELETE FROM memories WHERE id IN ({ph})", tuple(evict_ids))
+            if _fts(c):
+                try:
+                    c.execute(f"DELETE FROM mem_fts WHERE rowid IN ({ph})", tuple(evict_ids))
+                except sqlite3.OperationalError:
+                    pass
+            c.commit()
+            c.execute("VACUUM")                        # reclaim the disk, not just the rows
+        return {"total": total, "evicted": len(evict_ids), "kept": max_rows, "cap": max_rows}
     finally:
         c.close()
 
