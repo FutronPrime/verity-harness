@@ -481,12 +481,17 @@ def run_verified(goal: str, executor: Executor | None = None,
             # second model, turned every premature "can't" into a real fix.
             _draft0 = str(step.get("summary", step.get("thought", "")))
             if giveup_nudged < 2:
-                from .guard import flag as _flag, CORRECTIVE as _CORR
-                if _flag(_draft0):
+                from .guard import flag as _flag, corrective_for as _corr_for
+                _gk = _flag(_draft0)
+                if _gk:
                     giveup_nudged += 1
-                    transcript += f"\n{_CORR}\n"
+                    # route the KIND-specific corrective: a capability-negative ('only weights can')
+                    # gets the search-forcing one (cites ADAS/AlphaEvolve), not the generic infra text.
+                    transcript += f"\n{_corr_for(_gk)}\n"
                     if verbose:
-                        print(f"[anti-giveup] premature 'can't/impossible/only-a-human' caught at step {n} "
+                        _what = ("capability-negative ('only X can / structurally impossible')" if _gk == "capability"
+                                 else "premature 'can't/impossible/only-a-human'")
+                        print(f"[anti-giveup] {_what} caught at step {n} "
                               f"(nudge {giveup_nudged}/2) → forcing investigation, not surrender")
                     continue
             # EVIDENCE GATE: reject a "done" that rests on ZERO verified evidence.
