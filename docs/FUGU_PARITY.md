@@ -26,37 +26,59 @@ inspectable in ways a proprietary endpoint is not.
 | Provider-agnostic pool, swap on restriction | ✅ Matched | `router.py` peer-chain failover → independent 2nd provider → sovereign local floor |
 | Pre-flight research before execution | ✅ Matched | Rule 0 `_preflight`: live-searches current-best approach and injects it |
 | Selective triggering (don't multi-agent a trivial query) | ✅ Matched (Fugu doesn't expose this) | `should_swarm()` — iMAD-style (arxiv 2511.11306) |
-| **Evolved coordinator** (TRINITY trained over millions of trials) | ✗ Different bet | see below |
+| **Evolved coordinator** (TRINITY/Conductor, RL-trained) | ◑ split: orchestrate ✅ · learn ◑ · discover ✗ | `promptos.py` (prompt-software orchestrator) + `evolve.py` (ledger loop) — see below |
 
-## The one honest gap: the *evolved* coordinator (Gap #4)
+## Gap #4, split three ways (the honest version)
 
-Fugu's coordinator is **trained** — TRINITY evolves a lightweight orchestrator and Conductor learns
-topologies via RL over many trials. VERITY does **not** have a training pipeline, so it will not
-reproduce a learned coordinator. That's a real difference, stated plainly.
+"Match Fugu's evolved coordinator" sounds binary, but the Conductor does three separable things.
+Pull them apart and the picture is precise — not "structurally impossible," just one residual sliver:
 
-What VERITY substitutes is **engineered discipline**: the orchestration is an inspectable state
-machine (`scaffold.py` / `swarm.py`) whose every gate fires on a code condition and writes an
-auditable receipt to the ledger. The trade is concrete:
+**1. Orchestrate — decompose, assign roles, choose a topology, route models. ✅ FULLY reachable with
+prompt software.** A trained coordinator and a prompt-software orchestrator do the *same job*; they
+differ only in WHERE the behavior lives — baked in weights vs activated in-context by a strict system
+prompt. `promptos.py` is that orchestrator (Synapse_COR): a portable prompt-software block that turns
+any capable model into VERITY's planner. This is *why* dropping a Synapse_COR prompt into a "blank" LLM
+makes it behave like a state machine — the prompt is a **key that unlocks** structure the model already
+latently has. (`VERITY_PROMPTOS=1` runs the swarm planner on it; `python3 -m verity promptos` prints it
+to paste into any model.)
 
-- **Fugu's edge:** a coordinator that can invent *non-obvious* coordination strategies a human
-  didn't script. On the benchmarks Sakana reports, that wins (SWE-Bench Pro: Fugu Ultra 73.7).
-- **VERITY's edge:** every routing/verify/recurse decision is **legible and yours** — no proprietary
-  endpoint, runs against models *you* own, fails over to local weights nothing can revoke, and you
-  can read exactly why it did what it did (`verity proof`). It also runs the same discipline on a
-  single local 8B as on a frontier API.
+**2. Learn — get measurably better at orchestrating from outcomes over many runs. ◑ MOSTLY reachable
+WITHOUT training.** A static prompt is stateless; it doesn't improve from running 10,000 times. But you
+don't need weight updates to learn — you need a *feedback loop around* the prompt. `evolve.py` already
+does exactly this for the discipline *playbook* (distill ledger lessons → gated non-regression promotion).
+The swarm now logs every plan/route/recurse/critic outcome to that same ledger, so the reachable next
+step is distilling *routing heuristics* ("for goal-shape X, topology Y at complexity Z passed 9/10") and
+promoting them into the orchestrator prompt. That is in-context / memory-based evolution — most of the
+Conductor's practical *value* (it adapts to your setup, and improves over time), minus the GPUs.
 
-`evolve.py` already does closed-loop, gated self-improvement of the injectable *playbook* (the
-discipline lessons), with a non-regression safety gate. Extending that substrate toward evolving
-*routing heuristics* (which band/topology worked for which goal shape, learned from the ledger) is
-the closest reachable approximation of Conductor — a roadmap item, not a claim of present parity.
+**3. Discover — invent coordination strategies that lie OUTSIDE the base model's reasoning priors. ✗
+Weight-level only.** A prompt asking "propose the best topology" returns the model's best guess *from
+what it already knows*. Genuinely novel strategies that emerge only from optimization+reward over many
+trials are the one thing prompt software cannot manufacture. For a *frontier* base model this residue is
+small (its priors are enormous and already cover most useful topologies); for a tiny local model it's
+larger. State it plainly: this sliver is real, and it's the only part that is.
+
+**The trade, concretely:**
+- *Fugu's edge:* a coordinator that can invent non-obvious strategies a human didn't script — and on
+  Sakana's own benchmarks, it wins (SWE-Bench Pro: Fugu Ultra 73.7).
+- *VERITY's edge — and the open-source pitch:* it's **free, fully open-source, and model-agnostic**.
+  The orchestrator is a prompt file you can read, fork, and tweak for *your* models, your setup, your
+  use case; it routes against weights *you own*; it fails over to local models nothing can revoke; and
+  every decision writes an auditable receipt (`verity proof`). A black-box trained coordinator offers
+  none of that — you can't inspect it, can't run it on your own stack, can't improve it for the
+  community. VERITY hands the coordination layer to the community to build on. That is the bet.
 
 ## Using the parity features
 
 ```bash
-# Multi-agent swarm with complexity routing + DAG + recursion:
+# Multi-agent swarm with the prompt-software orchestrator + complexity routing + DAG + recursion:
+export VERITY_PROMPTOS=1                     # planner runs on the Synapse_COR prompt-software brain
 export VERITY_COMPLEXITY_ROUTING=1          # right-size the model per sub-task
 export VERITY_SWARM_MAX_DEPTH=1             # recursion budget (test-time scaling)
 python3 -m verity swarm "<a complex, multi-part goal>"
+
+# Portability — print the orchestrator to drop into ANY blank LLM (local or frontier):
+python3 -m verity promptos
 
 # Wire bands to real models (look ids up live — never guess):
 python3 -m verity models claude-opus        # → set VERITY_TIER_FRONTIER_MODEL

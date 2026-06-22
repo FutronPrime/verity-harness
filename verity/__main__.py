@@ -328,6 +328,12 @@ def main(argv: list[str]) -> None:
         ex = AllowlistShellExecutor() if live else None
         r = run_swarm(goal, executor=ex, verbose=True)
         print("\n=== FINAL (swarm) ===\n" + r.final)
+    elif cmd == "promptos":
+        # Print the portable Synapse_COR prompt-software orchestrator. Drop it into ANY blank LLM
+        # (local or frontier) and it orchestrates to VERITY's contract — model-agnostic, fork-able.
+        # Set VERITY_PROMPTOS=1 to make the swarm planner run on it.
+        from .promptos import ORCHESTRATOR_PROMPT
+        print(ORCHESTRATOR_PROMPT)
     elif cmd == "solve":
         if not rest:
             print("usage: solve \"<goal>\" [--discover] [--gate \"<test/build/lint cmd>\"] "

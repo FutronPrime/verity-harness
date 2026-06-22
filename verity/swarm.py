@@ -170,7 +170,15 @@ def _agent(role: str, prompt: str, tiers=None, timeout: float = 150.0) -> str:
     per-call wall-clock timeout so one stuck call can't hang the swarm — it degrades to a skip."""
     from .router import ask
     from . import guard
-    sys_prompt = _discipline() + "\n\n" + ROLE_SYS[role]
+    # Prompt-OS: when enabled, the PLANNER runs on the full Synapse_COR prompt-software orchestrator
+    # (the "evolved coordinator, reached with prompt software") instead of the terse role prompt. Same
+    # JSON contract, so downstream parsing is unchanged. Other roles are untouched.
+    if role == "planner":
+        from . import promptos
+        role_block = promptos.ORCHESTRATOR_PROMPT if promptos.enabled() else ROLE_SYS[role]
+    else:
+        role_block = ROLE_SYS[role]
+    sys_prompt = _discipline() + "\n\n" + role_block
     prompt = _context_pack(prompt) + prompt          # every spawn inherits memory + reuse-first context
     # Guard only the PROSE roles: the critic is SUPPOSED to voice negatives (it hunts flaws) and
     # planner/critic emit JSON that a re-prompt could corrupt. Executor/synthesizer must not punt.
