@@ -26,7 +26,7 @@ inspectable in ways a proprietary endpoint is not.
 | Provider-agnostic pool, swap on restriction | ✅ Matched | `router.py` peer-chain failover → independent 2nd provider → sovereign local floor |
 | Pre-flight research before execution | ✅ Matched | Rule 0 `_preflight`: live-searches current-best approach and injects it |
 | Selective triggering (don't multi-agent a trivial query) | ✅ Matched (Fugu doesn't expose this) | `should_swarm()` — iMAD-style (arxiv 2511.11306) |
-| **Evolved coordinator** (TRINITY/Conductor, RL-trained) | ◑ split: orchestrate ✅ · learn ◑ · discover ✗ | `promptos.py` (prompt-software orchestrator) + `evolve.py` (ledger loop) — see below |
+| **Evolved coordinator** (TRINITY/Conductor, RL-trained) | ◑ split: orchestrate ✅ · learn ✅ · discover ✗(thin) | `promptos.py` (orchestrator) + `coordinate.py` (learned routing cheat-sheet) — see below |
 
 ## Gap #4, split three ways (the honest version)
 
@@ -42,21 +42,27 @@ makes it behave like a state machine — the prompt is a **key that unlocks** st
 latently has. (`VERITY_PROMPTOS=1` runs the swarm planner on it; `python3 -m verity promptos` prints it
 to paste into any model.)
 
-**2. Learn — get measurably better at orchestrating from outcomes over many runs. ◑ MOSTLY reachable
-WITHOUT training.** A static prompt is stateless; it doesn't improve from running 10,000 times. But you
-don't need weight updates to learn — you need a *feedback loop around* the prompt. `evolve.py` already
-does exactly this for the discipline *playbook* (distill ledger lessons → gated non-regression promotion).
-The swarm now logs every plan/route/recurse/critic outcome to that same ledger, so the reachable next
-step is distilling *routing heuristics* ("for goal-shape X, topology Y at complexity Z passed 9/10") and
-promoting them into the orchestrator prompt. That is in-context / memory-based evolution — most of the
-Conductor's practical *value* (it adapts to your setup, and improves over time), minus the GPUs.
+**2. Learn — get measurably better at orchestrating from outcomes over many runs. ✅ BUILT, no training.**
+A static prompt is stateless; it doesn't improve from running 10,000 times. But you don't need weight
+updates to learn — you need a *feedback loop around* the prompt, because training is just "learned how to
+respond" and a reviewed cheat-sheet activates the same response in-context. `coordinate.py` is that loop
+for routing: it distills the swarm's own ledger receipts — which decompositions synthesized cleanly,
+which sub-tasks the critic kept correcting, which nodes had to recurse — into a compact, size-bounded
+**routing cheat-sheet**, and `swarm.py` prepends it to the planner prompt so the orchestrator *reviews
+what worked before every decomposition*. (`evolve.py` does the sibling loop for discipline lessons.) It
+fills as you run (`verity coordinate --promote`), empty + zero-cost on a fresh install. This is most of
+the Conductor's practical *value* — it adapts to your setup and improves over time — minus the GPUs.
 
-**3. Discover — invent coordination strategies that lie OUTSIDE the base model's reasoning priors. ✗
-Weight-level only.** A prompt asking "propose the best topology" returns the model's best guess *from
-what it already knows*. Genuinely novel strategies that emerge only from optimization+reward over many
-trials are the one thing prompt software cannot manufacture. For a *frontier* base model this residue is
-small (its priors are enormous and already cover most useful topologies); for a tiny local model it's
-larger. State it plainly: this sliver is real, and it's the only part that is.
+**3. Discover — invent coordination strategies that lie OUTSIDE the base model's reasoning priors AND
+that no human has written down. ✗ Weight-level only — but a thin sliver.** A prompt asking "propose the
+best topology" returns the model's best guess *from what it knows*; the cheat-sheet adds what *worked
+here*; live search adds what *anyone has published*. What remains is only the strategy that is BOTH
+un-searchable (no human has it) AND un-verbalizable (can't be stated as a rule, only emerges as a weight
+pattern from reward over many trials). That intersection is small — almost everything useful is either
+searchable (knowledge) or articulable (a heuristic) — and it shrinks as base models improve. Stated
+plainly: the sliver is real, but it is a sliver, not a wall. VERITY's whole bet is that **a general
+reasoner + live retrieval + a learned cheat-sheet beats a bigger model on frozen weights** — go *find*
+the answer like a human does, instead of being pre-trained on it.
 
 **The trade, concretely:**
 - *Fugu's edge:* a coordinator that can invent non-obvious strategies a human didn't script — and on
@@ -79,6 +85,10 @@ python3 -m verity swarm "<a complex, multi-part goal>"
 
 # Portability — print the orchestrator to drop into ANY blank LLM (local or frontier):
 python3 -m verity promptos
+
+# The 'learn' loop — the orchestrator's self-generating routing cheat-sheet:
+python3 -m verity coordinate            # show what it has learned from past runs
+python3 -m verity coordinate --promote  # distill recent ledger → routing.md (reviewed before every plan)
 
 # Wire bands to real models (look ids up live — never guess):
 python3 -m verity models claude-opus        # → set VERITY_TIER_FRONTIER_MODEL

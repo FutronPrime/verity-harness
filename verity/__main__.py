@@ -334,6 +334,17 @@ def main(argv: list[str]) -> None:
         # Set VERITY_PROMPTOS=1 to make the swarm planner run on it.
         from .promptos import ORCHESTRATOR_PROMPT
         print(ORCHESTRATOR_PROMPT)
+    elif cmd == "coordinate":
+        # The learned ROUTING cheat-sheet (distilled from this harness's own swarm runs). Show it, or
+        # --promote to distill recent history → ~/.verity-harness/routing.md (the planner reviews it
+        # before every decomposition). This is the 'learn' half of coordination, no weights.
+        from . import coordinate as _coord
+        if "--promote" in rest:
+            ok, msg = _coord.promote_routing()
+            print(("✓ " if ok else "✗ ") + msg)
+        else:
+            cs = _coord.learned_routing()
+            print(cs or "[routing cheat-sheet empty — fills as you run `verity swarm` on real goals]")
     elif cmd == "solve":
         if not rest:
             print("usage: solve \"<goal>\" [--discover] [--gate \"<test/build/lint cmd>\"] "
