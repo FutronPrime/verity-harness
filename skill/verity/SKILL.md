@@ -67,6 +67,22 @@ python3 -m verity proof                  # the receipt: which gates fired, what 
 python3 -m verity eval                   # A/B naive-vs-harness lift on assumption traps
 python3 -m verity failover-test          # prove cloud-down → local floor answers
 python3 -m verity capabilities           # what the agent can reach (web/search/install)
+
+# ── Fugu-parity self-improvement layer (orchestrate · learn · discover) ──
+python3 -m verity promptos               # print the portable Synapse_COR orchestrator (drop into any LLM)
+                                         #   set VERITY_PROMPTOS=1 to run the swarm planner on it
+python3 -m verity coordinate [--promote] # the LEARNED routing cheat-sheet, distilled from past swarm runs
+                                         #   (auto-injected into the planner before every decomposition)
+python3 -m verity discover [--propose|--eval --apply]  # evolutionary search over coordination strategies
+                                         #   (ADAS/AFlow paradigm: propose → MEASURE → promote, frozen model)
+python3 -m verity learn "<subject>" [--rounds N|--show] # ON-THE-JOB training: search repos/skills/docs →
+                                         #   distill → PERSIST to memory (recalled in future tasks)
+python3 -m verity looplib [--sync|<q>|get <slug>|--seed-discover]  # Forward Future Loop Library: 50+ vetted
+                                         #   agentic recipes; matched ones auto-inject into the planner
+python3 -m verity gc                     # memory maintenance: bound the evolving stores on disk
+                                         #   (membank cap, ledger retention, pool cap) — injection already capped
+#   swarm knobs: VERITY_COMPLEXITY_ROUTING=1 (right-size model per sub-task) · VERITY_SWARM_MAX_DEPTH=1
+#   (recursion/test-time scaling) · see docs/FUGU_PARITY.md for the full layer
 python3 -m verity autostart --universal  # GATE ANY AGENT: writes rules to Claude/Codex/Gemini/Cursor/
                                          #   Windsurf/Aider/Cline/opencode/Zed + generic AGENTS.md,
                                          #   installs hooks where supported, + the skill to every skills dir
