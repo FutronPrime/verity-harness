@@ -45,11 +45,12 @@ def _hit(text, markers):
     return any(m.lower() in t for m in markers)
 
 
-def run(tiers=None, harness_exec=True, use_swarm=False, verbose=True) -> dict:
+def run(tiers=None, harness_exec=True, use_swarm=False, verbose=True, tasks=None) -> dict:
     """NAIVE = bare model from priors. HARNESS = the goal run through the full agentic loop, or —
     with use_swarm=True — through the multi-agent SWARM (plan → parallel research/execute → critic →
     synthesize), the coordination proof: agents decompose the goal and each grunt-worker retrieves
-    its piece. Score = objective markers that only appear in a correct, current, complete result."""
+    its piece. Score = objective markers that only appear in a correct, current, complete result.
+    `tasks` overrides the suite (a bounded subset — used by discover.py's strategy evaluator)."""
     from .router import ask
     from .scaffold import run_verified, PRIME_DIRECTIVE
     from .loop import AllowlistShellExecutor
@@ -57,7 +58,7 @@ def run(tiers=None, harness_exec=True, use_swarm=False, verbose=True) -> dict:
 
     naive_ok = harness_ok = 0
     rows = []
-    for t in TASKS:
+    for t in (tasks or TASKS):
         kw = {"tiers": tiers} if tiers else {}
         try:
             # NAIVE — bare model, answer the goal from priors (no tools).
@@ -88,7 +89,7 @@ def run(tiers=None, harness_exec=True, use_swarm=False, verbose=True) -> dict:
         if verbose:
             print(f"  naive={'✓' if nc else '✗'}  harness={'✓' if hc else '✗'}  {t['goal'][:56]}")
 
-    n = len(TASKS)
+    n = len(tasks or TASKS)
     res = {"tasks": n, "naive": naive_ok, "harness": harness_ok,
            "lift": harness_ok - naive_ok, "rows": rows}
     if verbose:

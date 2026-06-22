@@ -328,6 +328,86 @@ def main(argv: list[str]) -> None:
         ex = AllowlistShellExecutor() if live else None
         r = run_swarm(goal, executor=ex, verbose=True)
         print("\n=== FINAL (swarm) ===\n" + r.final)
+    elif cmd == "promptos":
+        # Print the portable Synapse_COR prompt-software orchestrator. Drop it into ANY blank LLM
+        # (local or frontier) and it orchestrates to VERITY's contract — model-agnostic, fork-able.
+        # Set VERITY_PROMPTOS=1 to make the swarm planner run on it.
+        from .promptos import ORCHESTRATOR_PROMPT
+        print(ORCHESTRATOR_PROMPT)
+    elif cmd == "coordinate":
+        # The learned ROUTING cheat-sheet (distilled from this harness's own swarm runs). Show it, or
+        # --promote to distill recent history → ~/.verity-harness/routing.md (the planner reviews it
+        # before every decomposition). This is the 'learn' half of coordination, no weights.
+        from . import coordinate as _coord
+        if "--promote" in rest:
+            ok, msg = _coord.promote_routing()
+            print(("✓ " if ok else "✗ ") + msg)
+        else:
+            cs = _coord.learned_routing()
+            print(cs or "[routing cheat-sheet empty — fills as you run `verity swarm` on real goals]")
+    elif cmd == "discover":
+        # Evolutionary search over COORDINATION STRATEGIES (ADAS/AFlow paradigm, frozen model + evaluator).
+        # --propose: model mutates a new candidate (no eval). --eval [--apply]: full propose→measure→gate→promote.
+        from . import discover as _disc
+        if "--eval" in rest:
+            print(__import__("json").dumps(
+                _disc.discover(propose="--no-propose" not in rest, use_eval=True, apply="--apply" in rest),
+                indent=2))
+        elif "--propose" in rest:
+            print(__import__("json").dumps(_disc.discover(propose=True, use_eval=False, apply=False), indent=2))
+        else:
+            bank = _disc._load_bank()
+            champ = bank.get("champion")
+            print(f"strategy bank — {len(bank['population'])} strategies, cycle {bank.get('cycle', 0)}")
+            print(f"champion: {champ['name'] if champ else '(none yet — run discover --eval --apply)'}")
+            for s in bank["population"]:
+                sc = f"  [score {s['score']:.3f}]" if s.get("score") is not None else ""
+                print(f"  · {s['name']}{sc}")
+    elif cmd == "learn":
+        # Subject acquisition loop: search web/GitHub for skills/repos/docs on a subject → distill →
+        # PERSIST to per-user memory (recalled automatically in future tasks). On-the-job training.
+        if not rest:
+            print('usage: learn "<subject>" [--rounds N] [--show]', file=sys.stderr); sys.exit(2)
+        from . import learn as _learn
+        if "--show" in rest:
+            print(_learn.show(" ".join(x for x in rest if x != "--show")))
+        else:
+            rounds = 1
+            r2 = list(rest)
+            if "--rounds" in r2:
+                i = r2.index("--rounds")
+                try:
+                    rounds = int(r2[i + 1]); del r2[i:i + 2]
+                except (IndexError, ValueError):
+                    del r2[i:i + 1]
+            subj = " ".join(x for x in r2 if not x.startswith("--"))
+            res = _learn.learn(subj, rounds=rounds, verbose=True)
+            print("\n" + ("✓ learned + persisted: " + subj if res["learned"]
+                          else "✗ " + res.get("msg", "nothing learned")))
+    elif cmd == "looplib":
+        # Forward Future's Loop Library — vetted agentic-workflow recipes. Sync the catalog, search it,
+        # read a full recipe, or seed the discovery strategy bank with human-vetted loops.
+        from . import looplib as _ll
+        if "--sync" in rest:
+            print(_ll.sync())
+        elif "--seed-discover" in rest:
+            from . import discover as _D
+            bank = _D._load_bank(); have = {s["name"] for s in bank["population"]}
+            added = [s for s in _ll.seed_strategies(n=12, allow_fetch=True) if s["name"] not in have]
+            bank["population"] += added; _D._save_bank(bank)
+            print(f"✓ seeded {len(added)} Loop-Library strategies into the discovery population "
+                  f"({len(bank['population'])} total)")
+        elif rest and rest[0] == "get":
+            print(_ll.render(_ll.get(rest[1]) if len(rest) > 1 else None))
+        elif rest:
+            hits = _ll.match(" ".join(rest), n=8, allow_fetch=True)
+            print("\n".join(f"  [{lp.get('slug')}] {lp.get('title')} — {str(lp.get('useWhen',''))[:90]}"
+                            for lp in hits) or "[no matching loops — run `verity looplib --sync`]")
+        else:
+            ls = _ll.loops(allow_fetch=True)
+            print(f"Loop Library — {len(ls)} loops. `verity looplib <query>`, `… get <slug>`, `… --seed-discover`.")
+            for lp in ls[:50]:
+                print(f"  {lp.get('number')} [{lp.get('category',{}).get('slug')}] {lp.get('slug')}: {lp.get('title')}")
     elif cmd == "solve":
         if not rest:
             print("usage: solve \"<goal>\" [--discover] [--gate \"<test/build/lint cmd>\"] "
