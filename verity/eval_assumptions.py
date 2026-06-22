@@ -98,12 +98,13 @@ def _hit(text: str, markers) -> bool:
     return any(m.lower() in t for m in markers)
 
 
-def run(tiers=None, verbose: bool = True) -> dict:
+def run(tiers=None, verbose: bool = True, traps=None) -> dict:
     import os
     from .router import ask
     from .scaffold import PRIME_DIRECTIVE
     from .tools import research, model_registry
     from . import ledger
+    _traps = traps or TRAPS    # `traps` overrides the suite (bounded subset for a quick lift check)
 
     # DETERMINISM: pin sampling to 0 for the run so the A/B measures the HARNESS, not sampling noise
     # (this was a real source of n=4 jitter — gpt-4o-mini swung 0→4 then 1→3 across runs). Saved/
@@ -116,7 +117,7 @@ def run(tiers=None, verbose: bool = True) -> dict:
     rows = []
     def _txt(r):
         return r.text if hasattr(r, "text") else str(r)
-    for t in TRAPS:
+    for t in _traps:
         kw = {"tiers": tiers} if tiers else {}
         # ROBUST: one flaky model/search call must NOT crash the whole eval (it was killing runs
         # before the summary printed). A trap that errors is recorded as a miss and we move on.
@@ -155,9 +156,11 @@ def run(tiers=None, verbose: bool = True) -> dict:
         naive_ok += nc; harness_ok += hc
         rows.append({"trap": t["q"][:60], "naive": nc, "harness": hc})
         if verbose:
-            print(f"  naive={'✓' if nc else '✗'}  harness={'✓' if hc else '✗'}  {t['q'][:60]}")
+            # flush so a long run STREAMS progress and an interrupt doesn't lose everything
+            # (block-buffering to a pipe/file silently swallowed output on a timeout kill).
+            print(f"  naive={'✓' if nc else '✗'}  harness={'✓' if hc else '✗'}  {t['q'][:60]}", flush=True)
 
-    n = len(TRAPS)
+    n = len(_traps)
     result = {"traps": n, "naive_correct": naive_ok, "harness_correct": harness_ok,
               "naive_rate": round(naive_ok / n, 2), "harness_rate": round(harness_ok / n, 2),
               "lift": harness_ok - naive_ok, "rows": rows}
