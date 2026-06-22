@@ -23,6 +23,7 @@ Flow (each step gate-disciplined + logged to the ledger = receipts):
 """
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from concurrent.futures import ThreadPoolExecutor
 
@@ -51,10 +52,20 @@ def should_swarm(goal: str) -> bool:
 
 ROLE_SYS = {
     "planner": (
-        "You are the PLANNER in a multi-agent swarm. Decompose the GOAL into 2-5 CONCRETE, "
-        "mostly-independent sub-tasks that together fully achieve it. Prefer fewer, meatier "
-        "sub-tasks over many trivial ones. Respond ONLY JSON: "
-        '{"subtasks":["...","..."],"thought":"why this decomposition"}'),
+        "You are the PLANNER in a multi-agent swarm — the TRINITY 'Thinker'. Decompose the GOAL into "
+        "2-5 CONCRETE sub-tasks that together fully achieve it. Prefer fewer, meatier sub-tasks over "
+        "many trivial ones. For EACH sub-task estimate three routing fields:\n"
+        " • complexity: integer 1-10 — 1-3 trivial (format/rename/lint/stub), 4-7 normal "
+        "(implement/edit/test), 8-10 hard (architect/debug/novel-logic/security). Routes it to a "
+        "right-sized model: trivial→cheap, hard→frontier.\n"
+        " • type: short tag — 'code','research','analysis','write','data' — for specialist routing.\n"
+        " • id + depends_on: give each a short id; list the ids whose OUTPUT this sub-task needs "
+        "(omit or [] when independent). This builds the execution graph — dependents run AFTER and "
+        "receive their upstream results.\n"
+        "Respond ONLY JSON: "
+        '{"subtasks":[{"id":"1","task":"...","complexity":7,"type":"code","depends_on":[]}],'
+        '"thought":"why this decomposition"}.  (Plain-string sub-tasks are still accepted, but the '
+        "structured form routes far better.)"),
     "executor": (
         "You are an EXECUTOR specialist in a swarm. Do YOUR sub-task completely and correctly, "
         "using the provided research findings (prefer them over your priors — they're current). "
@@ -209,49 +220,101 @@ def _local_primary(tiers=None) -> bool:
     return not any(getattr(t, "protocol", "") == "openai" and getattr(t, "api_key", "") for t in ts)
 
 
-def run_swarm(goal: str, executor=None, tiers=None, max_subtasks: int = 4,
-              research: bool = True, verbose: bool = True) -> SwarmResult:
-    """Run the multi-agent swarm. `executor` (a verity.loop Executor) makes sub-tasks do real
-    shell work; without it sub-tasks are researched reasoning. Self-contained — no external deps."""
-    from . import ledger
-    from .loop import parse_step_json
+def _max_depth(explicit: int | None) -> int:
+    """Recursion budget (Fugu's 'depth of recursion = tunable compute axis'). Default 1 (one level
+    of sub-swarm beneath the top). Env VERITY_SWARM_MAX_DEPTH overrides; explicit arg wins over env."""
+    if explicit is not None:
+        return max(0, explicit)
+    try:
+        return max(0, int(os.environ.get("VERITY_SWARM_MAX_DEPTH", "1")))
+    except ValueError:
+        return 1
 
-    # iMAD selective-trigger transparency: warn (don't block) if this goal is simple enough that
-    # a single gated run would likely be cheaper AND at least as accurate (research: swarming
-    # simple tasks can DEGRADE the answer). The caller still gets the swarm if they asked for it.
-    if verbose and not should_swarm(goal):
+
+def run_swarm(goal: str, executor=None, tiers=None, max_subtasks: int = 4,
+              research: bool = True, verbose: bool = True,
+              depth: int = 0, max_depth: int | None = None) -> SwarmResult:
+    """Run the multi-agent swarm (TRINITY shape). `executor` (a verity.loop Executor) makes sub-tasks
+    do real shell work; without it sub-tasks are researched reasoning. Self-contained — no deps.
+
+    Three Fugu-parity axes layer on top of the base flow, ALL backward-compatible:
+      • COMPLEXITY ROUTING (delta #1): each sub-task runs through a right-sized tier band
+        (cheap/mid/frontier) when VERITY_COMPLEXITY_ROUTING=1 — failover chain still beneath it.
+      • DAG TOPOLOGY (delta #2): the planner may declare depends_on edges; dependents run AFTER
+        their upstreams and receive those results as context. No edges → today's flat fan-out.
+      • RECURSION (delta #3): a hard sub-task (complexity ≥8) or one the critic can't pass spins a
+        FRESH sub-swarm (test-time scaling), capped by max_depth so it can't run away."""
+    from . import ledger
+    from . import complexity as _cx
+    from .loop import parse_step_json
+    from .handles import boundify
+
+    _maxd = _max_depth(max_depth)
+    pad = "  " * depth                                   # indent nested-swarm logs for readability
+
+    if verbose and depth == 0 and not should_swarm(goal):
         print("[swarm] note: this goal looks simple — a single `run_verified` may be cheaper and "
               "as accurate (multi-agent pays off on COMPLEX/multi-part goals). Proceeding anyway.")
 
-    # 1. PLAN ---------------------------------------------------------------
+    # 1. PLAN → normalize to graph nodes {id, task, complexity, type, depends_on} ----------------
     plan = parse_step_json(_agent("planner", f"GOAL: {goal}", tiers))
-    subtasks = [s for s in (plan.get("subtasks") or []) if str(s).strip()][:max_subtasks] or [goal]
-    ledger.log("swarm-plan", trigger=goal[:80], detail=f"{len(subtasks)} sub-tasks",
+    nodes = _cx.normalize_subtasks(plan.get("subtasks") or [], max_n=max_subtasks) \
+        or _cx.normalize_subtasks([goal])
+    valid = {n["id"] for n in nodes}
+    for n in nodes:                                      # drop dangling/self edges (anti-deadlock)
+        n["depends_on"] = [d for d in n["depends_on"] if d in valid and d != n["id"]]
+    has_edges = any(n["depends_on"] for n in nodes)
+    subtasks = [n["task"] for n in nodes]
+    ledger.log("swarm-plan", trigger=goal[:80],
+               detail=f"{len(nodes)} nodes, depth={depth}, dag={has_edges}",
                verdict="FOUND", evidence="; ".join(subtasks)[:200])
     if verbose:
-        print(f"[swarm] PLAN → {len(subtasks)} sub-tasks")
-        for i, s in enumerate(subtasks, 1):
-            print(f"   {i}. {s[:80]}")
+        print(f"{pad}[swarm] PLAN → {len(nodes)} sub-tasks"
+              f"{' (DAG)' if has_edges else ''}{f' [depth {depth}]' if depth else ''}")
+        for n in nodes:
+            dep = f"  ←deps {n['depends_on']}" if n["depends_on"] else ""
+            print(f"{pad}   {n['id']}. [{n['complexity']:>2}/{_cx.band_for(n['complexity'])}] "
+                  f"{n['task'][:64]}{dep}")
+        if _cx.enabled():
+            print(pad + _cx.explain(nodes).replace("\n", "\n" + pad))
 
-    # 2-3. RESEARCH → EXECUTE → CRITIQUE (parallel, one worker per sub-task) -
     repaired = [0]
 
-    def work(st: str) -> dict:
+    # 2-3. RESEARCH → EXECUTE → CRITIQUE — complexity-routed, recursion-capable ------------------
+    def work(node: dict, upstream: str = "") -> dict:
         from .scaffold import _preflight
+        st = node["task"]
+        # Right-size the model for THIS sub-task (failover chain preserved beneath the band entry).
+        sub_tiers = _cx.tiers_for(node["complexity"], node.get("type"), tiers) if _cx.enabled() else tiers
         findings = _preflight(st, verbose=False) if research else ""
         # GROUND TRUTH for model questions: web search rarely carries exact post-cutoff slugs, so a
-        # reasoning-mode sub-agent would CONFABULATE ("Kimi V4, 2023"). Inject the authoritative
-        # registry whenever the sub-task names a provider — same discipline the eval/main loop use.
+        # reasoning-mode sub-agent would CONFABULATE. Inject the authoritative registry on provider mentions.
         findings = (_registry_hint(st) + ("\n\n" + findings if findings else "")).strip()
+        up = (f"UPSTREAM RESULTS you depend on (build on these):\n{upstream}\n\n" if upstream else "")
+
+        # RECURSION (delta #3): a hard reasoning node escalates to a fresh sub-swarm — Fugu's
+        # "small model reading itself iterates toward answers a single pass can't reach." Capped.
+        if executor is None and node["complexity"] >= 8 and depth < _maxd:
+            ledger.log("swarm-recurse", trigger=st[:70], verdict="ESCALATED",
+                       evidence=f"complexity {node['complexity']} ≥8, depth {depth}→{depth+1}")
+            if verbose:
+                print(f"{pad}   ↳ recursing on hard node {node['id']} (complexity {node['complexity']})")
+            sub = run_swarm(st if not up else up + "GOAL: " + st, executor=None, tiers=sub_tiers,
+                            max_subtasks=3, research=research, verbose=verbose,
+                            depth=depth + 1, max_depth=_maxd)
+            repaired[0] += sub.repaired
+            return {"id": node["id"], "subtask": st, "result": sub.final, "issues": []}
+
         if executor is not None:
             from .scaffold import run_verified
-            r = run_verified(st, executor=executor, preflight=False, discover=False,
-                             verbose=False, tiers=tiers)
+            r = run_verified((up + st) if up else st, executor=executor, preflight=False,
+                             discover=False, verbose=False, tiers=sub_tiers)
             out = r.summary
         else:
             out = _agent("executor",
-                         f"SUB-TASK: {st}\n\nRESEARCH FINDINGS (prefer these):\n{findings[:2000]}\n\n"
-                         "Complete the sub-task. Cite findings; tag VERIFIED/GUESS.", tiers)
+                         f"SUB-TASK: {st}\n\n{up}RESEARCH FINDINGS (prefer these):\n{findings[:2000]}\n\n"
+                         "Complete the sub-task. Cite findings; tag VERIFIED/GUESS.", sub_tiers)
+
         # CRITIC — adversarial review; one repair pass if it finds real issues.
         crit = parse_step_json(_agent("critic",
                  f"SUB-TASK: {st}\n\nRESULT:\n{out[:2500]}\n\nReview adversarially.", tiers))
@@ -260,47 +323,74 @@ def run_swarm(goal: str, executor=None, tiers=None, max_subtasks: int = 4,
             ledger.log("swarm-critic", trigger=st[:70], verdict="CORRECTED",
                        evidence="; ".join(map(str, crit["issues"]))[:200])
             out = _agent("executor",
-                         f"SUB-TASK: {st}\n\nYour result had these issues:\n- "
+                         f"SUB-TASK: {st}\n\n{up}Your result had these issues:\n- "
                          + "\n- ".join(map(str, crit["issues"]))
-                         + f"\n\nFix them using the findings:\n{findings[:1500]}", tiers)
-        return {"subtask": st, "result": out, "issues": crit.get("issues", [])}
+                         + f"\n\nFix them using the findings:\n{findings[:1500]}", sub_tiers)
+            # RECURSION on PERSISTENT failure: if the repair still doesn't pass and budget remains,
+            # escalate this node to a fresh sub-swarm rather than shipping a known-bad result.
+            if executor is None and depth < _maxd:
+                crit2 = parse_step_json(_agent("critic",
+                          f"SUB-TASK: {st}\n\nRESULT:\n{out[:2500]}\n\nReview adversarially.", tiers))
+                if crit2.get("ok") is False:
+                    ledger.log("swarm-recurse", trigger=st[:70], verdict="ESCALATED",
+                               evidence=f"critic still failing after repair, depth {depth}→{depth+1}")
+                    if verbose:
+                        print(f"{pad}   ↳ recursing on stuck node {node['id']} (critic unsatisfied)")
+                    sub = run_swarm(st, executor=None, tiers=sub_tiers, max_subtasks=3,
+                                    research=research, verbose=verbose, depth=depth + 1, max_depth=_maxd)
+                    repaired[0] += sub.repaired
+                    out = sub.final
+        return {"id": node["id"], "subtask": st, "result": out, "issues": crit.get("issues", [])}
 
-    if _local_primary(tiers):
-        # one local model serializes anyway → run sub-tasks SEQUENTIALLY (avoids the stall).
-        if verbose:
-            print("[swarm] local tier → sequential sub-tasks")
-        results = [work(st) for st in subtasks]
-    else:
-        # cloud/API tier handles concurrency → parallelize sub-tasks.
-        with ThreadPoolExecutor(max_workers=min(4, len(subtasks))) as pool:
-            results = list(pool.map(work, subtasks))
+    # ── Topological execution: dependency waves. No edges → one wave = today's flat fan-out. ──
+    done: dict[str, dict] = {}
+    results: list[dict] = []
+    remaining = list(nodes)
+    serial = _local_primary(tiers)
+    if verbose and serial:
+        print(f"{pad}[swarm] local tier → sequential sub-tasks")
+    guard_waves = 0
+    while remaining and guard_waves <= len(nodes):
+        guard_waves += 1
+        ready = [n for n in remaining if all(d in done for d in n["depends_on"])]
+        if not ready:                                    # cycle / unresolvable → run the rest flat (no deadlock)
+            ready = remaining
+
+        def _run(n: dict) -> dict:
+            ups = "\n\n".join(f"[from {d}]: {boundify(str(done[d]['result']), threshold=1200)}"
+                              for d in n["depends_on"] if d in done)
+            return work(n, ups)
+
+        if serial or len(ready) == 1:
+            wave = [_run(n) for n in ready]
+        else:
+            with ThreadPoolExecutor(max_workers=min(4, len(ready))) as pool:
+                wave = list(pool.map(_run, ready))
+        for n, r in zip(ready, wave):
+            done[n["id"]] = r
+            results.append(r)
+        remaining = [n for n in remaining if n["id"] not in done]
     if verbose:
-        print(f"[swarm] EXECUTE+CRITIQUE done ({repaired[0]} repaired)")
+        print(f"{pad}[swarm] EXECUTE+CRITIQUE done ({repaired[0]} repaired)")
 
     # 4. SYNTHESIZE ---------------------------------------------------------
-    # Pointer-indirection: a huge sub-result is stashed to a handle + preview so the synthesize prompt
-    # stays bounded no matter how big any single sub-task's output got (the synthesizer can resolve it).
-    from .handles import boundify
     combined = "\n\n".join(f"=== SUB-TASK: {r['subtask']} ===\n{boundify(str(r['result']), threshold=3000)}"
                            for r in results)
     final = _agent("synthesizer", f"GOAL: {goal}\n\nVERIFIED SUB-RESULTS:\n{combined}\n\n"
                                    "Synthesize the complete final answer.", tiers)
     ledger.log("swarm-synth", trigger=goal[:80], verdict="VERIFIED",
-               evidence=f"{len(subtasks)} sub-tasks, {repaired[0]} repaired")
+               evidence=f"{len(nodes)} sub-tasks, {repaired[0]} repaired, depth {depth}")
     if verbose:
-        print("[swarm] SYNTHESIZE → final answer ready")
-    # APM-style HANDOFF: persist a structured record so a future run (next turn-limit, next session)
-    # RESUMES with this context instead of starting cold. The load side is automatic — `_context_pack`
-    # already recalls project-scope memory into every spawn (incl. the planner), so the next related
-    # swarm sees this handoff. Bounded + best-effort; never lets a memory hiccup fail the swarm.
-    try:
-        from . import membank
-        from .handles import boundify
-        handoff = (f"SWARM HANDOFF · goal: {goal}\nsub-tasks: {'; '.join(subtasks)}\n"
-                   f"repaired: {repaired[0]}\nresult: {boundify(str(final), threshold=1200, preview_chars=900)}")
-        membank.capture(handoff, scope="project")
-    except Exception:  # noqa: BLE001
-        pass
+        print(f"{pad}[swarm] SYNTHESIZE → final answer ready")
+    # APM-style HANDOFF (only at the top level — nested sub-swarms don't spam the membank).
+    if depth == 0:
+        try:
+            from . import membank
+            handoff = (f"SWARM HANDOFF · goal: {goal}\nsub-tasks: {'; '.join(subtasks)}\n"
+                       f"repaired: {repaired[0]}\nresult: {boundify(str(final), threshold=1200, preview_chars=900)}")
+            membank.capture(handoff, scope="project")
+        except Exception:  # noqa: BLE001
+            pass
     return SwarmResult(goal=goal, final=final, subtasks=subtasks, results=results, repaired=repaired[0])
 
 
