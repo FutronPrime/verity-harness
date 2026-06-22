@@ -26,7 +26,7 @@ inspectable in ways a proprietary endpoint is not.
 | Provider-agnostic pool, swap on restriction | ✅ Matched | `router.py` peer-chain failover → independent 2nd provider → sovereign local floor |
 | Pre-flight research before execution | ✅ Matched | Rule 0 `_preflight`: live-searches current-best approach and injects it |
 | Selective triggering (don't multi-agent a trivial query) | ✅ Matched (Fugu doesn't expose this) | `should_swarm()` — iMAD-style (arxiv 2511.11306) |
-| **Evolved coordinator** (TRINITY/Conductor, RL-trained) | ◑ split: orchestrate ✅ · learn ✅ · discover ✗(thin) | `promptos.py` (orchestrator) + `coordinate.py` (learned routing cheat-sheet) — see below |
+| **Evolved coordinator** (TRINITY/Conductor, RL-trained) | ◑ split: orchestrate ✅ · learn ✅ · discover ✅ (search, not weights) | `promptos.py` + `coordinate.py` + `discover.py` (evolutionary strategy search) — see below |
 
 ## Gap #4, split three ways (the honest version)
 
@@ -53,16 +53,35 @@ what worked before every decomposition*. (`evolve.py` does the sibling loop for 
 fills as you run (`verity coordinate --promote`), empty + zero-cost on a fresh install. This is most of
 the Conductor's practical *value* — it adapts to your setup and improves over time — minus the GPUs.
 
-**3. Discover — invent coordination strategies that lie OUTSIDE the base model's reasoning priors AND
-that no human has written down. ✗ Weight-level only — but a thin sliver.** A prompt asking "propose the
-best topology" returns the model's best guess *from what it knows*; the cheat-sheet adds what *worked
-here*; live search adds what *anyone has published*. What remains is only the strategy that is BOTH
-un-searchable (no human has it) AND un-verbalizable (can't be stated as a rule, only emerges as a weight
-pattern from reward over many trials). That intersection is small — almost everything useful is either
-searchable (knowledge) or articulable (a heuristic) — and it shrinks as base models improve. Stated
-plainly: the sliver is real, but it is a sliver, not a wall. VERITY's whole bet is that **a general
-reasoner + live retrieval + a learned cheat-sheet beats a bigger model on frozen weights** — go *find*
-the answer like a human does, instead of being pre-trained on it.
+**3. Discover — invent coordination strategies outside the base model's one-shot priors. ✅ Reachable
+WITHOUT weight training — via search, not gradients.** Earlier drafts of this doc called this "weights
+only." That was a defeatist negative — the exact assumption the harness exists to kill — and it was
+wrong. Discovery does not live in the weights; it lives in a **search loop wrapped around a frozen
+model**: the model *proposes/mutates* candidate strategies, a real *evaluator scores* them, and
+*selection* keeps winners — exploring combinations no single forward pass would pick. The optimization
+is the outer loop, not the parameters. This is a published, named field, all with **frozen** base models:
+- **ADAS — Automated Design of Agentic Systems** ([arXiv 2408.08435](https://arxiv.org/abs/2408.08435)):
+  a meta-agent searches *code space* to discover novel agentic systems; "doesn't require fine-tuning,"
+  "invents novel design patterns" beating hand-designed baselines.
+- **FunSearch** ([Nature 2023](https://www.nature.com/articles/s41586-023-06924-6)) / **AlphaEvolve**
+  (DeepMind 2025): a frozen LLM as the *variation operator* in an evolutionary loop + evaluator →
+  discovered genuinely new algorithms.
+- **AFlow** ([arXiv 2410.10762](https://arxiv.org/pdf/2410.10762)) / **GPTSwarm** / **EvoAgentX**:
+  MCTS / policy-gradient search over agent topologies and communication graphs.
+
+`discover.py` is a focused version of this, REUSING `evolve.py`'s proven pattern (git-tagged candidate
+archive + dual-gate promotion + held-out eval). It evolves a population of coordination strategies
+(AFlow-style operators: flat-fanout, review-revise, debate-adjudicate, isolate-recurse, …); the frozen
+swarm is the variation operator; an evaluator scores candidates on real tasks; a winner is promoted
+**only on measured fitness** (never the model's say-so) and injected into the orchestrator.
+
+The honest residual is NOT "weights vs not" — both *discover*. It's a tradeoff: weight-RL *amortizes*
+the discovered strategy into instant inference + implicit generalization; search-based discovery keeps
+it as an *explicit evolved artifact* and pays compute at design-time (you run the evaluator — exactly
+like AlphaEvolve does). That's cost/storage, not a capability wall. VERITY's whole bet stands and is now
+complete across all three: **a general reasoner + live retrieval + a learned cheat-sheet + an
+evolutionary search beats a bigger model on frozen weights** — go *find/evolve* the answer like a human
+(and like AlphaEvolve) does, instead of being pre-trained on it.
 
 **The trade, concretely:**
 - *Fugu's edge:* a coordinator that can invent non-obvious strategies a human didn't script — and on
@@ -89,6 +108,11 @@ python3 -m verity promptos
 # The 'learn' loop — the orchestrator's self-generating routing cheat-sheet:
 python3 -m verity coordinate            # show what it has learned from past runs
 python3 -m verity coordinate --promote  # distill recent ledger → routing.md (reviewed before every plan)
+
+# The 'discover' loop — evolutionary search over coordination strategies (ADAS/AFlow paradigm):
+python3 -m verity discover              # show the strategy bank (seeds + evolved champion)
+python3 -m verity discover --propose    # frozen model mutates a new candidate strategy (no eval)
+python3 -m verity discover --eval --apply   # propose → MEASURE on tasks → gate → promote the winner
 
 # Wire bands to real models (look ids up live — never guess):
 python3 -m verity models claude-opus        # → set VERITY_TIER_FRONTIER_MODEL

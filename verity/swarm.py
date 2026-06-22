@@ -269,10 +269,15 @@ def run_swarm(goal: str, executor=None, tiers=None, max_subtasks: int = 4,
     # swarm outcomes) so the orchestrator REVIEWS what worked/failed before decomposing — in-context
     # "training on the fly", no weights. Empty + zero-cost on a fresh install; fills as you run.
     from . import coordinate as _coord
+    from . import discover as _disc
     cheat = _coord.learned_routing()
+    strat = _disc.active_strategy()          # the EVOLVED champion strategy (discovery half), if any
     if verbose and cheat:
         print(f"{pad}[swarm] injecting learned routing cheat-sheet ({len(cheat)} chars)")
-    plan_prompt = (f"{cheat}\n\n" if cheat else "") + f"GOAL: {goal}"
+    if verbose and strat:
+        print(f"{pad}[swarm] injecting discovered strategy ({len(strat)} chars)")
+    preamble = "\n\n".join(p for p in (strat, cheat) if p)
+    plan_prompt = (f"{preamble}\n\n" if preamble else "") + f"GOAL: {goal}"
     plan = parse_step_json(_agent("planner", plan_prompt, tiers))
     nodes = _cx.normalize_subtasks(plan.get("subtasks") or [], max_n=max_subtasks) \
         or _cx.normalize_subtasks([goal])

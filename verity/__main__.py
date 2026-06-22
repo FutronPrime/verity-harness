@@ -345,6 +345,24 @@ def main(argv: list[str]) -> None:
         else:
             cs = _coord.learned_routing()
             print(cs or "[routing cheat-sheet empty — fills as you run `verity swarm` on real goals]")
+    elif cmd == "discover":
+        # Evolutionary search over COORDINATION STRATEGIES (ADAS/AFlow paradigm, frozen model + evaluator).
+        # --propose: model mutates a new candidate (no eval). --eval [--apply]: full propose→measure→gate→promote.
+        from . import discover as _disc
+        if "--eval" in rest:
+            print(__import__("json").dumps(
+                _disc.discover(propose="--no-propose" not in rest, use_eval=True, apply="--apply" in rest),
+                indent=2))
+        elif "--propose" in rest:
+            print(__import__("json").dumps(_disc.discover(propose=True, use_eval=False, apply=False), indent=2))
+        else:
+            bank = _disc._load_bank()
+            champ = bank.get("champion")
+            print(f"strategy bank — {len(bank['population'])} strategies, cycle {bank.get('cycle', 0)}")
+            print(f"champion: {champ['name'] if champ else '(none yet — run discover --eval --apply)'}")
+            for s in bank["population"]:
+                sc = f"  [score {s['score']:.3f}]" if s.get("score") is not None else ""
+                print(f"  · {s['name']}{sc}")
     elif cmd == "solve":
         if not rest:
             print("usage: solve \"<goal>\" [--discover] [--gate \"<test/build/lint cmd>\"] "
