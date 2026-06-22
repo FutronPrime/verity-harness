@@ -114,6 +114,11 @@ python3 -m verity discover              # show the strategy bank (seeds + evolve
 python3 -m verity discover --propose    # frozen model mutates a new candidate strategy (no eval)
 python3 -m verity discover --eval --apply   # propose → MEASURE on tasks → gate → promote the winner
 
+# The ACQUISITION loop — go learn a subject from the open-source community, keep it (on-the-job training):
+python3 -m verity learn "rust async runtimes"       # search repos/skills/docs → distill → PERSIST
+python3 -m verity learn "kalman filters" --rounds 3 # iterate: a completeness critic scouts the gaps
+python3 -m verity learn "rust async runtimes" --show # recall what THIS harness has already learned
+
 # Wire bands to real models (look ids up live — never guess):
 python3 -m verity models claude-opus        # → set VERITY_TIER_FRONTIER_MODEL
 # see verity.env.example § OPTION C for the full band wiring (incl. a fable-distilled coder GGUF for code tasks)
@@ -132,3 +137,25 @@ scraped traces overfits and loses the general reasoning a coordinator needs. The
 those distilled models is as a cheap **worker** — exactly where VERITY's complexity router puts
 them (`VERITY_TIER_MID_CODE_MODEL`): a frontier/32B-class brain orchestrates; the distilled coder is
 muscle on routine code sub-tasks. Big brain commands; small specialists execute.
+
+## On-the-job learning: each harness becomes its OWN expert
+
+The loop is the engine — it's on-the-job training. A human hitting a new domain doesn't get retrained;
+they go find the library/repo/tutorial, absorb it, and now they know it. `learn.py` (`verity learn
+"<subject>"`) does exactly that: SCOUT the web + GitHub for the best open-source skills/repos/docs on a
+subject → FILTER to the highest-signal sources → ASSIMILATE (fetch + distill the reusable technique) →
+SYNTHESIZE one durable note → PERSIST it to memory. A completeness critic drives extra rounds to scout
+the gaps. Because it persists with `scope="lesson"`, the knowledge **recalls automatically into every
+future swarm spawn** (`_context_pack`) *and* feeds the evolved playbook (`evolve` promotes lessons) — so
+the consume side was already wired; this just adds the acquisition side. The result: **each user's
+harness grows into its own customized expert**, learning the subjects that user actually works on, from
+the community's own artifacts. That is the difference between a fixed model and a system that does its
+own on-the-job training — and no proprietary endpoint can give you a *per-user* learned brain you own.
+
+This is the same loop the broader agentic-loops movement is converging on (prior art / reuse:
+[serenakeyitan/awesome-agent-loops](https://github.com/serenakeyitan/awesome-agent-loops),
+[AlessandroAnnini/agent-loop](https://github.com/AlessandroAnnini/agent-loop),
+[context-labs/halo](https://github.com/context-labs/halo),
+[agenticloops-ai/agentic-ai-engineering](https://github.com/agenticloops-ai/agentic-ai-engineering)) —
+VERITY's contribution is doing it gate-disciplined (honest failure, no hallucinated "learning") and
+sovereign (the learned brain lives in *your* membank, not a vendor's).

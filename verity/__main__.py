@@ -363,6 +363,27 @@ def main(argv: list[str]) -> None:
             for s in bank["population"]:
                 sc = f"  [score {s['score']:.3f}]" if s.get("score") is not None else ""
                 print(f"  · {s['name']}{sc}")
+    elif cmd == "learn":
+        # Subject acquisition loop: search web/GitHub for skills/repos/docs on a subject → distill →
+        # PERSIST to per-user memory (recalled automatically in future tasks). On-the-job training.
+        if not rest:
+            print('usage: learn "<subject>" [--rounds N] [--show]', file=sys.stderr); sys.exit(2)
+        from . import learn as _learn
+        if "--show" in rest:
+            print(_learn.show(" ".join(x for x in rest if x != "--show")))
+        else:
+            rounds = 1
+            r2 = list(rest)
+            if "--rounds" in r2:
+                i = r2.index("--rounds")
+                try:
+                    rounds = int(r2[i + 1]); del r2[i:i + 2]
+                except (IndexError, ValueError):
+                    del r2[i:i + 1]
+            subj = " ".join(x for x in r2 if not x.startswith("--"))
+            res = _learn.learn(subj, rounds=rounds, verbose=True)
+            print("\n" + ("✓ learned + persisted: " + subj if res["learned"]
+                          else "✗ " + res.get("msg", "nothing learned")))
     elif cmd == "solve":
         if not rest:
             print("usage: solve \"<goal>\" [--discover] [--gate \"<test/build/lint cmd>\"] "
