@@ -107,7 +107,7 @@ VERITY agents don't just *answer* — they **work**, and they **don't give up**:
 
 This isn't a personality prompt asking the model to be diligent; it's enforced on **code conditions**.
 
-**Docs:** [Install & requirements](INSTALL.md) · [Guide — purpose, features & best practices](GUIDE.md) · [Model registry](MODELS.md) · [Benchmarks](BENCHMARK.md)
+**Docs:** [Install & requirements](INSTALL.md) · [Guide — purpose, features & best practices](GUIDE.md) · [Model registry](MODELS.md) · [Benchmarks](BENCHMARK.md) · [VERITY vs Sakana Fugu](docs/FUGU_PARITY.md)
 
 ## Standalone · additive · a supercharger (not a stopgap)
 

@@ -67,12 +67,50 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path.rstrip("/") in ("/health", "/v1/health"):
             self._send(200, {"ok": True, "service": "verity-harness-proxy",
-                             "guardrail_mode": _MODE})
+                             "guardrail_mode": _MODE,
+                             "endpoints": ["/v1/chat/completions", "/v1/swarm"]})
         else:
             self._send(404, {"error": "not found"})
 
+    def _handle_swarm(self):
+        """POST /v1/swarm {"goal": "...", "max_subtasks"?: 4} → run the gate-disciplined multi-agent
+        swarm (plan → complexity-routed DAG execute → critic → synthesize) and return the answer.
+        For n8n: HTTP Request node → POST here. Reasoning-mode only (no host shell). Long-running by
+        design — set your client timeout generously."""
+        _LAST_USE[0] = time.time()
+        try:
+            n = int(self.headers.get("Content-Length", 0))
+            req = json.loads(self.rfile.read(n) or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self._send(400, {"error": "bad json"})
+            return
+        goal = (req.get("goal") or req.get("prompt") or "").strip()
+        if not goal:
+            self._send(400, {"error": "missing 'goal'"})
+            return
+        try:
+            from .swarm import run_swarm
+            max_st = int(req.get("max_subtasks", 4))
+            r = run_swarm(goal, executor=None, max_subtasks=max(1, min(6, max_st)), verbose=False)
+            self._send(200, {
+                "object": "verity.swarm",
+                "goal": goal,
+                "final": r.final,
+                "subtasks": r.subtasks,
+                "repaired": r.repaired,
+            })
+        except Exception as e:  # noqa: BLE001 — never crash the daemon on one bad request
+            self._send(500, {"error": f"{type(e).__name__}: {e}"})
+
     def do_POST(self):
-        if self.path.rstrip("/") not in ("/v1/chat/completions", "/chat/completions"):
+        path = self.path.rstrip("/")
+        # n8n / webhook integration: run the multi-agent SWARM over a goal and return the synthesized
+        # answer. Reasoning-mode ONLY (no executor) — shell execution is deliberately NOT exposed over
+        # HTTP; that stays CLI-side (`verity swarm --exec`) so the daemon can't run host commands.
+        if path in ("/v1/swarm", "/swarm"):
+            self._handle_swarm()
+            return
+        if path not in ("/v1/chat/completions", "/chat/completions"):
             self._send(404, {"error": "not found"})
             return
         _LAST_USE[0] = time.time()   # real use — keep alive; health pings don't count
