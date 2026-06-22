@@ -190,8 +190,9 @@ def _agent(role: str, prompt: str, tiers=None, timeout: float = 150.0) -> str:
     def _call():
         kw = {"tiers": tiers} if tiers else {}
         out = _txt(ask(prompt, system=sys_prompt, **kw))
-        if guarded and guard.flag(out):          # quit/defer/overconfident-negative detected
-            out = _txt(ask(prompt + "\n\n" + guard.CORRECTIVE, system=sys_prompt, **kw))
+        _k = guard.flag(out) if guarded else None    # quit/defer/capability-negative detected
+        if _k:
+            out = _txt(ask(prompt + "\n\n" + guard.corrective_for(_k), system=sys_prompt, **kw))
         return out
     try:
         return _AGENT_POOL.submit(_call).result(timeout=timeout)
@@ -274,13 +275,17 @@ def run_swarm(goal: str, executor=None, tiers=None, max_subtasks: int = 4,
     cheat = _coord.learned_routing()
     strat = _disc.active_strategy()          # the EVOLVED champion strategy (discovery half), if any
     recipes = _ll.hint(goal)                 # vetted Loop-Library recipes for this goal (cache-only, offline-safe)
+    # EVAL HOOK: discover.py sets VERITY_STRATEGY_INJECT to the CANDIDATE strategy under measurement, so a
+    # specific strategy actually shapes this plan (otherwise the discovery evaluator would score them all
+    # identically — the bug that made `discover --eval` theater). Empty in normal runs (zero effect).
+    candidate = os.environ.get("VERITY_STRATEGY_INJECT", "").strip()
     if verbose and cheat:
         print(f"{pad}[swarm] injecting learned routing cheat-sheet ({len(cheat)} chars)")
     if verbose and strat:
         print(f"{pad}[swarm] injecting discovered strategy ({len(strat)} chars)")
     if verbose and recipes:
         print(f"{pad}[swarm] injecting matched Loop-Library recipes")
-    preamble = "\n\n".join(p for p in (strat, cheat, recipes) if p)
+    preamble = "\n\n".join(p for p in (candidate, strat, cheat, recipes) if p)
     plan_prompt = (f"{preamble}\n\n" if preamble else "") + f"GOAL: {goal}"
     plan = parse_step_json(_agent("planner", plan_prompt, tiers))
     nodes = _cx.normalize_subtasks(plan.get("subtasks") or [], max_n=max_subtasks) \

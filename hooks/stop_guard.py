@@ -43,6 +43,20 @@ WORKAROUND = re.compile(r"""(?ix)
     | instead\s+(i'?ll|we'?ll|use|let'?s) | fall\s*back\s+to | work\s*around
     | (use|do|go|post|try|switch)\b[^.]{0,40}\binstead\b)
 """)
+# A confident CAPABILITY/POSSIBILITY negative asserted as fact — "only weights can do this",
+# "structurally won't", "not reachable without training", "no prompt can". DISTINCT from the infra NEG:
+# this is about what's POSSIBLE. The exact sin the harness's author committed 2026-06-22 ("discover =
+# weights only") — a Rule-6 search debunked it (ADAS/FunSearch/AlphaEvolve discover with a FROZEN model).
+# Earned ONLY when the trail shows a search (INVESTIGATED) for how it's actually done without the constraint.
+CAPABILITY = re.compile(r"""(?ix)
+    \b(only\s+(weights?|training|fine[\s-]?tuning|gradients?|rl|retraining|a\s+trained\s+model)\s+(can|could|will|do(es)?)
+    | structurally\s+(impossible|can'?t|cannot|won'?t|unable|hard\b)
+    | (not|never|isn'?t|won'?t\s+be)\s+(reachable|achievable|possible|feasible|replicable|doable)\s+without
+    | can'?t\s+be\s+(done|achieved|solved|discovered|reached|replicated)\s+without\s+(weight|training|fine|gradient|rl)
+    | (weights?|gradient|training)[\s-]only
+    | no\s+(prompt|amount\s+of\s+prompting|prompt\s+software)\s+(can|could|will)
+    | impossible\s+without\s+(training|weights|fine[\s-]?tuning))
+""")
 DEFER = re.compile(r"""(?ix)
     \b(only\s+you\s+can | you'?ll\s+have\s+to | you\s+(will\s+)?(need|have)\s+to\s+(do|run|manually)
     | requires?\s+(you|your|manual|human|a\s+human) | needs?\s+(you|your\s+input)
@@ -139,9 +153,10 @@ def main():
     tail_text = text[-1600:]  # the conclusion the agent is stopping on
 
     neg = bool(NEG.search(tail_text)) or bool(WORKAROUND.search(tail_text))
+    capability = bool(CAPABILITY.search(tail_text))
     defer = bool(DEFER.search(tail_text))
     publish = bool(PUBLISH.search(tail_text)) or bool(PUBLISH.search(actions))
-    if not (neg or defer or publish):
+    if not (neg or capability or defer or publish):
         sys.exit(0)
 
     investigated = bool(INVESTIGATED.search(actions))
@@ -149,7 +164,17 @@ def main():
     screened = bool(SCREENED.search(actions)) or bool(SCREENED.search(text))
 
     reason = None
-    if neg and not investigated:
+    if capability and not investigated:
+        reason = ("VERITY stop-guard: you asserted a CAPABILITY NEGATIVE as fact — 'only weights/training "
+                  "can do this', 'structurally impossible', 'not reachable without X', 'no prompt can' — "
+                  "but the transcript shows NO search for how it's actually achieved without that "
+                  "constraint. This is the costliest class of assumption and is almost always wrong "
+                  "un-searched. SEARCH first (GitHub / arXiv / Google for the named technique), THEN "
+                  "conclude. Precedent: 'agentic discovery needs weight training' was debunked in three "
+                  "citations — ADAS, FunSearch, AlphaEvolve all discover with a FROZEN model via an outer "
+                  "search loop. If you HAVE searched and the impossibility is truly earned, cite the "
+                  "specific evidence and stop. Do not let an un-searched 'only X can' stand.")
+    elif neg and not investigated:
         reason = ("VERITY stop-guard: you're concluding something is DOWN / BROKEN / IMPOSSIBLE / NOT "
                   "AUTHENTICATED / NOT CONFIGURED — or reaching for a WORKAROUND — but the transcript "
                   "shows no investigation. Before that stands you MUST, in order: for infra → (1) READ "

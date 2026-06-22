@@ -147,12 +147,13 @@ class Handler(BaseHTTPRequestHandler):
         # guardrail mode is off. Capped at one re-prompt (no latency/loop blowup).
         guarded = ""
         if _OC_GUARD:
-            from .guard import flag, CORRECTIVE
-            if flag(reply.text):
+            from .guard import flag, corrective_for
+            _kind = flag(reply.text)
+            if _kind:
                 try:
                     reprompt = list(messages) + [
                         {"role": "assistant", "content": reply.text},
-                        {"role": "user", "content": CORRECTIVE},
+                        {"role": "user", "content": corrective_for(_kind)},
                     ]
                     reply2 = chat(reprompt)
                     if reply2.text and not flag(reply2.text):

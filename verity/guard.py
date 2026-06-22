@@ -28,6 +28,24 @@ NEGATIVE = re.compile(r"""(?ix)
     | (no|without)\s+(an?\s+)?(account|config|setup)\s+(configured|set\s*up|available))
 """)
 
+# A confident CAPABILITY / POSSIBILITY negative asserted as FACT — "only weights can do this",
+# "structurally won't", "not reachable without training", "no prompt can". This is a DISTINCT class
+# from the infra-giveup NEGATIVE above (that's "it's down / not configured"); this is about what is
+# POSSIBLE/ACHIEVABLE — and it's the exact sin the harness's own author committed (2026-06-22: asserted
+# "discover = weights only"; a Rule-6 search debunked it in 3 citations — ADAS/FunSearch/AlphaEvolve do
+# exactly that with a FROZEN model). The costliest assumption: declaring a thing impossible/exclusive
+# WITHOUT searching how it's actually done. Caught here so the gate fires on it like any other negative.
+CAPABILITY = re.compile(r"""(?ix)
+    \b(only\s+(weights?|training|fine[\s-]?tuning|gradients?|rl|retraining|a\s+trained\s+model)\s+(can|could|will|do(es)?)
+    | structurally\s+(impossible|can'?t|cannot|won'?t|unable|hard\b)
+    | (not|never|isn'?t|won'?t\s+be)\s+(reachable|achievable|possible|feasible|replicable|doable)\s+without
+    | can'?t\s+be\s+(done|achieved|solved|discovered|reached|replicated)\s+without\s+(weight|training|fine|gradient|rl)
+    | (weights?|gradient|training)[\s-]only
+    | no\s+(prompt|amount\s+of\s+prompting|prompt\s+software)\s+(can|could|will)
+    | impossible\s+without\s+(training|weights|fine[\s-]?tuning)
+    | (requires?|needs?)\s+(weight\s+)?(training|fine[\s-]?tuning|retraining)\s+(to|before|for))
+""")
+
 # A premature DEFERRAL to the human ("only you can…") — the automate-before-defer failure. Incl. the
 # lazy hand-off of an AUTOMATABLE install/setup ("your move", "you install", "drag to Applications").
 DEFER = re.compile(r"""(?ix)
@@ -41,6 +59,17 @@ DEFER = re.compile(r"""(?ix)
     | drag\s+.{0,30}\s+to\s+(applications|the\s+dock) | tell\s+me\s+(once|when)\s+(it'?s|you'?ve|you\s+have)
     | (install|download|grab|clone|set\s*up)\s+.{0,30}\byourself\b)
 """)
+
+CAPABILITY_CORRECTIVE = (
+    "[VERITY GUARD] You asserted a CAPABILITY NEGATIVE as fact — 'only weights/training can do this', "
+    "'structurally impossible', 'not reachable without X', 'no prompt can'. This is the single costliest "
+    "class of assumption, and it is almost always WRONG when made without searching. Before it stands you "
+    "MUST do a Rule-0/6 search for how the thing is ACTUALLY achieved without the constraint you assumed: "
+    "query GitHub / arXiv / Google for the named technique. (Cautionary precedent from THIS system's own "
+    "history: 'agentic discovery needs weight training' was debunked in three citations — ADAS, FunSearch, "
+    "AlphaEvolve all DISCOVER with a FROZEN model via an outer search loop.) Either (a) run that search "
+    "now and revise, or (b) if you HAVE already searched, cite the specific evidence that makes the "
+    "impossibility truly earned. Do not let an un-searched 'only X can' stand.")
 
 CORRECTIVE = (
     "[VERITY GUARD] Your previous answer concluded a NEGATIVE ('it's down / impossible / can't / "
@@ -59,13 +88,20 @@ CORRECTIVE = (
 
 
 def flag(text: str) -> str | None:
-    """Return 'negative' / 'defer' if the text reads as a premature giveup, else None."""
+    """Return 'negative' / 'capability' / 'defer' if the text reads as a premature giveup, else None."""
     if not text:
         return None
     # only look at the conclusion-ish tail; avoids matching a quoted/hypothetical mid-answer mention
     tail = text[-1800:]
     if NEGATIVE.search(tail):
         return "negative"
+    if CAPABILITY.search(tail):
+        return "capability"
     if DEFER.search(tail):
         return "defer"
     return None
+
+
+def corrective_for(kind: str | None) -> str:
+    """The right re-prompt for the flagged kind (capability negatives get their own search-forcing text)."""
+    return CAPABILITY_CORRECTIVE if kind == "capability" else CORRECTIVE

@@ -119,24 +119,35 @@ def _propose(bank: dict, tiers=None) -> dict | None:
     return None
 
 
+def _eval_task_count() -> int:
+    """How many benchmark tasks per strategy eval. Bounded (default 2) to keep a live --eval affordable;
+    raise VERITY_DISCOVER_EVAL_TASKS for a stronger (costlier) signal."""
+    try:
+        return max(1, int(os.environ.get("VERITY_DISCOVER_EVAL_TASKS", "2")))
+    except ValueError:
+        return 2
+
+
 def _default_evaluator(template: str, tiers=None) -> float:
-    """SELECTION PRESSURE: score a strategy by running it on the task benchmark with the strategy injected,
-    scoring goal completion. Reuses the existing GAIA-shape task eval. Costs API — this is the real
-    'discovery' signal (a candidate is only adopted if MEASURED better, never on the model's say-so)."""
+    """SELECTION PRESSURE: score a strategy by running the GAIA-shape task benchmark THROUGH THE SWARM
+    with this candidate strategy injected (VERITY_STRATEGY_INJECT → the swarm planner reads it), and
+    measuring goal completion. This is the REAL discovery signal — a candidate is adopted only if it
+    MEASURES better, never on the model's say-so. Costs API (like AlphaEvolve's evaluator); bounded by
+    VERITY_DISCOVER_EVAL_TASKS. Returns fraction of tasks the swarm completed under this strategy."""
     from . import eval_tasks
-    # eval_tasks exposes a TASKS suite + a scorer; inject the strategy as orchestrator context.
+    prev = os.environ.get("VERITY_STRATEGY_INJECT")
     os.environ["VERITY_STRATEGY_INJECT"] = template
     try:
-        res = eval_tasks.run(harness=True, tiers=tiers) if hasattr(eval_tasks, "run") else None
-        if isinstance(res, dict):
-            return float(res.get("harness_score", res.get("score", 0.0)))
-        if isinstance(res, (int, float)):
-            return float(res)
+        res = eval_tasks.run(tiers=tiers, use_swarm=True, verbose=False,
+                             tasks=eval_tasks.TASKS[:_eval_task_count()])
+        return res.get("harness", 0) / max(1, res.get("tasks", 1))
     except Exception:  # noqa: BLE001
-        pass
+        return 0.0
     finally:
-        os.environ.pop("VERITY_STRATEGY_INJECT", None)
-    return 0.0
+        if prev is None:
+            os.environ.pop("VERITY_STRATEGY_INJECT", None)
+        else:
+            os.environ["VERITY_STRATEGY_INJECT"] = prev
 
 
 def _git(*a):
