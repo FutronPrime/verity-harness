@@ -128,7 +128,60 @@ def _eval_task_count() -> int:
         return 2
 
 
+# Representative coordination-sensitive goals — a strategy is good if it produces sound decompositions
+# for these. Used by the FAST evaluator (no execution), the practical default.
+_EVAL_GOALS = [
+    "Research three competing open-source approaches to rate-limiting an API, compare them on "
+    "throughput, memory, and failure behavior, and recommend one with justification.",
+    "Migrate a Python service's auth from sessions to JWT: plan the steps, isolate the risky token-"
+    "rotation part, and verify nothing breaks.",
+]
+
+
+def _fast_plan_evaluator(template: str, tiers=None) -> float:
+    """DEFAULT evaluator — FAST (seconds, not minutes). It scores a strategy by the QUALITY of the
+    DECOMPOSITIONS it produces (which is exactly what a coordination strategy affects), WITHOUT running
+    the full multi-step tasks. Per representative goal: planner emits a plan with the strategy injected,
+    then a critic rates it 0-10. Score = structural-validity ⊕ critic rating, averaged. This is what
+    makes `discover --eval` usable — the task-completion evaluator (opt-in) took minutes/strategy and
+    timed out. Honest: a plan-quality proxy, not end-to-end completion; set VERITY_DISCOVER_EVAL_MODE=tasks
+    for the rigorous (slow) signal."""
+    from .router import ask
+    from .loop import parse_step_json
+    from . import complexity as _cx
+    scores = []
+    for goal in _EVAL_GOALS:
+        try:
+            plan_sys = ("You are a multi-agent PLANNER. Decompose the GOAL into 2-5 sub-tasks with "
+                        "id/complexity(1-10)/type/depends_on, applying the STRATEGY. Respond ONLY JSON: "
+                        '{"subtasks":[{"id":"1","task":"...","complexity":5,"type":"code","depends_on":[]}]}')
+            pr = ask(f"STRATEGY:\n{template}\n\nGOAL: {goal}", system=plan_sys,
+                     **({"tiers": tiers} if tiers else {}))
+            plan = parse_step_json(pr.text if hasattr(pr, "text") else str(pr))
+            nodes = _cx.normalize_subtasks(plan.get("subtasks") or [])
+            structural = 1.0 if (2 <= len(nodes) <= 5 and any(n["depends_on"] for n in nodes) or len(nodes) >= 2) else 0.3
+            crit_sys = ("Rate this decomposition for the goal 0-10 (coverage, right-sized sub-tasks, "
+                        "sensible dependencies, no redundancy). Respond ONLY JSON: {\"score\": <0-10>}.")
+            cr = ask(f"GOAL: {goal}\n\nDECOMPOSITION:\n" +
+                     "\n".join(f"- [{n['complexity']}] {n['task']} deps={n['depends_on']}" for n in nodes),
+                     system=crit_sys, **({"tiers": tiers} if tiers else {}))
+            cj = parse_step_json(cr.text if hasattr(cr, "text") else str(cr))
+            rating = float(cj.get("score", 5)) / 10.0
+            scores.append(0.3 * structural + 0.7 * max(0.0, min(1.0, rating)))
+        except Exception:  # noqa: BLE001
+            scores.append(0.0)
+    return sum(scores) / max(1, len(scores))
+
+
 def _default_evaluator(template: str, tiers=None) -> float:
+    """Dispatch: FAST plan-coherence (default, usable) vs rigorous task-completion (opt-in, slow).
+    VERITY_DISCOVER_EVAL_MODE=tasks selects the latter."""
+    if os.environ.get("VERITY_DISCOVER_EVAL_MODE", "plan").lower().startswith("task"):
+        return _task_evaluator(template, tiers)
+    return _fast_plan_evaluator(template, tiers)
+
+
+def _task_evaluator(template: str, tiers=None) -> float:
     """SELECTION PRESSURE: score a strategy by running the GAIA-shape task benchmark THROUGH THE SWARM
     with this candidate strategy injected (VERITY_STRATEGY_INJECT → the swarm planner reads it), and
     measuring goal completion. This is the REAL discovery signal — a candidate is adopted only if it
