@@ -384,6 +384,30 @@ def main(argv: list[str]) -> None:
             res = _learn.learn(subj, rounds=rounds, verbose=True)
             print("\n" + ("✓ learned + persisted: " + subj if res["learned"]
                           else "✗ " + res.get("msg", "nothing learned")))
+    elif cmd == "looplib":
+        # Forward Future's Loop Library — vetted agentic-workflow recipes. Sync the catalog, search it,
+        # read a full recipe, or seed the discovery strategy bank with human-vetted loops.
+        from . import looplib as _ll
+        if "--sync" in rest:
+            print(_ll.sync())
+        elif "--seed-discover" in rest:
+            from . import discover as _D
+            bank = _D._load_bank(); have = {s["name"] for s in bank["population"]}
+            added = [s for s in _ll.seed_strategies(n=12, allow_fetch=True) if s["name"] not in have]
+            bank["population"] += added; _D._save_bank(bank)
+            print(f"✓ seeded {len(added)} Loop-Library strategies into the discovery population "
+                  f"({len(bank['population'])} total)")
+        elif rest and rest[0] == "get":
+            print(_ll.render(_ll.get(rest[1]) if len(rest) > 1 else None))
+        elif rest:
+            hits = _ll.match(" ".join(rest), n=8, allow_fetch=True)
+            print("\n".join(f"  [{lp.get('slug')}] {lp.get('title')} — {str(lp.get('useWhen',''))[:90]}"
+                            for lp in hits) or "[no matching loops — run `verity looplib --sync`]")
+        else:
+            ls = _ll.loops(allow_fetch=True)
+            print(f"Loop Library — {len(ls)} loops. `verity looplib <query>`, `… get <slug>`, `… --seed-discover`.")
+            for lp in ls[:50]:
+                print(f"  {lp.get('number')} [{lp.get('category',{}).get('slug')}] {lp.get('slug')}: {lp.get('title')}")
     elif cmd == "solve":
         if not rest:
             print("usage: solve \"<goal>\" [--discover] [--gate \"<test/build/lint cmd>\"] "

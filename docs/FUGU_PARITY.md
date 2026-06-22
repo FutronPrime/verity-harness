@@ -119,6 +119,13 @@ python3 -m verity learn "rust async runtimes"       # search repos/skills/docs �
 python3 -m verity learn "kalman filters" --rounds 3 # iterate: a completeness critic scouts the gaps
 python3 -m verity learn "rust async runtimes" --show # recall what THIS harness has already learned
 
+# The LOOP LIBRARY — wire in Forward Future's 50+ vetted agentic-workflow recipes (Matthew Berman):
+python3 -m verity looplib --sync                    # cache the catalog (signals.forwardfuture.ai)
+python3 -m verity looplib "improve test coverage"   # find recipes that fit a goal
+python3 -m verity looplib get overnight-docs-sweep  # full recipe: useWhen + prompt + verify + steps
+python3 -m verity looplib --seed-discover           # add the vetted loops to the discovery strategy bank
+# (once synced, matched recipes auto-inject into the swarm planner — REUSE-FIRST, offline-safe/cache-only)
+
 # Wire bands to real models (look ids up live — never guess):
 python3 -m verity models claude-opus        # → set VERITY_TIER_FRONTIER_MODEL
 # see verity.env.example § OPTION C for the full band wiring (incl. a fable-distilled coder GGUF for code tasks)

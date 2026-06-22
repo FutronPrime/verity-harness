@@ -270,13 +270,17 @@ def run_swarm(goal: str, executor=None, tiers=None, max_subtasks: int = 4,
     # "training on the fly", no weights. Empty + zero-cost on a fresh install; fills as you run.
     from . import coordinate as _coord
     from . import discover as _disc
+    from . import looplib as _ll
     cheat = _coord.learned_routing()
     strat = _disc.active_strategy()          # the EVOLVED champion strategy (discovery half), if any
+    recipes = _ll.hint(goal)                 # vetted Loop-Library recipes for this goal (cache-only, offline-safe)
     if verbose and cheat:
         print(f"{pad}[swarm] injecting learned routing cheat-sheet ({len(cheat)} chars)")
     if verbose and strat:
         print(f"{pad}[swarm] injecting discovered strategy ({len(strat)} chars)")
-    preamble = "\n\n".join(p for p in (strat, cheat) if p)
+    if verbose and recipes:
+        print(f"{pad}[swarm] injecting matched Loop-Library recipes")
+    preamble = "\n\n".join(p for p in (strat, cheat, recipes) if p)
     plan_prompt = (f"{preamble}\n\n" if preamble else "") + f"GOAL: {goal}"
     plan = parse_step_json(_agent("planner", plan_prompt, tiers))
     nodes = _cx.normalize_subtasks(plan.get("subtasks") or [], max_n=max_subtasks) \

@@ -57,6 +57,14 @@ def _scout(subject: str, tiers=None) -> str:
             parts.append(h)
     except Exception:  # noqa: BLE001
         pass
+    try:
+        from . import looplib
+        hits = looplib.match(subject, n=3, allow_fetch=True)   # vetted agentic recipes on the subject
+        if hits:
+            parts.append("=== LOOP LIBRARY (vetted agent recipes) ===\n" + "\n".join(
+                f"- {lp.get('title')} ({lp.get('url')}): {str(lp.get('useWhen',''))[:100]}" for lp in hits))
+    except Exception:  # noqa: BLE001
+        pass
     return "\n\n".join(p for p in parts if p and p.strip())
 
 
