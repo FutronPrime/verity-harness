@@ -56,3 +56,12 @@ The benchmarks are small, honest seed sets — extend them for your domain:
 - `verity/eval_tasks.py` (`TASKS`) — multi-step goals + scorer markers.
 - `verity/eval_swebench.py` (`TASKS`) — buggy code + a hidden test (the gold-standard objective scorer).
 Re-run, compare, and report. Receipts over hype — including the gaps.
+
+## 5. Full 5-dimension comparison (`verity_compare.py`)
+Model-agnostic naive-vs-harness across technical/visual/fun/real_world/edge with paired stats (lift, CI, sign-test p) + leaderboard. Run `python3 -m verity doctor` first.
+```
+python3 verity_compare.py --model <id> [--provider openrouter|ollama] [--all] [--fast]
+python3 verity_compare.py --model meta-llama/llama-3.3-70b-instruct --fast   # ~floor model
+python3 verity_compare.py --model qwen2.5:3b-instruct --provider ollama       # below floor (expect no lift)
+```
+Tasks: `compare_tasks.json` (extend freely). Spec+citations: memory/verity-upgrade-research/llm-comparison-test-system-spec.md

@@ -1,0 +1,34 @@
+{
+  "technical": [
+    {"id": "T-yaml", "prompt": "Name a real open-source Python library (>1000 GitHub stars) for parsing YAML. Give the import name.",
+     "score": {"type": "oracle", "any": ["pyyaml", "yaml", "ruamel"]}},
+    {"id": "T-bugfix", "prompt": "Write a Python function add(a,b) that returns the sum of a and b. Output only a python code block.",
+     "score": {"type": "exit", "test": "from sol import add\nassert add(2,3)==5 and add(-1,1)==0\nprint('PASS')"}},
+    {"id": "T-localllm", "prompt": "Name a real open-source tool to run LLMs locally on a Mac. One name.",
+     "score": {"type": "oracle", "any": ["ollama", "llama.cpp", "lm studio", "lmstudio", "mlx", "gpt4all"]}}
+  ],
+  "visual": [
+    {"id": "V-table", "prompt": "Convert to a clean markdown table with a Total row: 'Revenue was 500 from product A, 300 from product B, and 200 from services.'",
+     "score": {"type": "judge", "rubric": "valid markdown table, correct numbers, a Total row summing to 1000, readable"}},
+    {"id": "V-ascii", "prompt": "Draw a simple ASCII box-and-arrow diagram of: a Client calls an API Gateway, which calls two services (Auth and Data).",
+     "score": {"type": "judge", "rubric": "ascii diagram, shows Client->Gateway->Auth and ->Data, structurally correct, readable"}}
+  ],
+  "fun": [
+    {"id": "F-md-tool", "prompt": "What is a current open-source tool for turning any website into clean LLM-readable markdown? Name it and give a one-line usage.",
+     "score": {"type": "oracle", "any": ["firecrawl", "jina", "reader", "markitdown", "trafilatura", "crawl4ai"]}},
+    {"id": "F-bookmarks", "prompt": "Is it possible to export ALL your X/Twitter bookmarks beyond the official API 800 limit? Yes/no and the method.",
+     "score": {"type": "oracle", "any": ["yes", "graphql", "cursor", "pagina", "internal api", "scrap"]}}
+  ],
+  "real_world": [
+    {"id": "R-modnotfound", "prompt": "A Docker build fails with 'ModuleNotFoundError: No module named aiofiles'. Give the concrete fix.",
+     "score": {"type": "oracle", "any": ["requirements", "pip install aiofiles", "add aiofiles", "pip3 install aiofiles"]}},
+    {"id": "R-notool", "prompt": "I need a free way to use a Claude/GPT coding agent without per-token API cost. Is there one? How?",
+     "score": {"type": "oracle", "any": ["subscription", "oauth", "local", "ollama", "free tier", "plan", "opencode"]}}
+  ],
+  "edge": [
+    {"id": "E-false-premise", "prompt": "Fix this WRONG Python code: result = sorted(items, key=lambda x: x.priority, reverse=True)  — it is buggy.",
+     "score": {"type": "oracle", "any": ["not wrong", "no bug", "is correct", "nothing wrong", "already correct", "valid", "not buggy"]}},
+    {"id": "E-impossible", "prompt": "Write a thread-safety decorator WITHOUT using any lock primitive from threading or multiprocessing. Is that possible? If over-constrained, say so and give the right alternative.",
+     "score": {"type": "oracle", "any": ["queue", "thread-local", "threading.local", "immutable", "atomic", "not possible", "over-constrain", "alternative"]}}
+  ]
+}
