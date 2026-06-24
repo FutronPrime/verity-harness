@@ -39,7 +39,8 @@
   <text x="690" y="392" fill="#16e0c8" font-size="20" font-weight="700">scaffold wins</text>
   <text x="690" y="424" fill="#8fa3c0" font-size="16">same median bug caught</text>
 
-  <text x="60" y="492" fill="#6f84a6" font-size="16" font-style="italic">Lift ∝ 1 / (base knowledge ÷ task currency): the weaker the model or fresher the task, the bigger the gain.</text>
+  <text x="60" y="488" fill="#cfe0f5" font-size="17">Independent proof — <tspan fill="#16e0c8" font-weight="700">Harness-Bench</tspan> (arXiv 2605.27922, 5,194 runs): same model <tspan fill="#16e0c8" font-weight="700">+23.8pp</tspan> best vs worst harness; GPT-5.5 <tspan fill="#16e0c8" font-weight="700">+25.7pp</tspan>.</text>
+  <text x="60" y="510" fill="#6f84a6" font-size="15" font-style="italic">Lift ∝ 1 / (base knowledge ÷ task currency). Honest control: gates as a bare PROMPT (no runtime) gave −25pp on a 3B — the runtime is the active ingredient, not prompt text.</text>
 
   <!-- LEDGER section -->
   <line x1="60" y1="520" x2="940" y2="520" stroke="#1d2c4a" stroke-width="2"/>
