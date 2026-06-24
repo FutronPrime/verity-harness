@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# verity-opencode — VERITY's code EXECUTOR bridge, driving the installed OpenCode
+# (the harness-video pattern, R_Nf-IDVZEg): plan-agent gate (read-only scope/risk)
+# -> build-agent execution on an ISOLATED git worktree, with JSON step events.
+# "Build with frontier, run with open-source" — model is swappable via -m/$OPENCODE_MODEL
+# (route to local Ollama / Venice / RotorQuant per R26; frontier only to author the harness).
+#
+# Adopted 2026-06-24 into VERITY. Synthesis: memory/verity-v2-harness-upgrade-2026-06-24.md
+# Refs: opencode.ai (sst/opencode v1.14.41, already installed) + safe-agentic-workflow + pi.
+#
+# Usage:
+#   verity-opencode plan  "<goal>" [--dir D] [-m provider/model]     # read-only pre-flight (scope/risk)
+#   verity-opencode build "<goal>" [--dir D] [-m provider/model]     # execute (JSON events)
+#   verity-opencode solve "<goal>" [--repo R] [-m provider/model]    # plan-gate -> build on isolated worktree
+#   verity-opencode models                                           # list available providers/models
+# Env: OPENCODE_MODEL (default model, e.g. venice/qwen3-next-80b or ollama/<model>)
+set -uo pipefail
+OC="$HOME/.opencode/bin/opencode"
+[ -x "$OC" ] || OC="$(command -v opencode)"
+[ -n "${OC:-}" ] || { echo "opencode not found (install: https://opencode.ai)"; exit 1; }
+MODEL="${OPENCODE_MODEL:-}"
+ACT="${1:-}"; shift || true
+DIR="$PWD"; REPO="$PWD"; GOAL=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -m|--model) MODEL="$2"; shift 2;;
+    --dir) DIR="$2"; shift 2;;
+    --repo) REPO="$2"; shift 2;;
+    *) GOAL="${GOAL:+$GOAL }$1"; shift;;
+  esac
+done
+mflag=(); [ -n "$MODEL" ] && mflag=(-m "$MODEL")
+
+case "$ACT" in
+  models) "$OC" models 2>/dev/null || "$OC" run --help 2>&1 | grep -i model; exit 0;;
+  plan)
+    [ -n "$GOAL" ] || { echo "need a goal"; exit 2; }
+    echo "[verity-opencode] PLAN (read-only scope/risk) dir=$DIR model=${MODEL:-default}"
+    "$OC" run --agent plan --dir "$DIR" "${mflag[@]}" \
+      "VERITY pre-flight. Analyze ONLY (no edits). For this goal, output: (1) the concrete plan/steps, (2) files/systems touched, (3) RISK (low/med/high) + any destructive or human-gate (password/2FA/payment/delete) actions, (4) a falsifiable success criterion. Goal: $GOAL"
+    ;;
+  build)
+    [ -n "$GOAL" ] || { echo "need a goal"; exit 2; }
+    echo "[verity-opencode] BUILD dir=$DIR model=${MODEL:-default} (JSON events)"
+    "$OC" run --agent build --dir "$DIR" --format json "${mflag[@]}" \
+      "Execute this goal. Comment each step as you go (so it can be supervised). Run tests/build to verify before declaring done. Goal: $GOAL"
+    ;;
+  solve)
+    [ -n "$GOAL" ] || { echo "need a goal"; exit 2; }
+    cd "$REPO"; git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo "solve needs a git repo (--repo)"; exit 3; }
+    ROOT="$(git rev-parse --show-toplevel)"; slug=$(echo "$GOAL" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9-' | cut -c1-32)
+    WT="$ROOT/.worktrees/oc-$slug"
+    echo "[verity-opencode] SOLVE — plan-gate then build on isolated worktree $WT"
+    PLAN_OUT="$("$OC" run --agent plan --dir "$ROOT" "${mflag[@]}" "VERITY pre-flight (analyze only, no edits). Output plan + files touched + RISK(low/med/high) + any human-gate action + a falsifiable success criterion. Goal: $GOAL" 2>&1)"
+    echo "--- PLAN ---"; echo "$PLAN_OUT" | tail -40
+    if echo "$PLAN_OUT" | grep -qiE "risk:? *high|destructive|irreversible|password|2fa|payment|delete .*(prod|database)"; then
+      echo "[verity-opencode] HIGH-RISK / human-gate detected in plan — NOT auto-building. Review the plan above and run build manually with --dir $WT if approved."; exit 0
+    fi
+    git worktree add -q "$WT" HEAD 2>/dev/null || git worktree add -q -b "oc-$slug" "$WT" HEAD 2>/dev/null || true
+    echo "--- BUILD (isolated) ---"
+    "$OC" run --agent build --dir "$WT" --format json "${mflag[@]}" \
+      "Execute on this worktree. Comment each step. Verify with tests/build before done. Goal: $GOAL"
+    echo "[verity-opencode] build done on $WT — review the diff, merge if approved (git -C \"$ROOT\" merge oc-$slug)."
+    ;;
+  *) sed -n '2,20p' "$0"; exit 0;;
+esac
