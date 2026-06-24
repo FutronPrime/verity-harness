@@ -1,0 +1,42 @@
+{
+ "model": "meta-llama/llama-3.3-70b-instruct",
+ "provider": "openrouter",
+ "dims": {
+  "technical": {
+   "naive_pct": 100,
+   "harness_pct": 100,
+   "lift_pp": 0.0,
+   "ci95_pp": 0.0,
+   "improved": 0,
+   "regressed": 0,
+   "p_value": 1.0,
+   "significant": false
+  }
+ },
+ "tasks": [
+  {
+   "dim": "technical",
+   "id": "T-yaml",
+   "naive": 1.0,
+   "harness": 1.0,
+   "lat": 203.1
+  },
+  {
+   "dim": "technical",
+   "id": "T-bugfix",
+   "naive": 1.0,
+   "harness": 1.0,
+   "lat": 46.5
+  }
+ ],
+ "overall": {
+  "naive_pct": 100,
+  "harness_pct": 100,
+  "lift_pp": 0.0,
+  "ci95_pp": 0.0,
+  "improved": 0,
+  "regressed": 0,
+  "p_value": 1.0,
+  "significant": false
+ }
+}

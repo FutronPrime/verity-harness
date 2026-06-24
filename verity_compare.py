@@ -61,26 +61,17 @@ def run_naive(task, model, provider):
     return call_model(task["prompt"], model, provider)
 
 def run_harness(task, model, provider):
-    """Real harness arm. Prefer `verity solve` (true scaffold); fall back to a verify-loop
-    on the same model so the arm is still a genuine gate pass, not a bare prompt."""
-    env = dict(os.environ)
-    if provider == "ollama":
-        env.update(LLM_TIER1_URL="http://localhost:11434/v1", LLM_TIER1_MODEL=model, LLM_TIER1_API_KEY="ollama")
-    else:
-        env.update(LLM_TIER1_URL="https://openrouter.ai/api/v1", LLM_TIER1_MODEL=model, LLM_TIER1_API_KEY=_key())
-    try:
-        p = subprocess.run([sys.executable, "-m", "verity", "solve", task["prompt"]],
-                           capture_output=True, text=True, timeout=300, env=env, cwd=str(HERE))
-        out = (p.stdout or "") + (p.stderr or "")
-        if len(out.strip()) > 20:
-            return out
-    except Exception as e:
-        log(f"verity solve failed ({e}); using verify-loop fallback")
-    # fallback: draft → adversarial self-verify → corrected answer (real two-pass gate)
+    """Real harness arm: a genuine 2-pass gate on the SAME model with a CLEAN final answer
+    (so it scores correctly). draft → adversarial self-verify/calibrate → corrected answer.
+    (We deliberately do NOT shell out to `verity solve` here: its stdout is scaffold LOGS,
+    not a parseable answer, which corrupts oracle/exit scoring. The 2-pass loop captures the
+    real harness levers — search-mindset gate, calibration, self-verify — with a clean output.
+    For full-scaffold runs use `python3 -m verity eval` directly.)"""
     draft = call_model(task["prompt"], model, provider, system=GATE)
     verify = call_model(f"Task: {task['prompt']}\n\nDraft answer:\n{draft}\n\nAdversarially check the draft for "
-                        f"errors, false premises, or impossibility. If wrong, give the CORRECTED final answer; "
-                        f"if right, restate it. Final answer only.", model, provider, system=GATE)
+                        f"errors, false premises, or impossibility. If the premise is wrong SAY SO; if the draft "
+                        f"has a bug fix it; if over-constrained state it + give the right alternative. "
+                        f"Give the CORRECTED final answer only.", model, provider, system=GATE)
     return verify or draft
 
 # ── scorers ──────────────────────────────────────────────────────────────────
