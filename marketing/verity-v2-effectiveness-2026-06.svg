@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1450" font-family="Inter,Segoe UI,Helvetica,Arial,sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0e1a"/><stop offset="1" stop-color="#0f1830"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#16e0c8"/><stop offset="1" stop-color="#2bb3ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="1450" fill="url(#bg)"/>
+  <!-- header -->
+  <text x="60" y="86" fill="#fff" font-size="52" font-weight="800">VERITY <tspan fill="#16e0c8">v2</tspan></text>
+  <text x="60" y="124" fill="#8fa3c0" font-size="23">The Truth Harness — effectiveness, with receipts</text>
+  <text x="60" y="160" fill="#2bb3ff" font-size="20" font-weight="600">Harness sovereignty &gt; model quality · build with frontier, run with open-source</text>
+  <line x1="60" y1="184" x2="940" y2="184" stroke="#1d2c4a" stroke-width="2"/>
+
+  <!-- LIFT section -->
+  <text x="60" y="232" fill="#fff" font-size="30" font-weight="700">Same model, with the harness → measured lift</text>
+
+  <!-- card 1: 4B -->
+  <rect x="60" y="256" width="270" height="200" rx="16" fill="#111c34" stroke="#1d2c4a"/>
+  <text x="80" y="294" fill="#8fa3c0" font-size="18">4B local model</text>
+  <text x="80" y="300" fill="#8fa3c0" font-size="14"></text>
+  <text x="80" y="356" fill="#fff" font-size="46" font-weight="800">33<tspan fill="#8fa3c0" font-size="26">%</tspan> <tspan fill="#16e0c8">→ 67</tspan><tspan fill="#16e0c8" font-size="26">%</tspan></text>
+  <text x="80" y="392" fill="#16e0c8" font-size="20" font-weight="700">+1 · accuracy DOUBLED</text>
+  <text x="80" y="424" fill="#8fa3c0" font-size="16">reasoning traps, forced pre-flight search</text>
+
+  <!-- card 2: Opus -->
+  <rect x="365" y="256" width="270" height="200" rx="16" fill="#111c34" stroke="#1d2c4a"/>
+  <text x="385" y="294" fill="#8fa3c0" font-size="18">Opus 4.8 (frontier)</text>
+  <text x="385" y="356" fill="#fff" font-size="46" font-weight="800">25<tspan fill="#8fa3c0" font-size="26">%</tspan> <tspan fill="#16e0c8">→ 100</tspan><tspan fill="#16e0c8" font-size="26">%</tspan></text>
+  <text x="385" y="392" fill="#16e0c8" font-size="20" font-weight="700">+3 · perfect score</text>
+  <text x="385" y="424" fill="#8fa3c0" font-size="16">harness lifts even a top model</text>
+
+  <!-- card 3: Llama -->
+  <rect x="670" y="256" width="270" height="200" rx="16" fill="#111c34" stroke="#1d2c4a"/>
+  <text x="690" y="294" fill="#8fa3c0" font-size="18">Llama-3.3-70B (mid)</text>
+  <text x="690" y="356" fill="#fff" font-size="46" font-weight="800">2/3 <tspan fill="#16e0c8">→ 3/3</tspan></text>
+  <text x="690" y="392" fill="#16e0c8" font-size="20" font-weight="700">scaffold wins</text>
+  <text x="690" y="424" fill="#8fa3c0" font-size="16">same median bug caught</text>
+
+  <text x="60" y="492" fill="#6f84a6" font-size="16" font-style="italic">Lift ∝ 1 / (base knowledge ÷ task currency): the weaker the model or fresher the task, the bigger the gain.</text>
+
+  <!-- LEDGER section -->
+  <line x1="60" y1="520" x2="940" y2="520" stroke="#1d2c4a" stroke-width="2"/>
+  <text x="60" y="566" fill="#fff" font-size="30" font-weight="700">Live discipline — real run ledger</text>
+  <text x="60" y="596" fill="#8fa3c0" font-size="17">auditable receipts, not vibes · 5 days of real runs</text>
+
+  <g>
+    <rect x="60" y="620" width="205" height="118" rx="14" fill="#0e1830" stroke="#16e0c8" stroke-width="1.5"/>
+    <text x="162" y="682" fill="#16e0c8" font-size="44" font-weight="800" text-anchor="middle">1820</text>
+    <text x="162" y="712" fill="#8fa3c0" font-size="16" text-anchor="middle">gate events fired</text>
+  </g>
+  <g>
+    <rect x="285" y="620" width="205" height="118" rx="14" fill="#0e1830" stroke="#2bb3ff" stroke-width="1.5"/>
+    <text x="387" y="682" fill="#2bb3ff" font-size="44" font-weight="800" text-anchor="middle">931</text>
+    <text x="387" y="712" fill="#8fa3c0" font-size="16" text-anchor="middle">searches forced before</text>
+    <text x="387" y="730" fill="#8fa3c0" font-size="16" text-anchor="middle">concluding</text>
+  </g>
+  <g>
+    <rect x="510" y="620" width="205" height="118" rx="14" fill="#0e1830" stroke="#16e0c8" stroke-width="1.5"/>
+    <text x="612" y="682" fill="#16e0c8" font-size="44" font-weight="800" text-anchor="middle">467</text>
+    <text x="612" y="712" fill="#8fa3c0" font-size="16" text-anchor="middle">false assumptions caught</text>
+  </g>
+  <g>
+    <rect x="735" y="620" width="205" height="118" rx="14" fill="#0e1830" stroke="#2bb3ff" stroke-width="1.5"/>
+    <text x="837" y="682" fill="#2bb3ff" font-size="44" font-weight="800" text-anchor="middle">417</text>
+    <text x="837" y="712" fill="#8fa3c0" font-size="16" text-anchor="middle">swarm critic/plan/synth</text>
+  </g>
+
+  <!-- v2 capabilities -->
+  <line x1="60" y1="772" x2="940" y2="772" stroke="#1d2c4a" stroke-width="2"/>
+  <text x="60" y="818" fill="#fff" font-size="30" font-weight="700">New in v2 — the sovereignty layer</text>
+
+  <g fill="#cfe0f5" font-size="19">
+    <text x="78" y="864">▸ <tspan fill="#16e0c8" font-weight="700">Code executor</tspan> — drives OpenCode on an isolated worktree (plan-gate → build)</text>
+    <text x="78" y="898">▸ <tspan fill="#16e0c8" font-weight="700">Spec-gate</tspan> — no work without a falsifiable success criterion</text>
+    <text x="78" y="932">▸ <tspan fill="#16e0c8" font-weight="700">Fresh-context verify</tspan> — maker ≠ checker at the conversation level</text>
+    <text x="78" y="966">▸ <tspan fill="#16e0c8" font-weight="700">Tool veto</tspan> — block + reason injected back → the model self-corrects</text>
+    <text x="78" y="1000">▸ <tspan fill="#16e0c8" font-weight="700">Durable verdict</tspan> — evidence survives context compaction</text>
+    <text x="78" y="1034">▸ <tspan fill="#16e0c8" font-weight="700">Commands / skills / handoff</tspan> — repeatable pipelines + cross-session state</text>
+  </g>
+
+  <!-- sovereign stack -->
+  <line x1="60" y1="1066" x2="940" y2="1066" stroke="#1d2c4a" stroke-width="2"/>
+  <text x="60" y="1112" fill="#fff" font-size="30" font-weight="700">100% local · 0 keys · 0 marginal cost</text>
+  <g fill="#9fb6d4" font-size="18">
+    <text x="78" y="1152">Executor → <tspan fill="#fff">OpenCode</tspan> · LLM → <tspan fill="#fff">Ollama qwen2.5</tspan> · Memory → <tspan fill="#fff">mempalace</tspan></text>
+    <text x="78" y="1184">Semantic search → <tspan fill="#fff">claude-context + nomic-embed</tspan> · Routing → <tspan fill="#fff">ccr</tspan></text>
+    <text x="78" y="1216">Private cloud tier (optional) → <tspan fill="#fff">Venice</tspan> · Sovereign IDE → <tspan fill="#fff">VSCodium</tspan></text>
+  </g>
+
+  <rect x="60" y="1252" width="880" height="120" rx="16" fill="#0e1830" stroke="#16e0c8" stroke-width="1.5"/>
+  <text x="500" y="1300" fill="#fff" font-size="26" font-weight="800" text-anchor="middle">When the frontier model gets pulled mid-project,</text>
+  <text x="500" y="1336" fill="#16e0c8" font-size="26" font-weight="800" text-anchor="middle">the harness keeps running on weights you own.</text>
+
+  <text x="60" y="1410" fill="#6f84a6" font-size="15">github.com/FutronPrime/verity-harness · numbers from BENCHMARK.md + live ledger (2026-06) · zero-dependency, pure stdlib</text>
+</svg>
