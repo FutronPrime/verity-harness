@@ -26,7 +26,7 @@ and it can't be revoked.*
 
 ### The open-source Fable alternative — frontier-grade discipline on models you own.
 
-> **🆕 v2 — Harness Sovereignty Layer:** code executor (`verity-opencode`), new gates (spec-gate, fresh-context verify, tool-veto, durable verdict), reusable `commands/` pipelines, and fully-local keyless routing (Ollama). See **[V2.md](V2.md)**.
+> **🆕 v2 — Harness Sovereignty Layer:** code executor (`verity-opencode`), new gates (spec-gate, fresh-context verify, tool-veto, durable verdict), reusable `commands/` pipelines, and fully-local keyless routing (Ollama). See **[V2.md](V2.md)** · ![v2 scorecard](assets/scorecard-v2.svg)
 
 *(model-agnostic · zero-dependency · local-first — the open-source way to get Fable-grade reliability without Fable.)*
 

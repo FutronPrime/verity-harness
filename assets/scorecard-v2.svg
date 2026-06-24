@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 940" font-family="'Arial Narrow','Helvetica Neue',Arial,sans-serif" role="img">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070a0d"/><stop offset="1" stop-color="#03060a"/></linearGradient>
+  <pattern id="scan" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="1" fill="#0c1a1d" opacity="0.5"/></pattern>
+  <style>.mono{font-family:'SF Mono','Menlo',monospace}.hv{font-family:'Arial Black',Arial,sans-serif;font-weight:900}.nar{font-family:'Arial Narrow',Arial,sans-serif}</style>
+</defs>
+<rect width="1200" height="940" fill="url(#bg)"/>
+<rect width="1200" height="940" fill="url(#scan)"/>
+<path d="M16,16 H1150 L1184,50 V924 H66 L16,874 Z" fill="none" stroke="#1f5c54" stroke-width="2"/>
+
+<text x="40" y="54" class="mono" font-size="13" fill="#2dd4bf" letter-spacing="2">/// VERITY v2 // HARNESS SOVEREIGNTY · SAME MODEL ± THE HARNESS · REPRODUCIBLE</text>
+<text x="44" y="104" class="hv" font-size="38" fill="#eafffb">HARNESS &gt; MODEL. NOW WITH RECEIPTS.</text>
+<rect x="46" y="116" width="430" height="3" fill="#d6299e"/>
+<text x="44" y="146" class="nar" font-size="14.5" fill="#8fb8b1">Same model against itself — only the discipline changes. v2 adds a code executor, 4 new gates, and a fully-local keyless stack. Every number live, ledger-logged, reproducible.</text>
+
+<text x="60" y="186" class="mono" font-size="12" fill="#2dd4bf" letter-spacing="1">&gt;&gt; AXIS / WHAT IT PROVES</text>
+<text x="952" y="186" class="mono" font-size="12" fill="#5b8a84" letter-spacing="1">NAIVE</text>
+<text x="1050" y="186" class="mono" font-size="12" fill="#2dd4bf" letter-spacing="1">+ VERITY</text>
+
+<!-- ROW 1: 4B local -->
+<path d="M56,200 L1124,200 L1144,220 L1144,294 L68,294 L56,282 Z" fill="#0a0f12" stroke="#16343a" stroke-width="1.2"/>
+<text x="80" y="232" class="hv" font-size="20" fill="#eafffb">4B LOCAL — reasoning traps</text>
+<text x="80" y="256" class="nar" font-size="13" fill="#8fb8b1">A weak local model, forced pre-flight search before any conclusion</text>
+<text x="80" y="277" class="mono" font-size="11" fill="#586872">verity eval · runtime gates live (real search)</text>
+<rect x="640" y="226" width="300" height="15" rx="2" fill="#0c1417" stroke="#1f3a3a"/><rect x="640" y="226" width="99" height="15" rx="2" fill="#3a5660"/>
+<rect x="640" y="247" width="300" height="15" rx="2" fill="#0c1417" stroke="#1f3a3a"/><path d="M640,247 L841,247 L848,254 L848,262 L644,262 L640,258 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="952" y="239" class="hv" font-size="14" fill="#5b8a84">33%</text><text x="952" y="261" class="hv" font-size="15" fill="#2dd4bf">67%</text>
+<text x="1050" y="251" class="hv" font-size="30" fill="#d6299e">+34</text>
+
+<!-- ROW 2: Opus -->
+<path d="M56,302 L1124,302 L1144,322 L1144,396 L68,396 L56,384 Z" fill="#0a0f12" stroke="#16343a" stroke-width="1.2"/>
+<text x="80" y="334" class="hv" font-size="20" fill="#eafffb">OPUS 4.8 — current facts</text>
+<text x="80" y="358" class="nar" font-size="13" fill="#8fb8b1">Even a frontier model: the harness lifts it to a perfect score</text>
+<text x="80" y="379" class="mono" font-size="11" fill="#586872">verity eval --flagship · failover + shared live knowledge</text>
+<rect x="640" y="328" width="300" height="15" rx="2" fill="#0c1417" stroke="#1f3a3a"/><rect x="640" y="328" width="75" height="15" rx="2" fill="#3a5660"/>
+<rect x="640" y="349" width="300" height="15" rx="2" fill="#0c1417" stroke="#1f3a3a"/><path d="M640,349 L940,349 L940,364 L644,364 L640,360 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="952" y="341" class="hv" font-size="14" fill="#5b8a84">25%</text><text x="952" y="363" class="hv" font-size="15" fill="#2dd4bf">100%</text>
+<text x="1050" y="353" class="hv" font-size="30" fill="#d6299e">+75</text>
+
+<!-- ROW 3: Harness-Bench external -->
+<path d="M56,404 L1124,404 L1144,424 L1144,498 L68,498 L56,486 Z" fill="#0a0f12" stroke="#16343a" stroke-width="1.2"/>
+<text x="80" y="436" class="hv" font-size="20" fill="#eafffb">HARNESS-BENCH — independent</text>
+<text x="80" y="460" class="nar" font-size="13" fill="#8fb8b1">Peer-reviewed: same model, best vs worst harness — 5,194 trajectories</text>
+<text x="80" y="481" class="mono" font-size="11" fill="#586872">arXiv 2605.27922 · GPT-5.5: 61.5% → 87.2%</text>
+<rect x="640" y="430" width="300" height="15" rx="2" fill="#0c1417" stroke="#1f3a3a"/><rect x="640" y="430" width="185" height="15" rx="2" fill="#3a5660"/>
+<rect x="640" y="451" width="300" height="15" rx="2" fill="#0c1417" stroke="#1f3a3a"/><path d="M640,451 L901,451 L908,458 L908,466 L644,466 L640,462 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="952" y="443" class="hv" font-size="14" fill="#5b8a84">61.5%</text><text x="952" y="465" class="hv" font-size="15" fill="#2dd4bf">87.2%</text>
+<text x="1050" y="455" class="hv" font-size="30" fill="#d6299e">+25.7</text>
+
+<!-- ROW 4: HONEST CONTROL (negative) -->
+<path d="M56,506 L1124,506 L1144,526 L1144,592 L68,592 L56,580 Z" fill="#0a0f12" stroke="#3a2a16" stroke-width="1.2"/>
+<text x="80" y="538" class="hv" font-size="20" fill="#e8c98f">HONEST CONTROL — prompt ≠ runtime</text>
+<text x="80" y="562" class="nar" font-size="13" fill="#b89a6a">Gates injected as a bare PROMPT (no search/verify tooling) on a 3B → WORSE.</text>
+<text x="80" y="582" class="mono" font-size="11" fill="#7a6748">local qwen2.5:3b · 8 tasks · proves the runtime is the active ingredient</text>
+<rect x="640" y="532" width="300" height="15" rx="2" fill="#0c1417" stroke="#3a2f1f"/><rect x="640" y="532" width="186" height="15" rx="2" fill="#5e5240"/>
+<rect x="640" y="553" width="300" height="15" rx="2" fill="#0c1417" stroke="#3a2f1f"/><rect x="640" y="553" width="114" height="15" rx="2" fill="#b8823a"/>
+<text x="952" y="545" class="hv" font-size="14" fill="#7a6748">62%</text><text x="952" y="567" class="hv" font-size="15" fill="#e8a93a">38%</text>
+<text x="1050" y="557" class="hv" font-size="26" fill="#e8a93a">−25</text>
+
+<!-- LEDGER band -->
+<path d="M56,612 L1144,612 L1144,706 L56,706 Z" fill="#070d10" stroke="#16343a" stroke-width="1.2"/>
+<text x="80" y="640" class="mono" font-size="12" fill="#2dd4bf" letter-spacing="1">&gt;&gt; LIVE DISCIPLINE · LEDGER · 5 DAYS OF REAL RUNS</text>
+<text x="120" y="685" class="hv" font-size="34" fill="#eafffb">1820<tspan class="nar" font-size="14" fill="#8fb8b1" dx="6">events</tspan></text>
+<text x="370" y="685" class="hv" font-size="34" fill="#2dd4bf">931<tspan class="nar" font-size="14" fill="#8fb8b1" dx="6">searches forced</tspan></text>
+<text x="700" y="685" class="hv" font-size="34" fill="#d6299e">467<tspan class="nar" font-size="14" fill="#8fb8b1" dx="6">assumptions caught</tspan></text>
+<text x="1010" y="685" class="hv" font-size="34" fill="#5eead4">417<tspan class="nar" font-size="13" fill="#8fb8b1" dx="6">swarm</tspan></text>
+
+<!-- v2 NEW capabilities -->
+<text x="60" y="744" class="mono" font-size="12" fill="#2dd4bf" letter-spacing="1">&gt;&gt; NEW IN v2 · THE SOVEREIGNTY LAYER</text>
+<g class="nar" font-size="15" fill="#bfe9e0">
+  <text x="80" y="774">▸ <tspan class="hv" font-size="14" fill="#2dd4bf">CODE EXECUTOR</tspan> — drives OpenCode on an isolated worktree (plan-gate → build)</text>
+  <text x="80" y="800">▸ <tspan class="hv" font-size="14" fill="#2dd4bf">SPEC-GATE</tspan> — no work without a falsifiable success criterion</text>
+  <text x="80" y="826">▸ <tspan class="hv" font-size="14" fill="#2dd4bf">FRESH-CONTEXT VERIFY</tspan> — maker ≠ checker at the conversation level</text>
+  <text x="620" y="774">▸ <tspan class="hv" font-size="14" fill="#2dd4bf">TOOL VETO</tspan> — block+reason injected → the model self-corrects</text>
+  <text x="620" y="800">▸ <tspan class="hv" font-size="14" fill="#2dd4bf">DURABLE VERDICT</tspan> — evidence survives context compaction</text>
+  <text x="620" y="826">▸ <tspan class="hv" font-size="14" fill="#2dd4bf">100% LOCAL · 0 KEYS</tspan> — Ollama → OpenCode·mempalace·ccr·embeddings</text>
+</g>
+
+<rect x="56" y="848" width="1088" height="44" fill="#0a1d1b" stroke="#1f6b60" stroke-width="1.2"/>
+<text x="600" y="876" class="hv" font-size="18" fill="#5eead4" text-anchor="middle">WHEN THE FRONTIER MODEL GETS PULLED MID-PROJECT, THE HARNESS KEEPS RUNNING ON WEIGHTS YOU OWN.</text>
+<text x="40" y="916" class="mono" font-size="10.5" fill="#586872">github.com/FutronPrime/verity-harness · BENCHMARK.md + BENCHMARK-V2.md + live ledger (2026-06) · zero-dependency, pure stdlib</text>
+</svg>

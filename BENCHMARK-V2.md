@@ -1,5 +1,7 @@
 # Benchmark v2 — fresh runs + external validation (2026-06)
 
+![VERITY v2 scorecard](assets/scorecard-v2.svg)
+
 ## 1. External, peer-reviewed validation of "harness > model"
 **Harness-Bench** (arXiv 2605.27922 — 5,194 execution trajectories, 6 harness configs × 8 models × 106 tasks):
 - The **same model** scored **+23.8 percentage points** in the best harness vs the worst.
