@@ -30,6 +30,11 @@ ENVF = pathlib.Path.home() / ".openclaw" / "credentials" / "llm.env"
 
 def log(*a): sys.stderr.write("[compare] " + " ".join(str(x) for x in a) + "\n")
 
+# two-axis (quality + cost): token accumulator (Deep-Sweep insight — cost-per-OUTCOME, not per-token).
+_USAGE = {"tokens": 0, "calls": 0}
+# rough $/1M tokens (blended in/out) for cost-per-task; override via PRICE_PER_MTOK env.
+_PRICE_MTOK = float(os.environ.get("PRICE_PER_MTOK", "0.5"))
+
 def _key():
     k = os.environ.get("OPENROUTER_API_KEY", "")
     if not k and ENVF.exists():
@@ -48,7 +53,9 @@ def call_model(prompt, model, provider, system=None, timeout=120):
     req = urllib.request.Request(url, body, {"Content-Type": "application/json", "Authorization": "Bearer " + key})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
-            return json.loads(r.read())["choices"][0]["message"]["content"]
+            j = json.loads(r.read())
+        _USAGE["tokens"] += (j.get("usage") or {}).get("total_tokens", 0); _USAGE["calls"] += 1
+        return j["choices"][0]["message"]["content"]
     except Exception as e:
         log(f"model call failed: {e}"); return ""
 
@@ -143,11 +150,13 @@ def main():
         tasks = bank[dim][:2] if a.fast else bank[dim]
         nv, hv = [], []
         for t in tasks:
-            t0 = time.time(); na = run_naive(t, a.model, a.provider); ns = score(t, na, judge, a.provider)
-            ha = run_harness(t, a.model, a.provider); hs = score(t, ha, judge, a.provider)
+            t0 = time.time()
+            k0 = _USAGE["tokens"]; na = run_naive(t, a.model, a.provider); ns = score(t, na, judge, a.provider); k1 = _USAGE["tokens"]
+            ha = run_harness(t, a.model, a.provider); hs = score(t, ha, judge, a.provider); k2 = _USAGE["tokens"]
             nv.append(ns); hv.append(hs); all_n.append(ns); all_h.append(hs)
-            results["tasks"].append({"dim": dim, "id": t.get("id"), "naive": ns, "harness": hs, "lat": round(time.time()-t0,1)})
-            log(f"  [{dim}] {t.get('id')}: naive={ns:.2f} harness={hs:.2f}")
+            results["tasks"].append({"dim": dim, "id": t.get("id"), "naive": ns, "harness": hs,
+                                     "naive_tok": k1 - k0, "harness_tok": k2 - k1, "lat": round(time.time()-t0, 1)})
+            log(f"  [{dim}] {t.get('id')}: naive={ns:.2f} harness={hs:.2f} (tok {k1-k0}->{k2-k1})")
         st = paired_stats(nv, hv)
         results["dims"][dim] = {"naive_pct": round(100*sum(nv)/len(nv)), "harness_pct": round(100*sum(hv)/len(hv)), **st}
     results["overall"] = {"naive_pct": round(100*sum(all_n)/len(all_n)) if all_n else 0,
@@ -160,6 +169,16 @@ def main():
         print(f"{d:14} {r['naive_pct']:>6}% {r['harness_pct']:>7}% {r['lift_pp']:>+6}pp {r['p_value']:>7}")
     o = results["overall"]
     print(f"{'OVERALL':14} {o['naive_pct']:>6}% {o['harness_pct']:>7}% {o['lift_pp']:>+6}pp {o['p_value']:>7}  {'SIGNIFICANT' if o['significant'] else 'n.s.'}")
+    # two-axis: quality AND cost-per-OUTCOME (Deep-Sweep insight, video hEv_8tyfdHc) — token-blowout flags silent failure
+    nt = sum(t["naive_tok"] for t in results["tasks"]); ht = sum(t["harness_tok"] for t in results["tasks"])
+    ncorrect = sum(1 for t in results["tasks"] if t["naive"] >= 0.5); hcorrect = sum(1 for t in results["tasks"] if t["harness"] >= 0.5)
+    cpc = lambda tok, cor: round(tok / cor * _PRICE_MTOK / 1e6, 5) if cor else None
+    results["cost"] = {"naive_tokens": nt, "harness_tokens": ht, "harness_token_multiple": round(ht / nt, 2) if nt else None,
+                       "naive_cost_per_correct": cpc(nt, ncorrect), "harness_cost_per_correct": cpc(ht, hcorrect),
+                       "price_per_mtok": _PRICE_MTOK}
+    c = results["cost"]
+    print(f"{'COST/axis':14} naive {nt}tok harness {ht}tok ({c['harness_token_multiple']}x) | "
+          f"$/correct: naive {c['naive_cost_per_correct']} harness {c['harness_cost_per_correct']}")
     out = a.out or str(HERE / f"compare-{re.sub(r'[^a-z0-9]+','-',a.model.lower())}.json")
     pathlib.Path(out).write_text(json.dumps(results, indent=1)); log(f"wrote {out}")
 
