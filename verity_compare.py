@@ -143,8 +143,17 @@ def main():
     bank = json.loads(BANK.read_text())
     dims = list(bank.keys()) if a.all else [d.strip() for d in a.dimensions.split(",") if d.strip() in bank]
     judge = None if a.no_judge else (a.judge_model or "openai/gpt-4o-mini")
+    # NEVER self-judge (transcribed lesson, DeepEval/G-Eval video uz5BEadZwLc + Borg/Rule29): a model grading
+    # itself is a documented failure mode. Force an independent judge.
+    if judge and (judge == a.model or judge.split("/")[-1] == a.model.split("/")[-1]):
+        log(f"WARN self-judge blocked ({judge}==model); switching judge -> openai/gpt-4o-mini")
+        judge = "openai/gpt-4o-mini" if a.model.split("/")[-1] != "gpt-4o-mini" else "anthropic/claude-3.5-haiku"
     log(f"model={a.model} provider={a.provider} dims={dims} judge={judge}")
-    results = {"model": a.model, "provider": a.provider, "dims": {}, "tasks": []}
+    # reproducibility manifest (EleutherAI lm-eval lesson, pd6yL654-3Y): never a bare score
+    results_manifest = {"model": a.model, "provider": a.provider, "judge_model": judge, "dims": dims,
+                        "temperature": 0.1, "price_per_mtok": _PRICE_MTOK, "runner": "verity_compare/1.1",
+                        "scoring": "deterministic-first (oracle/exit) + independent LLM-judge for reference-free"}
+    results = {"manifest": results_manifest, "model": a.model, "provider": a.provider, "dims": {}, "tasks": []}
     all_n, all_h = [], []
     for dim in dims:
         tasks = bank[dim][:2] if a.fast else bank[dim]
