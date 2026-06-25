@@ -47,15 +47,15 @@
 <text x="952" y="443" class="hv" font-size="14" fill="#5b8a84">61.5%</text><text x="952" y="465" class="hv" font-size="15" fill="#2dd4bf">87.2%</text>
 <text x="1050" y="455" class="hv" font-size="30" fill="#d6299e">+25.7</text>
 
-<!-- ROW 4: HONEST CONTROL (negative) -->
-<path d="M56,506 L1124,506 L1144,526 L1144,592 L68,592 L56,580 Z" fill="#0a0f12" stroke="#3a2a16" stroke-width="1.2"/>
-<text x="80" y="538" class="hv" font-size="20" fill="#e8c98f">HONEST CONTROL — prompt ≠ runtime</text>
-<text x="80" y="562" class="nar" font-size="13" fill="#b89a6a">Gates injected as a bare PROMPT (no search/verify tooling) on a 3B → WORSE.</text>
-<text x="80" y="582" class="mono" font-size="11" fill="#7a6748">local qwen2.5:3b · 8 tasks · proves the runtime is the active ingredient</text>
-<rect x="640" y="532" width="300" height="15" rx="2" fill="#0c1417" stroke="#3a2f1f"/><rect x="640" y="532" width="186" height="15" rx="2" fill="#5e5240"/>
-<rect x="640" y="553" width="300" height="15" rx="2" fill="#0c1417" stroke="#3a2f1f"/><rect x="640" y="553" width="114" height="15" rx="2" fill="#b8823a"/>
-<text x="952" y="545" class="hv" font-size="14" fill="#7a6748">62%</text><text x="952" y="567" class="hv" font-size="15" fill="#e8a93a">38%</text>
-<text x="1050" y="557" class="hv" font-size="26" fill="#e8a93a">−25</text>
+<!-- ROW 4: MEASURED — verity_compare on a floor model -->
+<path d="M56,506 L1124,506 L1144,526 L1144,592 L68,592 L56,580 Z" fill="#0a0f12" stroke="#16343a" stroke-width="1.2"/>
+<text x="80" y="538" class="hv" font-size="20" fill="#eafffb">verity_compare — measured (floor model)</text>
+<text x="80" y="562" class="nar" font-size="13" fill="#8fb8b1">qwen-2.5-coder-32B · edge/fun/real_world · +8 / +10 / +12pp across all 3 dims</text>
+<text x="80" y="582" class="mono" font-size="11" fill="#586872">two-axis: +10pp lift costs 3.6× tokens · honest tradeoff · small-N (run it on YOUR model)</text>
+<rect x="640" y="532" width="300" height="15" rx="2" fill="#0c1417" stroke="#1f3a3a"/><rect x="640" y="532" width="201" height="15" rx="2" fill="#3a5660"/>
+<rect x="640" y="553" width="300" height="15" rx="2" fill="#0c1417" stroke="#1f3a3a"/><path d="M640,553 L871,553 L878,560 L878,568 L644,568 L640,564 Z" fill="#2dd4bf" opacity="0.92"/>
+<text x="952" y="545" class="hv" font-size="14" fill="#5b8a84">67%</text><text x="952" y="567" class="hv" font-size="15" fill="#2dd4bf">77%</text>
+<text x="1050" y="557" class="hv" font-size="30" fill="#d6299e">+10</text>
 
 <!-- LEDGER band -->
 <path d="M56,612 L1144,612 L1144,706 L56,706 Z" fill="#070d10" stroke="#16343a" stroke-width="1.2"/>

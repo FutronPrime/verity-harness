@@ -38,3 +38,13 @@ Lift ∝ 1 / (base knowledge ÷ task currency).
 
 ## Honest take
 The strongest proof is the combination: external Harness-Bench (+23.8pp) + VERITY's own real-runtime lifts (+1 to +3) + the live ledger. The local prompt-only A/B is included **because it failed** — it isolates that the runtime, not the prompt, is what works. We publish the control that didn't flatter us.
+
+## 5. Measured `verity_compare` run (2026-06-25) — real lift on a floor model
+`qwen-2.5-coder-32b` (OpenRouter), naive vs harness (2-pass verify), discriminating dims, two-axis:
+| dim | naive | harness | lift |
+|---|---|---|---|
+| edge | 58% | 67% | +8.3pp |
+| fun | 70% | 80% | +10.0pp |
+| real_world | 75% | 88% | +12.5pp |
+| **OVERALL** | **67%** | **77%** | **+10.2pp** |
+Cost axis (honest tradeoff): harness used **3.63× tokens** for the lift (naive 5,514 → harness 20,017 tok; $/correct 0.00013 → 0.0004 @ $0.5/Mtok). p n.s. (small N) but consistently positive across all 3 dims. Reproduce: `python3 verity_compare.py --model qwen/qwen-2.5-coder-32b-instruct --dimensions edge,fun,real_world`.
