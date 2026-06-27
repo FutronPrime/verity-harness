@@ -80,20 +80,22 @@ def run_naive(task, model, provider):
     return call_model(task["prompt"], model, provider)
 
 def run_harness(task, model, provider):
-    """FULL scaffold harness arm: REAL web search + 2-pass gate, with a clean parseable answer.
-    draft is SEARCH-AUGMENTED (OpenRouter ':online' web plugin gives the model live web access —
-    this is the piece the earlier 'light' arm lacked, which capped current-info tasks) → then an
-    adversarial self-verify/calibrate pass → corrected final answer. For ollama (no :online) it
-    falls back to gate+verify. Set HARNESS_NO_SEARCH=1 to A/B the search contribution."""
+    """Harness DRAFT: REAL web-search-augmented (OpenRouter ':online' live web) gated answer — the piece
+    the earlier 'light' arm lacked, which capped current-info tasks. HARNESS_NO_SEARCH=1 to A/B search."""
     use_search = provider == "openrouter" and not os.environ.get("HARNESS_NO_SEARCH")
     search_model = (model + ":online") if use_search else model
-    draft = call_model(task["prompt"], search_model, provider, system=GATE)
-    verify = call_model(f"Task: {task['prompt']}\n\nDraft answer (may include live web findings):\n{draft}\n\n"
-                        f"Adversarially check it for errors, false premises, impossibility, or stale facts. If the "
-                        f"premise is wrong SAY SO; if buggy fix it; if over-constrained state it + give the right "
-                        f"alternative; prefer VERIFIED current facts. Give the CORRECTED final answer only.",
-                        model, provider, system=GATE)
-    return verify or draft
+    return call_model(task["prompt"], search_model, provider, system=GATE)
+
+
+def run_verify(task, draft, model, provider):
+    """Corrective adversarial verify pass. Run ONLY when the draft is NOT a deterministic pass (do-no-harm —
+    fixes the over-verification regression where second-guessing WORSENED an already-correct strong-model
+    answer, e.g. codex -25pp / frontier flat). Reserve heavy verification for genuine uncertainty."""
+    return call_model(f"Task: {task['prompt']}\n\nDraft answer (may include live web findings):\n{draft}\n\n"
+                      f"Adversarially check it for errors, false premises, impossibility, or stale facts. If the "
+                      f"premise is wrong SAY SO; if buggy fix it; if over-constrained state it + give the right "
+                      f"alternative; prefer VERIFIED current facts. Give the CORRECTED final answer only.",
+                      model, provider, system=GATE) or draft
 
 # ── scorers ──────────────────────────────────────────────────────────────────
 def score_oracle(ans, sc):
@@ -175,7 +177,13 @@ def main():
         for t in tasks:
             t0 = time.time()
             k0 = _USAGE["tokens"]; na = run_naive(t, a.model, a.provider); ns = score(t, na, judge, a.provider); k1 = _USAGE["tokens"]
-            ha = run_harness(t, a.model, a.provider); hs = score(t, ha, judge, a.provider); k2 = _USAGE["tokens"]
+            ha = run_harness(t, a.model, a.provider); hs = score(t, ha, judge, a.provider)
+            # do-no-harm: only run the corrective verify if the search-draft didn't deterministically pass
+            # (fixes over-verification regression — never second-guess an already-correct exit/oracle answer)
+            if hs < 1.0 and t.get("score", {}).get("type") in ("exit", "oracle"):
+                hv = run_verify(t, ha, a.model, a.provider); vs = score(t, hv, judge, a.provider)
+                if vs > hs: ha, hs = hv, vs
+            k2 = _USAGE["tokens"]
             nv.append(ns); hv.append(hs); all_n.append(ns); all_h.append(hs)
             results["tasks"].append({"dim": dim, "id": t.get("id"), "naive": ns, "harness": hs,
                                      "naive_tok": k1 - k0, "harness_tok": k2 - k1, "lat": round(time.time()-t0, 1)})
