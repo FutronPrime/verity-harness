@@ -181,8 +181,8 @@ def main():
             # do-no-harm: only run the corrective verify if the search-draft didn't deterministically pass
             # (fixes over-verification regression — never second-guess an already-correct exit/oracle answer)
             if hs < 1.0 and t.get("score", {}).get("type") in ("exit", "oracle"):
-                hv = run_verify(t, ha, a.model, a.provider); vs = score(t, hv, judge, a.provider)
-                if vs > hs: ha, hs = hv, vs
+                hver = run_verify(t, ha, a.model, a.provider); vs = score(t, hver, judge, a.provider)
+                if vs > hs: ha, hs = hver, vs
             k2 = _USAGE["tokens"]
             nv.append(ns); hv.append(hs); all_n.append(ns); all_h.append(hs)
             results["tasks"].append({"dim": dim, "id": t.get("id"), "naive": ns, "harness": hs,
