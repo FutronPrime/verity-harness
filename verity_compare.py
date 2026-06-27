@@ -45,6 +45,18 @@ def _key():
 def call_model(prompt, model, provider, system=None, timeout=120):
     """Single chat completion. Returns text (or '' on error)."""
     msgs = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": prompt}]
+    if provider == "cli":
+        # LOCAL frontier models via DJ's subscriptions ($0): codex=gpt-5.5-codex (futron-chatgpt-plus),
+        # gemini=gemini-3.1-pro (gemini -p). Strips the session's hook-noise lines. No token usage available.
+        full = (system + "\n\n" + prompt) if system else prompt
+        cmd = {"codex": ["futron-chatgpt-plus"], "gemini": ["gemini", "-p"]}.get(model.split(":")[0])
+        if not cmd:
+            log(f"unknown cli model {model}"); return ""
+        try:
+            r = subprocess.run(cmd + [full], capture_output=True, text=True, timeout=max(timeout, 180))
+            return "\n".join(l for l in (r.stdout or "").splitlines() if not l.startswith("hook:")).strip()
+        except Exception as e:
+            log(f"cli call failed: {e}"); return ""
     if provider == "ollama":
         url, key = "http://localhost:11434/v1/chat/completions", "ollama"
     else:
@@ -133,7 +145,7 @@ def paired_stats(naive, harn):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True)
-    ap.add_argument("--provider", default="openrouter", choices=["openrouter", "ollama"])
+    ap.add_argument("--provider", default="openrouter", choices=["openrouter", "ollama", "cli"])
     ap.add_argument("--dimensions", default="technical,real_world,edge")
     ap.add_argument("--all", action="store_true")
     ap.add_argument("--fast", action="store_true", help="2 tasks/dimension")
