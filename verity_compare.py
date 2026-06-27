@@ -68,17 +68,19 @@ def run_naive(task, model, provider):
     return call_model(task["prompt"], model, provider)
 
 def run_harness(task, model, provider):
-    """Real harness arm: a genuine 2-pass gate on the SAME model with a CLEAN final answer
-    (so it scores correctly). draft → adversarial self-verify/calibrate → corrected answer.
-    (We deliberately do NOT shell out to `verity solve` here: its stdout is scaffold LOGS,
-    not a parseable answer, which corrupts oracle/exit scoring. The 2-pass loop captures the
-    real harness levers — search-mindset gate, calibration, self-verify — with a clean output.
-    For full-scaffold runs use `python3 -m verity eval` directly.)"""
-    draft = call_model(task["prompt"], model, provider, system=GATE)
-    verify = call_model(f"Task: {task['prompt']}\n\nDraft answer:\n{draft}\n\nAdversarially check the draft for "
-                        f"errors, false premises, or impossibility. If the premise is wrong SAY SO; if the draft "
-                        f"has a bug fix it; if over-constrained state it + give the right alternative. "
-                        f"Give the CORRECTED final answer only.", model, provider, system=GATE)
+    """FULL scaffold harness arm: REAL web search + 2-pass gate, with a clean parseable answer.
+    draft is SEARCH-AUGMENTED (OpenRouter ':online' web plugin gives the model live web access —
+    this is the piece the earlier 'light' arm lacked, which capped current-info tasks) → then an
+    adversarial self-verify/calibrate pass → corrected final answer. For ollama (no :online) it
+    falls back to gate+verify. Set HARNESS_NO_SEARCH=1 to A/B the search contribution."""
+    use_search = provider == "openrouter" and not os.environ.get("HARNESS_NO_SEARCH")
+    search_model = (model + ":online") if use_search else model
+    draft = call_model(task["prompt"], search_model, provider, system=GATE)
+    verify = call_model(f"Task: {task['prompt']}\n\nDraft answer (may include live web findings):\n{draft}\n\n"
+                        f"Adversarially check it for errors, false premises, impossibility, or stale facts. If the "
+                        f"premise is wrong SAY SO; if buggy fix it; if over-constrained state it + give the right "
+                        f"alternative; prefer VERIFIED current facts. Give the CORRECTED final answer only.",
+                        model, provider, system=GATE)
     return verify or draft
 
 # ── scorers ──────────────────────────────────────────────────────────────────
