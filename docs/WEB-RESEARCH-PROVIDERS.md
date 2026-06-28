@@ -21,8 +21,9 @@ verity websearch --fetch https://site.com/page          # scrape ANY page → re
 | **Perplexity** | `PERPLEXITY_API_KEY` | answer + citations — [agent API](https://www.perplexity.ai/gen/api-platform/agent-api) |
 | **Brave Search** | `BRAVE_API_KEY` | independent index |
 | **Google CSE** | `GOOGLE_CSE_KEY` + `GOOGLE_CSE_CX` | [custom-search](https://developers.google.com/custom-search/v1/overview) · `customsearch.googleapis.com/customsearch/v1` |
-| **SearXNG** | `SEARX_URL` | any public/self-hosted instance — **free, no key**, aggregates many engines |
-| **DuckDuckGo** | — | **free, no key** — the always-available floor |
+| **Perplexity (free)** | — | **no key, no account** — anonymous via OSS `helallao/perplexity-ai`: `pip install git+https://github.com/helallao/perplexity-ai` (NOT PyPI `perplexityai`, which is the keyed SDK). Perplexity-grade answers free. |
+| **SearXNG** | `SEARX_URL` *or none* | **free, no key** — auto-tries a rotating list of PUBLIC instances if `SEARX_URL` unset; aggregates Google/Bing/etc. (public instances often disable JSON → falls through gracefully.) |
+| **DuckDuckGo** | — | **free, no key** — the always-available floor (verified live: returns real results) |
 | **GitHub** | — | free repo/code search; auto-added for repo/library/sdk queries |
 
 Set any subset; the layer auto-detects and routes best→free. With zero keys it still works (DDG + GitHub).

@@ -93,14 +93,39 @@ def _google_cse(q, n):
              "snippet": r.get("snippet", "")[:300], "source": "google-cse"} for r in d.get("items", [])]
 
 
+# Public SearXNG instances that expose JSON — FREE, NO KEY, aggregate Google/Bing/etc. Tried in
+# order until one answers (instances rotate/rate-limit, so the list IS the resilience).
+_PUBLIC_SEARX = ("https://searx.be", "https://search.inetol.net", "https://baresearch.org",
+                 "https://priv.au", "https://searx.tiekoetter.com", "https://opnxng.com")
+
 def _searx(q, n):
-    base = os.environ.get("SEARX_URL")
-    if not base:
-        raise RuntimeError("no instance")
-    d = json.loads(_get(base.rstrip("/") + "/search?format=json&q=" + urllib.parse.quote(q)))
-    return [{"title": r.get("title", ""), "url": r.get("url", ""),
-             "snippet": (r.get("content", "") or "")[:300], "source": "searx"}
-            for r in d.get("results", [])][:n]
+    bases = [os.environ["SEARX_URL"]] if os.environ.get("SEARX_URL") else list(_PUBLIC_SEARX)
+    for base in bases:
+        try:
+            d = json.loads(_get(base.rstrip("/") + "/search?format=json&q=" + urllib.parse.quote(q), timeout=10))
+            rows = [{"title": r.get("title", ""), "url": r.get("url", ""),
+                     "snippet": (r.get("content", "") or "")[:300], "source": "searx"}
+                    for r in d.get("results", [])][:n]
+            if rows:
+                return rows
+        except Exception:
+            continue
+    raise RuntimeError("no searx instance answered")
+
+
+def _perplexity_free(q, n):
+    """Perplexity-grade answer WITHOUT an API key, via the OSS reverse-engineered lib (anonymous,
+    no account). Install the KEY-FREE one from GitHub (NOT the PyPI `perplexityai`, which is the
+    official keyed SDK):  pip install git+https://github.com/helallao/perplexity-ai
+    Skipped cleanly if not installed OR if only the keyed SDK is present."""
+    try:
+        from perplexity import Perplexity
+        client = Perplexity()                          # keyless construct; official SDK raises here
+    except Exception:
+        raise RuntimeError("key-free perplexity not installed (helallao/perplexity-ai)")
+    resp = client.search(q)
+    ans = resp.get("answer", "") if isinstance(resp, dict) else str(resp)
+    return [{"title": "perplexity (free)", "url": "", "snippet": ans[:600], "source": "perplexity-free"}]
 
 
 def _ddg(q, n):
@@ -129,7 +154,9 @@ def _github(q, n):
 
 
 # priority: best/keyed first, free floor last (so it ALWAYS has something to fall to)
-PROVIDERS = [_tavily, _perplexity, _brave, _google_cse, _searx, _ddg]
+# keyed first (best when keys exist) → then FREE/no-key quality (perplexity-free, public searx) →
+# DDG floor. The free tier alone now gives Perplexity/aggregated-engine quality WITHOUT any key.
+PROVIDERS = [_tavily, _perplexity, _brave, _google_cse, _perplexity_free, _searx, _ddg]
 
 
 def search(query: str, n: int = 5, *, all_providers: bool = False) -> list:
