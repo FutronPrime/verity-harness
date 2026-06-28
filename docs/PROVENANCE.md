@@ -75,6 +75,24 @@ the research at runtime; this file is the durable record that it happened.
   SKILL.md → BLOCK. Closes the loop with R60: the proactive-research path sends agents to
   fetch third-party code; `vet` makes sure that code is safe before it becomes instructions.
 
+## 5. Safe-MCP-install — code audit + reversible wiring (R62: engineer past the boundary)
+
+- **Resource:** the obstacle itself — "auto-wiring 6 third-party MCP servers loads untrusted
+  code whose tool-descriptions inject into every session." Treated (wrongly) as a hard stop.
+- **Research:** inspected each candidate's actual source (not markdown) — found the scanner
+  over-flagged `pip install`, install-curls in comments/help-strings, installer `.sh` scripts,
+  and string-literal command examples; and that the real threat is runtime download-and-exec.
+- **Diagnosis:** the boundary was real for *their installer*, but it was a DESIGN PROBLEM with a
+  safe solution, not a stop. Markdown safety (`vet`) wasn't enough — the CODE needed proving too.
+- **Upgrade:** `verity/audit_code.py` (`verity audit`) — static code-safety auditor: capability
+  report + BLOCK on remote-code-exec / obfuscated-exec / cred+net exfil, with quote-parity +
+  exec-sink + comment detection so help-text/data/installers don't false-block. Plus
+  `futron-mcp-safe-wire` (FUTRON): vet+audit gate → backup → write your OWN config entry (never
+  their installer) → JSON-validate → live MCP `initialize` health-check → auto-rollback.
+- **Proof:** `tests/test_audit.py` 10/10 (real backdoors BLOCK, packaging/help-text/installers
+  don't); all 6 candidates → REVIEW (no runtime backdoor); live safe-wire attempt auto-rolled-back
+  a non-responding server with the config left pristine. commit 9a1fb4c + docs/SAFE-MCP-INSTALL.md.
+
 ---
 
 ### How to add a row

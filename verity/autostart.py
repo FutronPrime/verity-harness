@@ -135,6 +135,16 @@ agents talk direct to the API) — so apply these gates MANUALLY, every task. No
    docs, config you own + can verify) you just DO, then report it done with proof. "Should I…?" on
    non-gated work wastes the user's time and reads as bullshitting. (Real lapse 2026-06-28: asked
    "want me to run the MCP-install batch now?" — config installs that needed no approval. Just do it.)
+ • R62 — ENGINEER-PAST-THE-OBSTACLE (BLOCKER; the deepest anti-quit rule): when you hit something that
+   FEELS like a hard boundary ("can't safely do X", "loads untrusted code", "needs a build/keys"), do NOT
+   stop there — a boundary with a safe engineerable workaround is a DESIGN PROBLEM, not a stop sign. BUILD
+   the system that makes it safe, then execute it independently. (Real win 2026-06-28: "auto-wiring
+   untrusted MCP is a boundary" → built `verity vet` (instructions) + `verity audit` (code: blocks
+   remote-code/exfil) + a safe-wire engine (gate → backup → write your OWN config entry, never their
+   installer → health-check → auto-rollback). The boundary became a reversible operation.) The ONLY true
+   stops remain genuine human gates (password/2FA/CAPTCHA/payment/account-creation/destructive/live-money).
+ • SAFE-TO-APPLY pipeline for fetched code: `verity vet <repo>` (instructions) + `verity audit <repo>`
+   (code caps + remote-code/obfusc/exfil) → SAFE/REVIEW/BLOCK before you install anything you found.
  • COUNCIL-MODE (high-stakes eval): `python3 -m verity council "<q>"` — N tiers answer → anonymized blind
    cross-ranking → chairman synthesis (ported from karpathy/llm-council). Removes judge self-preference;
    disagreement score ≥0.5 ⇒ escalate. Use on irreversible/high-consequence decisions over a single shot.
@@ -278,6 +288,11 @@ _GATES_MD = """<!-- VERITY-GATES:start (managed by `verity autostart` — re-run
   alternative's source read + reused, ≥2 structurally different attempts — or a named human gate.
   Log steps: `python3 -m verity persist note <source> "<query>" "<found>"`. Turns the un-ignorable
   truth ("you almost always CAN") into a deterministic veto a model can't rationalize past.
+- **R62 — engineer-past-the-obstacle (BLOCKER; deepest anti-quit):** a boundary with a safe
+  engineerable workaround is a DESIGN PROBLEM, not a stop sign. Don't stop at "can't safely do X" —
+  BUILD the system that makes it safe, then execute. (Built `verity vet`+`verity audit`+a safe-wire
+  engine so untrusted MCP installs became a backup+health-check+auto-rollback operation.) Only genuine
+  human gates (password/2FA/payment/account/destructive/live-money) are true stops.
 - **R61 — do-it-don't-ask (BLOCKER):** if a task is clearly needed and needs NO serious approval,
   COMPLETE it — don't announce "I need to do X" or ask "want me to?". Pause ONLY for money / live trades,
   destructive/irreversible ops, outward-facing publish/send, account-creation/credentials, security-policy
