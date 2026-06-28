@@ -78,6 +78,24 @@ def test_six_source_scopes_each_site():
     assert rows and all(":" in r["source"] for r in rows)            # labeled by source
 
 
+def test_should_search_classifier():
+    assert ws.should_search("latest agentic search api 2026") is True
+    assert ws.should_search("what is 2+2") is False
+    assert ws.should_search("compare tavily vs perplexity") is True
+
+
+def test_fetch_readability_extracts_main_content():
+    orig = ws._get
+    ws._get = lambda u, **k: ("<html><nav>menu nav links</nav><article>This is the real main "
+                              "article body content that readability should extract cleanly and it "
+                              "is well over the length threshold.</article><footer>boilerplate</footer></html>")
+    try:
+        t = ws.fetch("http://x")
+        assert "real main article body" in t and "menu nav links" not in t and "boilerplate" not in t, t
+    finally:
+        ws._get = orig
+
+
 def _run():
     import importlib
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]

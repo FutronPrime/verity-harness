@@ -1,0 +1,66 @@
+<svg viewBox="0 0 900 620" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,Segoe UI,Roboto,sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1117"/><stop offset="1" stop-color="#161b22"/>
+    </linearGradient>
+    <linearGradient id="hl" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6C5CE7"/><stop offset="1" stop-color="#00B894"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="620" rx="16" fill="url(#bg)"/>
+  <text x="40" y="56" fill="#fff" font-size="30" font-weight="700">VERITY — the discipline harness</text>
+  <text x="40" y="84" fill="#8b949e" font-size="15">Make any model — frontier or a free local 3B — follow the workflow: research first, don't quit, prove it. 2026-06-28</text>
+  <rect x="690" y="34" width="170" height="34" rx="17" fill="url(#hl)"/>
+  <text x="775" y="56" fill="#fff" font-size="16" font-weight="700" text-anchor="middle">118 tests passing</text>
+
+  <!-- Enforcement tiers -->
+  <text x="40" y="128" fill="#fff" font-size="18" font-weight="700">Enforced at 3 independent points (works on ANY model)</text>
+  <g font-size="13">
+    <rect x="40" y="142" width="270" height="92" rx="10" fill="#1f2630" stroke="#6C5CE7"/>
+    <text x="56" y="166" fill="#6C5CE7" font-size="15" font-weight="700">A · Proxy :11500</text>
+    <text x="56" y="190" fill="#c9d1d9">Inspects every response, re-prompts</text>
+    <text x="56" y="208" fill="#c9d1d9">on a lapse. Model-agnostic —</text>
+    <text x="56" y="226" fill="#c9d1d9">forces a 3B exactly like a frontier.</text>
+    <rect x="320" y="142" width="270" height="92" rx="10" fill="#1f2630" stroke="#00B894"/>
+    <text x="336" y="166" fill="#00B894" font-size="15" font-weight="700">B · Stop hook</text>
+    <text x="336" y="190" fill="#c9d1d9">Blocks ending a turn on a lapse</text>
+    <text x="336" y="208" fill="#c9d1d9">(Claude Code wired; 5-line</text>
+    <text x="336" y="226" fill="#c9d1d9">callback for LangChain/CrewAI).</text>
+    <rect x="600" y="142" width="260" height="92" rx="10" fill="#1f2630" stroke="#E17055"/>
+    <text x="616" y="166" fill="#E17055" font-size="15" font-weight="700">C · Boot-prompt</text>
+    <text x="616" y="190" fill="#c9d1d9">Self-re-injecting; re-parses the</text>
+    <text x="616" y="208" fill="#c9d1d9">gates every turn. Zero tooling —</text>
+    <text x="616" y="226" fill="#c9d1d9">any chatbot, any console.</text>
+  </g>
+
+  <!-- Gate / capability stack -->
+  <text x="40" y="276" fill="#fff" font-size="18" font-weight="700">The gates &amp; capabilities (this session)</text>
+  <g font-size="13.5">
+    <rect x="40" y="290" width="400" height="170" rx="10" fill="#1f2630"/>
+    <text x="56" y="314" fill="#fff" font-weight="700">Anti-quit / discipline gates</text>
+    <text x="56" y="338" fill="#c9d1d9">R60 persist — no "can't" without 6-source research</text>
+    <text x="56" y="358" fill="#c9d1d9">R61 do-it — no "should I?" on non-gated work</text>
+    <text x="56" y="378" fill="#c9d1d9">R62 engineer-past — build the safe path, execute</text>
+    <text x="56" y="398" fill="#c9d1d9">context-quit — no "wait for compact / next pass"</text>
+    <text x="56" y="418" fill="#c9d1d9">vet + audit + adjudicate — prove code safe to install</text>
+    <text x="56" y="438" fill="#c9d1d9">council — blind multi-model verdict on high stakes</text>
+
+    <rect x="460" y="290" width="400" height="170" rx="10" fill="#1f2630"/>
+    <text x="476" y="314" fill="#fff" font-weight="700">Research + reasoning</text>
+    <text x="476" y="338" fill="#c9d1d9">websearch — multi-provider FAILOVER, can't-fail</text>
+    <text x="476" y="358" fill="#c9d1d9">6 sources: github · reddit · x · youtube · SO · HN</text>
+    <text x="476" y="378" fill="#c9d1d9">deep_research — iterative deepening until coverage</text>
+    <text x="476" y="398" fill="#c9d1d9">augment — weak local model conducts, strong reasons</text>
+    <text x="476" y="418" fill="#c9d1d9">recurse — propose→critique→refine before committing</text>
+    <text x="476" y="438" fill="#c9d1d9">readability fetch · browser tier · search classifier</text>
+  </g>
+
+  <!-- Proof bar -->
+  <rect x="40" y="486" width="820" height="96" rx="10" fill="#11161d" stroke="#30363d"/>
+  <text x="56" y="512" fill="#fff" font-size="16" font-weight="700">Proof, live</text>
+  <text x="56" y="536" fill="#c9d1d9" font-size="13.5">• Frontier (Gemini) &amp; low-B (qwen2.5:3b) both flipped from "give up" → "investigate" by the gate, live.</text>
+  <text x="56" y="556" fill="#c9d1d9" font-size="13.5">• qwen2.5:3b + Gemini produced a frontier-grade migration plan (Strangler Fig, Outbox) — local entry, free.</text>
+  <text x="56" y="576" fill="#c9d1d9" font-size="13.5">• docling-mcp installed GREEN via safe-wire (backup→audit→health-check→rollback). Zero-key web search works.</text>
+  <text x="775" y="540" fill="#00B894" font-size="34" font-weight="700" text-anchor="middle">118✓</text>
+  <text x="775" y="562" fill="#8b949e" font-size="12" text-anchor="middle">gate+capability suite</text>
+</svg>

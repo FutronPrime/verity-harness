@@ -181,13 +181,49 @@ def search(query: str, n: int = 5, *, all_providers: bool = False) -> list:
     return results  # [] if everything failed (errors available for logging)
 
 
-def fetch(url: str, max_chars: int = 6000) -> str:
-    """Scrape ANY page → readable text (strip scripts/tags). For reading a result in depth."""
-    html = _get(url, timeout=20)
-    html = re.sub(r"<(script|style|head|nav|footer)[^>]*>.*?</\1>", " ", html, flags=re.S | re.I)
-    text = re.sub(r"<[^>]+>", " ", html)
+def fetch(url: str, max_chars: int = 6000, select: str = "") -> str:
+    """Scrape ANY page → readable MAIN-CONTENT text (readability-style, from ketch). Prefers
+    <article>/<main>/role=main, strips chrome, preserves nothing but clean prose. `select` = a tag
+    name (e.g. 'article','table') to target. Escalates to the browser tier for JS/auth-walled pages."""
+    try:
+        html = _get(url, timeout=20)
+    except Exception as e:
+        return _browser(url, max_chars) or f"(fetch failed: {e})"
+    html = re.sub(r"<(script|style|head|nav|footer|aside|form|svg|noscript)[^>]*>.*?</\1>",
+                  " ", html, flags=re.S | re.I)
+    # readability: prefer the main content container if present
+    body = ""
+    if select:
+        m = re.search(rf"<{select}\b[^>]*>(.*?)</{select}>", html, re.S | re.I)
+        body = m.group(1) if m else ""
+    if not body:
+        for tag in (r'<article\b[^>]*>(.*?)</article>', r'<main\b[^>]*>(.*?)</main>',
+                    r'<[^>]+role=["\']main["\'][^>]*>(.*?)</[^>]+>'):
+            m = re.search(tag, html, re.S | re.I)
+            if m and len(m.group(1)) > 200:
+                body = m.group(1); break
+    body = body or html
+    text = re.sub(r"<[^>]+>", " ", body)
     text = re.sub(r"&[a-z]+;", " ", text)
-    return re.sub(r"\s+", " ", text).strip()[:max_chars]
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) < 80:                      # thin/blocked (likely JS-rendered) → browser tier
+        return _browser(url, max_chars) or text
+    return text[:max_chars]
+
+
+def _browser(url: str, max_chars: int = 6000) -> str:
+    """Browser-tier escalation for JS-heavy / auth-walled pages that plain HTTP can't read — shells
+    to the local OSS browser automation (futron-claw). Returns '' if unavailable (caller degrades).
+    (REUSE: FUTRON's futron-claw / Claude-in-Chrome / Playwright; see subsystem-verity-websearch-rag.)"""
+    import shutil as _sh, subprocess as _sp
+    exe = _sh.which("futron-claw")
+    if not exe:
+        return ""
+    try:
+        r = _sp.run([exe, "read", url], capture_output=True, text=True, timeout=60)
+        return (r.stdout or "").strip()[:max_chars] if r.returncode == 0 else ""
+    except Exception:
+        return ""
 
 
 def as_context(query: str, n: int = 5) -> str:
@@ -205,17 +241,45 @@ _SIX_SITES = {"github": "site:github.com", "reddit": "site:reddit.com",
               "hackernews": "site:news.ycombinator.com"}
 
 def six_source(query: str, n_each: int = 3) -> list:
-    """Search the canonical R60 sources explicitly (github/reddit/youtube/SO/HN + open web),
-    so 'research the six sources' is literal — not just a single web query."""
-    out, seen = [], set()
-    for label, op in list(_SIX_SITES.items()) + [("web", "")]:
+    """Search the canonical R60 sources explicitly (github/reddit/x/youtube/SO/HN + open web), so
+    'research the six sources' is literal. PARALLEL multi-angle workers (agentic-loop Stage 3): each
+    source is queried concurrently and aggregated, so coverage doesn't cost latency-per-source."""
+    from concurrent.futures import ThreadPoolExecutor
+    angles = list(_SIX_SITES.items()) + [("web", "")]
+    def one(item):
+        label, op = item
         try:
-            for r in search(f"{op} {query}".strip(), n_each):
+            return [(label, r) for r in search(f"{op} {query}".strip(), n_each)]
+        except Exception:
+            return []
+    out, seen = [], set()
+    with ThreadPoolExecutor(max_workers=len(angles)) as ex:
+        for batch in ex.map(one, angles):
+            for label, r in batch:
                 if r["url"] and r["url"] not in seen:
                     seen.add(r["url"]); r["source"] = f"{label}:{r['source']}"; out.append(r)
-        except Exception:
-            pass
     return out
+
+
+# Search-decision classifier (agentic-loop Stage 1): skip web search when internal knowledge suffices
+# (cost control). Heuristic by default; pass ask() for a model decision on borderline cases.
+_NEEDS_WEB = re.compile(r"\b(latest|current|today|2025|2026|recent|now|news|price|version|release|"
+                        r"who is|what is the best|compare|vs\b|review|trending|update|changelog|"
+                        r"docs?\b|api\b|repo|github|deprecat|breaking change)\b", re.I)
+
+def should_search(query: str, ask=None) -> bool:
+    """True if the query likely needs FRESH/EXTERNAL info (research first); False for stable internal
+    knowledge (math, definitions, code-from-spec). Saves a round-trip when search adds nothing."""
+    if _NEEDS_WEB.search(query):
+        return True
+    if ask is None:
+        return len(query.split()) > 12   # long/complex → research to be safe
+    try:
+        a = ask(f"Does answering this need CURRENT or EXTERNAL info (web search), or is it stable "
+                f"internal knowledge? Reply SEARCH or INTERNAL only.\n\n{query}")
+        return "SEARCH" in (a or "").upper()
+    except Exception:
+        return True
 
 
 # ── iterative DEEP RESEARCH loop (ported from the agentic-web-search-agent-loop pattern) ──
