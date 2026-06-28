@@ -12,6 +12,13 @@
 <p align="center"><sub><b>frontier-grade discipline on any model you own</b> — zero-dependency · model-agnostic · local-first</sub></p>
 
 <p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="assets/verity-capabilities-light.svg">
+    <img src="assets/verity-capabilities-2026-06-28.svg" alt="VERITY capabilities — enforced at 3 points, anti-quit gates, research stack, 118 tests" width="100%"/>
+  </picture>
+</p>
+
+<p align="center">
   <img src="assets/demo-verity-live.gif" alt="VERITY caught live — the bare model guesses a stale model id, the harness reads the live registry and returns the current one" width="80%"/>
 </p>
 <p align="center"><sub><b>Caught live:</b> same model — off, it answers from a stale memory; on, VERITY makes it look up the current fact. <code>20%→88%</code>, reproducible.</sub></p>

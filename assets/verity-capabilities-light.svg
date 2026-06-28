@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" font-family="'Arial Narrow','Helvetica Neue',Arial,sans-serif" role="img" aria-labelledby="t d">
+  <title id="t">VERITY capabilities — 2026-06-28 (light)</title>
+  <desc id="d">Light-theme variant. VERITY discipline harness: enforced at 3 points, anti-quit gates + research stack, live proof, 118 tests. AVANI UI DNA.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4faf8"/><stop offset="1" stop-color="#e4f2ee"/></linearGradient>
+    <linearGradient id="tg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#13a594"/><stop offset="1" stop-color="#0c6e62"/></linearGradient>
+    <linearGradient id="mg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d6299e"/><stop offset="1" stop-color="#9c1d72"/></linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <path d="M16,16 H1150 L1184,50 V784 H66 L16,734 Z" fill="none" stroke="#9cc8c0" stroke-width="2"/>
+  <path d="M16,70 V16 H70 M1184,730 V784 H1130" fill="none" stroke="#0c8a7a" stroke-width="3"/>
+  <rect x="16" y="780" width="1168" height="4" fill="#d6299e"/>
+
+  <text x="40" y="58" class="mono" font-family="'SF Mono','Menlo','Consolas',monospace" font-size="14" letter-spacing="3" fill="#0c6e62">/// VERITY.CAPABILITIES.MODULE</text>
+  <text x="1160" y="58" text-anchor="end" font-family="'SF Mono','Menlo','Consolas',monospace" font-size="14" letter-spacing="2" fill="#4a857c">[ STATUS: ENFORCED ]</text>
+
+  <text x="44" y="126" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="52" letter-spacing="1" fill="#0a1f1b">MAKE ANY MODEL <tspan fill="#0c8a7a">FOLLOW THE WORKFLOW.</tspan></text>
+  <rect x="46" y="140" width="470" height="3" fill="#d6299e"/>
+  <text x="44" y="170" font-size="20" fill="#3a6f66">Frontier or a free local 3B — research first, don't quit, prove it. Discipline lives in the harness, not the weights.</text>
+  <rect x="1006" y="92" width="158" height="40" rx="4" fill="url(#tg)"/>
+  <text x="1085" y="118" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle">118 TESTS ✓</text>
+
+  <text x="44" y="216" font-family="'SF Mono','Menlo','Consolas',monospace" font-size="13" letter-spacing="3" fill="#0c8a7a">&gt;&gt; ENFORCED AT 3 INDEPENDENT POINTS // WORKS ON ANY MODEL</text>
+  <g font-family="'SF Mono','Menlo','Consolas',monospace">
+    <path d="M44,230 L394,230 L412,248 L412,326 L55,326 L44,315 Z" fill="#dff0eb" stroke="#6fb3a8" stroke-width="1.1"/>
+    <rect x="44" y="229" width="5" height="32" fill="url(#tg)"/>
+    <text x="66" y="252" font-size="14" fill="#0c6e62">A · PROXY :11500</text>
+    <text x="66" y="276" font-family="Arial Narrow" font-size="15" fill="#36645c">Inspects every response, re-prompts</text>
+    <text x="66" y="295" font-family="Arial Narrow" font-size="15" fill="#36645c">on a lapse. Model-agnostic — forces</text>
+    <text x="66" y="314" font-family="Arial Narrow" font-size="15" fill="#36645c">a 3B exactly like a frontier.</text>
+
+    <path d="M424,230 L774,230 L792,248 L792,326 L435,326 L424,315 Z" fill="#dff0eb" stroke="#6fb3a8" stroke-width="1.1"/>
+    <rect x="424" y="229" width="5" height="32" fill="url(#tg)"/>
+    <text x="446" y="252" font-size="14" fill="#0c6e62">B · STOP HOOK</text>
+    <text x="446" y="276" font-family="Arial Narrow" font-size="15" fill="#36645c">Blocks ending a turn on a lapse.</text>
+    <text x="446" y="295" font-family="Arial Narrow" font-size="15" fill="#36645c">Claude Code wired; 5-line callback</text>
+    <text x="446" y="314" font-family="Arial Narrow" font-size="15" fill="#36645c">for LangChain / CrewAI.</text>
+
+    <path d="M804,230 L1154,230 L1160,248 L1160,326 L815,326 L804,315 Z" fill="#fbe6f2" stroke="#d6299e" stroke-width="1.1"/>
+    <rect x="804" y="229" width="5" height="32" fill="url(#mg)"/>
+    <text x="826" y="252" font-size="14" fill="#b01f7e">C · BOOT-PROMPT</text>
+    <text x="826" y="276" font-family="Arial Narrow" font-size="15" fill="#36645c">Self-re-injecting; re-parses the</text>
+    <text x="826" y="295" font-family="Arial Narrow" font-size="15" fill="#36645c">gates every turn. Zero tooling —</text>
+    <text x="826" y="314" font-family="Arial Narrow" font-size="15" fill="#36645c">any chatbot, any console.</text>
+  </g>
+
+  <text x="44" y="372" font-family="'SF Mono','Menlo','Consolas',monospace" font-size="13" letter-spacing="3" fill="#5a857c">&gt;&gt; ANTI-QUIT // DISCIPLINE GATES</text>
+  <text x="624" y="372" font-family="'SF Mono','Menlo','Consolas',monospace" font-size="13" letter-spacing="3" fill="#0c8a7a">&gt;&gt; RESEARCH + REASONING</text>
+  <path d="M44,386 L582,386 L600,404 L600,560 L55,560 L44,549 Z" fill="#e9f4f0" stroke="#9cc8c0" stroke-width="1.0"/>
+  <path d="M624,386 L1160,386 L1160,404 L1160,560 L635,560 L624,549 Z" fill="#dff0eb" stroke="#6fb3a8" stroke-width="1.0"/>
+  <g font-family="'SF Mono','Menlo','Consolas',monospace" font-size="13">
+    <text x="64" y="416" fill="#0c8a7a">R60</text><text x="104" y="416" font-family="Arial Narrow" font-size="15.5" fill="#36645c">persist — no "can't" without 6-source research</text>
+    <text x="64" y="440" fill="#0c8a7a">R61</text><text x="104" y="440" font-family="Arial Narrow" font-size="15.5" fill="#36645c">do-it — no "should I?" on non-gated work</text>
+    <text x="64" y="464" fill="#0c8a7a">R62</text><text x="104" y="464" font-family="Arial Narrow" font-size="15.5" fill="#36645c">engineer-past — build the safe path, execute</text>
+    <text x="64" y="488" fill="#b01f7e">R63</text><text x="104" y="488" font-family="Arial Narrow" font-size="15.5" fill="#36645c">solve-don't-report-broken — always find a fix</text>
+    <text x="64" y="512" fill="#0c8a7a">vet</text><text x="104" y="512" font-family="Arial Narrow" font-size="15.5" fill="#36645c">+ audit + adjudicate — prove code safe to install</text>
+    <text x="64" y="536" fill="#0c8a7a">cncl</text><text x="104" y="536" font-family="Arial Narrow" font-size="15.5" fill="#36645c">council — blind multi-model verdict, high stakes</text>
+
+    <text x="644" y="416" fill="#0c8a7a">web</text><text x="690" y="416" font-family="Arial Narrow" font-size="15.5" fill="#36645c">multi-provider FAILOVER search, can't-fail</text>
+    <text x="644" y="440" fill="#0c8a7a">6src</text><text x="690" y="440" font-family="Arial Narrow" font-size="15.5" fill="#36645c">github · reddit · x · youtube · SO · HN</text>
+    <text x="644" y="464" fill="#0c8a7a">deep</text><text x="690" y="464" font-family="Arial Narrow" font-size="15.5" fill="#36645c">iterative deepening until coverage sufficient</text>
+    <text x="644" y="488" fill="#0c8a7a">augm</text><text x="690" y="488" font-family="Arial Narrow" font-size="15.5" fill="#36645c">weak local conducts, strong model reasons</text>
+    <text x="644" y="512" fill="#0c8a7a">recr</text><text x="690" y="512" font-family="Arial Narrow" font-size="15.5" fill="#36645c">propose → critique → refine before commit</text>
+    <text x="644" y="536" fill="#0c8a7a">read</text><text x="690" y="536" font-family="Arial Narrow" font-size="15.5" fill="#36645c">readability fetch · browser tier · classifier</text>
+  </g>
+
+  <text x="44" y="600" font-family="'SF Mono','Menlo','Consolas',monospace" font-size="13" letter-spacing="3" fill="#0c8a7a">&gt;&gt; PROOF // LIVE · LEDGER-LOGGED</text>
+  <path d="M44,614 L1160,614 L1160,632 L1160,742 L55,742 L44,731 Z" fill="#eaf6f3" stroke="#9cc8c0" stroke-width="1.1"/>
+  <rect x="44" y="613" width="5" height="36" fill="url(#mg)"/>
+  <g font-family="Arial Narrow" font-size="16" fill="#2f5650">
+    <text x="68" y="650">› Frontier (Gemini) &amp; low-B (qwen2.5:3b) both flipped from "give up" → "investigate" by the gate, live.</text>
+    <text x="68" y="678">› qwen2.5:3b + Gemini produced a frontier-grade migration plan (Strangler Fig, Outbox) — local entry, free.</text>
+    <text x="68" y="706">› docling-mcp installed GREEN via safe-wire: backup → audit → health-check → auto-rollback. Zero-key search works.</text>
+  </g>
+  <text x="1090" y="690" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="46" fill="#0c8a7a" text-anchor="middle">118</text>
+  <text x="1090" y="712" font-family="'SF Mono','Menlo','Consolas',monospace" font-size="11" fill="#4a857c" text-anchor="middle" letter-spacing="1">GATE+CAP SUITE</text>
+
+  <text x="44" y="770" font-family="'SF Mono','Menlo','Consolas',monospace" font-size="12" letter-spacing="1" fill="#6a948c">github.com/FutronPrime/verity-harness · model-agnostic · zero-dependency · local-first · live ledger (2026-06)</text>
+</svg>
