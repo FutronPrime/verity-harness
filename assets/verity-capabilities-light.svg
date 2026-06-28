@@ -14,11 +14,12 @@
   <text x="40" y="58" class="mono" font-family="'SF Mono','Menlo','Consolas',monospace" font-size="14" letter-spacing="3" fill="#0c6e62">/// VERITY.CAPABILITIES.MODULE</text>
   <text x="1160" y="58" text-anchor="end" font-family="'SF Mono','Menlo','Consolas',monospace" font-size="14" letter-spacing="2" fill="#4a857c">[ STATUS: ENFORCED ]</text>
 
-  <text x="44" y="126" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="52" letter-spacing="1" fill="#0a1f1b">MAKE ANY MODEL <tspan fill="#0c8a7a">FOLLOW THE WORKFLOW.</tspan></text>
-  <rect x="46" y="140" width="470" height="3" fill="#d6299e"/>
-  <text x="44" y="170" font-size="20" fill="#3a6f66">Frontier or a free local 3B — research first, don't quit, prove it. Discipline lives in the harness, not the weights.</text>
-  <rect x="1006" y="92" width="158" height="40" rx="4" fill="url(#tg)"/>
-  <text x="1085" y="118" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle">118 TESTS ✓</text>
+  <text x="44" y="108" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="46" letter-spacing="1" fill="#0a1f1b">MAKE ANY MODEL</text>
+  <text x="44" y="156" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="46" letter-spacing="1" fill="#0c8a7a">FOLLOW THE WORKFLOW.</text>
+  <rect x="46" y="168" width="470" height="3" fill="#d6299e"/>
+  <text x="44" y="196" font-size="19" fill="#3a6f66">Frontier or a free local 3B — research first, don't quit, prove it. Discipline lives in the harness, not the weights.</text>
+  <rect x="1006" y="84" width="158" height="40" rx="4" fill="url(#tg)"/>
+  <text x="1085" y="110" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle">118 TESTS ✓</text>
 
   <text x="44" y="216" font-family="'SF Mono','Menlo','Consolas',monospace" font-size="13" letter-spacing="3" fill="#0c8a7a">&gt;&gt; ENFORCED AT 3 INDEPENDENT POINTS // WORKS ON ANY MODEL</text>
   <g font-family="'SF Mono','Menlo','Consolas',monospace">

@@ -17,11 +17,12 @@
   <text x="40" y="58" class="mono" font-size="14" letter-spacing="3" fill="#2dd4bf">/// VERITY.CAPABILITIES.MODULE</text>
   <text x="1160" y="58" text-anchor="end" class="mono" font-size="14" letter-spacing="2" fill="#5b8a84">[ STATUS: ENFORCED ]</text>
 
-  <text x="44" y="126" class="hv" font-size="52" letter-spacing="1" fill="#eafffb">MAKE ANY MODEL <tspan fill="#2dd4bf">FOLLOW THE WORKFLOW.</tspan></text>
-  <rect x="46" y="140" width="470" height="3" fill="#d6299e"/>
-  <text x="44" y="170" class="nar" font-size="20" fill="#8fb8b1">Frontier or a free local 3B — research first, don't quit, prove it. Discipline lives in the harness, not the weights.</text>
-  <rect x="1006" y="92" width="158" height="40" rx="4" fill="url(#tg)"/>
-  <text x="1085" y="118" class="hv" font-size="20" fill="#03060a" text-anchor="middle">118 TESTS ✓</text>
+  <text x="44" y="108" class="hv" font-size="46" letter-spacing="1" fill="#eafffb">MAKE ANY MODEL</text>
+  <text x="44" y="156" class="hv" font-size="46" letter-spacing="1" fill="#2dd4bf">FOLLOW THE WORKFLOW.</text>
+  <rect x="46" y="168" width="470" height="3" fill="#d6299e"/>
+  <text x="44" y="196" class="nar" font-size="19" fill="#8fb8b1">Frontier or a free local 3B — research first, don't quit, prove it. Discipline lives in the harness, not the weights.</text>
+  <rect x="1006" y="84" width="158" height="40" rx="4" fill="url(#tg)"/>
+  <text x="1085" y="110" class="hv" font-size="20" fill="#03060a" text-anchor="middle">118 TESTS ✓</text>
 
   <!-- ENFORCEMENT TIERS -->
   <text x="44" y="216" class="mono" font-size="13" letter-spacing="3" fill="#2dd4bf">&gt;&gt; ENFORCED AT 3 INDEPENDENT POINTS // WORKS ON ANY MODEL</text>
