@@ -39,7 +39,7 @@ def test_research_step_included_when_provided():
 
 def test_graceful_when_synth_fails():
     def driver(p):
-        if "conductor" in p.lower() and "format" in p.lower():
+        if "EXPERT PLAN:" in p:           # only the SYNTH prompt carries the expert's plan
             raise RuntimeError("driver down")
         return "framing"
     p = augment.augment_plan("x", driver=driver, reasoner=lambda p: "EXPERT PLAN")
