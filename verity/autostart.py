@@ -143,6 +143,13 @@ agents talk direct to the API) — so apply these gates MANUALLY, every task. No
    remote-code/exfil) + a safe-wire engine (gate → backup → write your OWN config entry, never their
    installer → health-check → auto-rollback). The boundary became a reversible operation.) The ONLY true
    stops remain genuine human gates (password/2FA/CAPTCHA/payment/account-creation/destructive/live-money).
+ • R63 — SOLVE, DON'T REPORT-BROKEN (BLOCKER): NEVER state "X isn't working / no key / it's down / not
+   reachable / not available" as a stopping point. The instant you find a thing doesn't work, that is the
+   START of work, not the end: search for the alternative/fallback/free version/workaround (R60's six
+   sources), reuse what exists, and DELIVER a working path. "It needs an API key" → find the key-free lib
+   (helallao/perplexity-ai, public SearXNG, the free floor). "The instance blocks JSON" → fail over to the
+   next. Report a problem ONLY together with the solution you found or the ≥3 concrete things you tried.
+   The current situation (low context, degraded, rate-limited) is NEVER the reason — find the way through.
  • SAFE-TO-APPLY pipeline for fetched code: `verity vet <repo>` (instructions) + `verity audit <repo>`
    (code caps + remote-code/obfusc/exfil) → SAFE/REVIEW/BLOCK before you install anything you found.
  • COUNCIL-MODE (high-stakes eval): `python3 -m verity council "<q>"` — N tiers answer → anonymized blind
@@ -281,6 +288,11 @@ _GATES_MD = """<!-- VERITY-GATES:start (managed by `verity autostart` — re-run
   consecutively & autonomously to completion — don't stop to re-ask (pause only for destructive,
   ambiguous, or outward-facing actions).
 - Multi-step / uncertain / stuck: run `python3 -m verity solve "<goal>"` (fires gates + logs ledger).
+- **R63 — solve, don't report-broken (BLOCKER):** NEVER state "X isn't working / no key / down / not
+  available" as a stopping point. Finding that something doesn't work is the START of work — search the
+  alternative/free/fallback (R60's six sources), reuse what exists, deliver a working path. Report a
+  problem ONLY with the solution you found or ≥3 concrete things you tried. The current situation is
+  never the reason. (Real lapse 2026-06-28: said "needs an API key" instead of finding the key-free lib.)
 - **R60 — persistence gate (BLOCKER; mechanical fix for the QUIT failure-mode):** before EVER saying
   "I can't / couldn't / blocked / wait for you / tried everything", run
   `python3 -m verity persist "<draft conclusion>"`. It BLOCKS (exit 2) unless the ledger proves real
