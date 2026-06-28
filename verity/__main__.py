@@ -552,6 +552,11 @@ def main(argv: list[str]) -> None:
                   file=sys.stderr); sys.exit(2)
         from .tools import fetch_tweet
         print(fetch_tweet(rest[0]))
+    elif cmd in ("audit", "audit-code"):
+        # Static CODE-safety audit: what does the server actually DO when it runs?
+        # Reports caps (net/exec/fs/cred) + flags remote-code/obfusc-exec/exfil combos.
+        from . import audit_code as _audit
+        sys.exit(_audit._cli(rest))
     elif cmd in ("vet", "vet-repo", "safe-to-apply"):
         # SAFE-BEFORE-APPLY gate: scan a found repo/skill (surface-calibrated INGEST-SCAN)
         # → SAFE-TO-APPLY / REVIEW / BLOCK before an agent installs it. exit 2 = BLOCK.
