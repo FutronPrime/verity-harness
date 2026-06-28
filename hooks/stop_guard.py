@@ -98,6 +98,27 @@ PUBLISH = re.compile(r"""(?ix)
 SCREENED = re.compile(r"""(?ix)
     (sets-review|test-screening|soul-personality-audit|persona[\s_-]*(screen|audit|panel)|s\.e\.t\.s|screening)
 """)
+# R60 CONTEXT-QUIT — deferring the CURRENT task to "a fresh pass / after compact / next session"
+# or because "context is low/degraded". These are the exact quit-phrasings the other classes miss
+# (the author used them repeatedly 2026-06-28). "Low/stale context" is NOT a boundary — it's where
+# you push through. Earned ONLY by investigation OR a named genuine-safety reason (see SAFETY_REASON).
+CONTEXT_QUIT = re.compile(r"""(?ix)
+    ( wait\s+for\s+(the\s+)?(/?compact|a\s+fresh|fresh\s+context|the\s+next\s+(pass|session))
+    | (do|finish|complete|wire|tackle|handle|run)\s+(it|this|that|the\s+rest|them)\s+(in\s+a\s+|on\s+a\s+|with\s+a\s+)?(fresh|next|later|follow[\s-]?up|new|clean)\s*(pass|session|context)
+    | next\s+(bounded\s+)?(pass|action|session)\b | in\s+a\s+(fresh|clean|follow[\s-]?up)\s+(pass|session|context)
+    | (at|in|given|on)\s+(this|the)\s+(degraded|low|tail|stale|poor)\s+(context|fill|budget)
+    | (degraded|low|stale|poor)\s+context\b | tail\s+of\s+(a\s+|this\s+)?long\s+context
+    | i'?ll\s+(do|finish|complete|get\s+to|tackle|wire)\s+(it|this|that|them)\s+(next|later)
+    | let'?s\s+wait\b | come\s+back\s+to\s+(it|this)\s+(next|later|in\s+a) )
+""")
+# A genuine reason that DOES justify deferring/stopping (money/destructive/prod/human gate) — naming
+# one earns the stop, so the context-quit block is suppressed.
+SAFETY_REASON = re.compile(r"""(?ix)
+    \b(password|2fa|two[\s-]?factor|mfa|otp|captcha|biometric|face\s?id|touch\s?id
+    | payment|credit\s?card|\bbank\b|wire\s+transfer|live[\s-]?trad|real\s+money|move\s+money|funds?\b
+    | destructive|irreversible|delete\s+prod|drop\s+(the\s+)?(database|table)|production\s+config
+    | tcc|privacy\s+prompt|account[\s-]creation)
+""")
 
 
 def _tail(path, n=240):
@@ -156,7 +177,10 @@ def main():
     capability = bool(CAPABILITY.search(tail_text))
     defer = bool(DEFER.search(tail_text))
     publish = bool(PUBLISH.search(tail_text)) or bool(PUBLISH.search(actions))
-    if not (neg or capability or defer or publish):
+    # R60 context-quit: deferring the task to a fresh pass / low context — but NOT if a genuine
+    # safety reason (money/destructive/human gate) is named (that earns the stop).
+    quit_ctx = bool(CONTEXT_QUIT.search(tail_text)) and not bool(SAFETY_REASON.search(tail_text))
+    if not (neg or capability or defer or publish or quit_ctx):
         sys.exit(0)
 
     investigated = bool(INVESTIGATED.search(actions))
@@ -200,6 +224,14 @@ def main():
                   "osascript). Defer ONLY at a GENUINE human boundary — password entry, 2FA, CAPTCHA, "
                   "biometrics, payment, or a macOS TCC privacy prompt (mic/camera/screen/accessibility "
                   "grant) — and name the exact one you hit. 'It needs setup' is not a boundary; it's a task.")
+    elif quit_ctx and not investigated:
+        reason = ("VERITY stop-guard (R60): you're DEFERRING the current task to 'a fresh pass / after "
+                  "compact / next session' or because 'context is low/degraded/the tail of a long "
+                  "context'. That is NOT a boundary — it's exactly where you push through. Complete it "
+                  "NOW. The ONLY things that justify stopping are a genuine human gate (password/2FA/"
+                  "CAPTCHA/payment/account-creation) or genuinely-unsafe-to-rush work (live-money/"
+                  "destructive/prod config) — and if it's the latter you must NAME the specific risk, "
+                  "not cite 'low context'. If you've actually done the work, state the result and stop.")
     if not reason:
         sys.exit(0)
 
