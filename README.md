@@ -354,6 +354,29 @@ probabilistic — but the moment a judgment-lapse becomes a *pattern*, it gets p
 > finds becomes a gate that can't reopen. The system got more reliable by being **adversarial with itself**,
 > not by trying harder.
 
+### R60 — the persistence gate (the *quit* failure-mode, made un-rationalizable)
+
+The deepest version of "the model can do it but stops anyway." Capability is rarely the bottleneck in
+2026; **quitting** is — a capable model hits friction, retries the *same* dead path twice, and emits
+"I can't / it's blocked / let's wait for you" when the answer was one real search away. RULE 6/7 said
+"don't" and got rationalized past anyway. So R60 makes it a **code condition**:
+
+```bash
+python3 -m verity persist "I couldn't fix the 404, let's wait for compact"   # → 🛑 BLOCKED (exit 2)
+python3 -m verity persist note github "SearchTimeline 404 fix" "twscrape XClIdGen has it"  # log a receipt
+python3 -m verity persist "tried 7 ways first — here's the verified fix"      # → ✅ PASS (EARNED)
+```
+
+A conclusion containing quit-language is **blocked** unless the ledger proves real research — **≥3 of
+six sources** (GitHub / X / Reddit / YouTube / Google / HN-SO) searched, the **maintained alternative's
+source read and reused**, **≥2 structurally different attempts** (re-running one dead path N times does
+*not* count) — **or** a genuine human gate is named (password / 2FA / CAPTCHA / payment / account-
+creation / destructive). Deterministic and model-agnostic, so it gives **any** model — including a small
+open-weight one behind the `:11500` proxy — the persistence that makes frontier models *feel* smart.
+Regression-tested (`python3 tests/test_persist.py`, 5/5, encoding a real 2026-06-28 lapse permanently).
+Full writeup: [docs/PERSISTENCE-GATE.md](docs/PERSISTENCE-GATE.md) · worked example:
+[docs/x-scraper-resilience.md](docs/x-scraper-resilience.md).
+
 ## Reading the walled web (X posts & Articles, no API key)
 
 The search-before-concluding gate is only as good as the agent's *reach*. "I can't read that page"

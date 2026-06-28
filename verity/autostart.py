@@ -116,6 +116,16 @@ agents talk direct to the API) — so apply these gates MANUALLY, every task. No
    (that wastes their time). Chain the goals; only pause for genuinely destructive, ambiguous, or
    outward-facing actions (deletes, money, publishing). Apply ALL gates above to EACH goal.
  • Multi-step / uncertain / stuck:  python3 -m verity solve "<goal>"  (fires the gates + logs the ledger).
+ • R60 — PERSISTENCE GATE (BLOCKER; the mechanical fix for the QUIT failure-mode): before you EVER
+   say "I can't / couldn't / it's blocked / not possible / wait for you / tried everything", run
+   `python3 -m verity persist "<your draft conclusion>"`. It BLOCKS (exit 2) unless the ledger proves
+   real research: ≥3 of the six sources (GitHub/X/Reddit/YouTube/Google/HN-SO) actually searched, the
+   maintained alternative's SOURCE read + reused, and ≥2 structurally different attempts — OR you named
+   a genuine human gate (password/2FA/CAPTCHA/payment/account-creation/destructive). Log each step with
+   `python3 -m verity persist note <source> "<query>" "<what you found>"`. Re-running ONE dead path N
+   times is not "trying"; "low/stale context" is not a boundary. (Born from a real lapse 2026-06-28:
+   retried one dead X-scraper lib 7× and said "wait for compact"; 5 min of real GitHub search found the
+   maintained tool already had the fix → 200 OK in one pass. This gate makes that lapse impossible.)
 GATES
 # PLAYBOOK: inject the lessons distilled from THIS system's own verified history (assumptions it
 # already caught, tools it already found) — 'make any model think like Fable' applied to your own
@@ -249,6 +259,13 @@ _GATES_MD = """<!-- VERITY-GATES:start (managed by `verity autostart` — re-run
   consecutively & autonomously to completion — don't stop to re-ask (pause only for destructive,
   ambiguous, or outward-facing actions).
 - Multi-step / uncertain / stuck: run `python3 -m verity solve "<goal>"` (fires gates + logs ledger).
+- **R60 — persistence gate (BLOCKER; mechanical fix for the QUIT failure-mode):** before EVER saying
+  "I can't / couldn't / blocked / wait for you / tried everything", run
+  `python3 -m verity persist "<draft conclusion>"`. It BLOCKS (exit 2) unless the ledger proves real
+  research — ≥3 of six sources (GitHub/X/Reddit/YouTube/Google/HN-SO) searched, the maintained
+  alternative's source read + reused, ≥2 structurally different attempts — or a named human gate.
+  Log steps: `python3 -m verity persist note <source> "<query>" "<found>"`. Turns the un-ignorable
+  truth ("you almost always CAN") into a deterministic veto a model can't rationalize past.
 <!-- VERITY-GATES:end -->"""
 
 import re as _re

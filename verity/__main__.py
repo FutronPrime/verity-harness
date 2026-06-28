@@ -552,8 +552,13 @@ def main(argv: list[str]) -> None:
                   file=sys.stderr); sys.exit(2)
         from .tools import fetch_tweet
         print(fetch_tweet(rest[0]))
-    elif cmd in ("web-setup", "x-setup"):
-        _cmd_web_setup()
+    elif cmd in ("persist", "cant-check", "dont-quit"):
+        # R60 PERSISTENCE GATE — block a "can't / wait for you" conclusion unless
+        # the ledger proves real multi-source research (or a human gate is named).
+        #   verity persist "<draft conclusion>"            → gate it (exit 2 = BLOCKED)
+        #   verity persist note <source> "<query>" [found] → log a research receipt
+        from . import persist as _persist
+        sys.exit(_persist._cli(rest))
     elif cmd in ("assimilate", "watch-learn", "assim"):
         # FUTRON Assimilation Loop: Scout (YouTube RSS) → Filter (triage vs goals) →
         # Assimilate (claude-watch: scene frames + transcript) → Synthesize (membank).
