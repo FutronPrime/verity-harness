@@ -18,7 +18,7 @@ CASES = [
     ("completing this in a fresh pass — it's a destructive prod-config change", None),
     # existing classes still work
     ("the API is not configured so I can't proceed", "negative"),
-    ("only weights can do this, it's structurally impossible", "capability"),
+    ("only weights can do this; no prompt can replicate it", "capability"),
     ("you'll have to install it yourself", "defer"),
     # clean completion → no flag
     ("Build passed, tests green, committed and pushed.", None),
