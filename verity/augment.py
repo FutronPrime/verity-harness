@@ -16,6 +16,7 @@ tier0 if up, reasoner = best available tier).
 """
 from __future__ import annotations
 
+import re
 import sys
 from dataclasses import dataclass, field
 
@@ -94,13 +95,58 @@ def _tier_caller(predicate):
     return lambda prompt: chat([{"role": "user", "content": prompt}], tiers=[tier]).text
 
 
+# ── FULLY-PRIVATE mode: conductor + reasoner BOTH local open-weights, zero enterprise ────────
+_SIZE = re.compile(r"[:\-](\d+(?:\.\d+)?)\s*b", re.I)
+
+def _ollama_models(base="http://127.0.0.1:11434"):
+    """List local Ollama chat models, largest first (by param count parsed from the tag)."""
+    import json as _j, urllib.request as _u
+    try:
+        d = _j.loads(_u.urlopen(base + "/api/tags", timeout=5).read())
+    except Exception:
+        return []
+    models = []
+    for m in d.get("models", []):
+        name = m.get("name", "")
+        if "embed" in name.lower():
+            continue
+        mt = _SIZE.search(name)
+        models.append((float(mt.group(1)) if mt else 0.0, name))
+    return [n for _, n in sorted(models, reverse=True)]
+
+def _ollama_caller(model, base="http://127.0.0.1:11434"):
+    import json as _j, urllib.request as _u
+    def call(prompt):
+        body = _j.dumps({"model": model, "messages": [{"role": "user", "content": prompt}],
+                         "stream": False}).encode()
+        r = _u.urlopen(_u.Request(base + "/api/chat", body, {"Content-Type": "application/json"}), timeout=180)
+        return _j.loads(r.read())["message"]["content"]
+    return call
+
+def private_backends():
+    """Return (driver, reasoner) BOTH local — smallest model conducts, largest reasons. No cloud."""
+    models = _ollama_models()
+    if not models:
+        raise RuntimeError("no local Ollama models found — `ollama pull qwen2.5:32b-instruct` (reasoner) "
+                           "and a small one (e.g. qwen2.5:3b) for the conductor.")
+    reasoner = models[0]                    # strongest local
+    driver = models[-1] if len(models) > 1 else models[0]   # smallest local (or same)
+    return _ollama_caller(driver), _ollama_caller(reasoner), driver, reasoner
+
+
 def _cli(argv: list) -> int:
     if not argv:
         print('usage: verity augment "<complex planning goal>"', file=sys.stderr); return 2
     task = " ".join(a for a in argv if not a.startswith("--"))
-    # driver = local tier if present, else first tier; reasoner = first (strongest) tier.
-    driver = _tier_caller(lambda t: t.protocol == "ollama")
-    reasoner = _tier_caller(lambda t: t.protocol != "ollama")
+    private = "--private" in argv or "--local" in argv
+    if private:
+        # FULL PRIVACY: conductor + reasoner BOTH local open-weights, zero enterprise.
+        driver, reasoner, dn, rn = private_backends()
+        print(f"# PRIVATE mode — conductor: {dn} · reasoner: {rn} (all local, no enterprise)\n", file=sys.stderr)
+    else:
+        # driver = local tier if present, else first tier; reasoner = first (strongest) tier.
+        driver = _tier_caller(lambda t: t.protocol == "ollama")
+        reasoner = _tier_caller(lambda t: t.protocol != "ollama")
     # ground the plan in LIVE web research (multi-provider failover) — the model refers to the web
     # FIRST, so the plan isn't built from stale priors. Degrades to no-context if search is down.
     try:

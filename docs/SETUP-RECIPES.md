@@ -96,6 +96,38 @@ Proxy forces the output, hook forces the turn-end, injection biases the model up
 trips the harder layers. This is the Mythos-grade configuration: discipline enforced at three
 independent points.
 
+## Recipe 8 — FULLY PRIVATE, all open-weights, zero enterprise — best local performance
+
+For maximum privacy: every model is local open-weights, no data leaves the machine, no API keys. The
+`augment` conductor pattern makes this fast AND strong — a small model conducts, a larger LOCAL model
+reasons. Nothing touches an enterprise endpoint.
+
+```bash
+ollama pull qwen2.5:3b-instruct      # CONDUCTOR (fast, frames + synthesizes)
+ollama pull qwen2.5:32b-instruct     # REASONER (the heavy lifting) — pick the biggest your RAM allows
+python3 -m verity.server &           # Tier A proxy forces every local response (R60 enforcement)
+export OPENAI_BASE_URL=http://127.0.0.1:11500/v1
+# fully-private frontier-grade planning (auto-picks largest local model as reasoner, smallest as conductor):
+python3 -m verity augment --private "design a comprehensive plan to <goal>"
+# research stays private too: free DuckDuckGo/SearXNG floor — no Tavily/enterprise key needed.
+```
+
+**Recommended local models by role + hardware** (the reasoner quality is what you'll feel):
+
+| Role | 16GB RAM | 32GB | 64GB+ / GPU |
+|---|---|---|---|
+| Conductor (fast) | `qwen2.5:3b` / `llama3.2:3b` | `qwen2.5:7b` | `qwen2.5:7b` |
+| Reasoner (strong) | `qwen2.5:14b` | `qwen2.5:32b` / `deepseek-r1:32b` | `llama3.3:70b` / `qwen2.5:72b` / `deepseek-r1:70b` |
+| Verify/judge (council) | reuse reasoner | reuse reasoner | a 2nd distinct model for blind cross-ranking |
+
+The bigger the local reasoner, the closer the output gets to enterprise frontier — with **full privacy**.
+`--private` auto-selects the largest pulled model as reasoner and the smallest as conductor; the proxy
+(`:11500`) enforces the gates on every local response so even a weak model can't quit or guess.
+
+> Reasoner offline / no big model pulled? `augment --private` still runs with whatever's local (conductor
+> = reasoner if only one model), and `verity council` / `verity adjudicate` likewise route to local tiers.
+> No enterprise fallback is ever used in private mode.
+
 ---
 
 ## Choosing a recipe
@@ -109,6 +141,7 @@ independent points.
 | Bare chatbot / locked console | 5 | boot-prompt |
 | Tiny/low-B model | 6 | proxy (+ boot-prompt) |
 | Production / max reliability | 7 | all three |
+| **Full privacy (all open-weights)** | **8** | **local reasoner + proxy** |
 
 ## After setup — it improves itself
 Whatever recipe you ran, every gate verdict flows to `verity ledger`; `verity evolve` distills it into
