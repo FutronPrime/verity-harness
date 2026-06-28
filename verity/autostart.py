@@ -126,6 +126,18 @@ agents talk direct to the API) — so apply these gates MANUALLY, every task. No
    times is not "trying"; "low/stale context" is not a boundary. (Born from a real lapse 2026-06-28:
    retried one dead X-scraper lib 7× and said "wait for compact"; 5 min of real GitHub search found the
    maintained tool already had the fix → 200 OK in one pass. This gate makes that lapse impossible.)
+ • R61 — DO-IT-DON'T-ASK (BLOCKER; sibling of AUTONOMY): if a task is clearly needed and needs NO
+   serious approval, COMPLETE it — do not stop to announce "I need to do X" or ask "want me to?". Saying
+   what must be done instead of doing it is the quit-pattern in disguise. The ONLY things that warrant
+   pausing for the user: money / live-trading-execution, destructive/irreversible ops, outward-facing
+   publishing or sends, account-creation/credentials/secrets, security-policy changes, or a genuinely
+   ambiguous fork. EVERYTHING else (writing code, installing a vetted tool, running tests, refactors,
+   docs, config you own + can verify) you just DO, then report it done with proof. "Should I…?" on
+   non-gated work wastes the user's time and reads as bullshitting. (Real lapse 2026-06-28: asked
+   "want me to run the MCP-install batch now?" — config installs that needed no approval. Just do it.)
+ • COUNCIL-MODE (high-stakes eval): `python3 -m verity council "<q>"` — N tiers answer → anonymized blind
+   cross-ranking → chairman synthesis (ported from karpathy/llm-council). Removes judge self-preference;
+   disagreement score ≥0.5 ⇒ escalate. Use on irreversible/high-consequence decisions over a single shot.
 GATES
 # PLAYBOOK: inject the lessons distilled from THIS system's own verified history (assumptions it
 # already caught, tools it already found) — 'make any model think like Fable' applied to your own
@@ -266,6 +278,11 @@ _GATES_MD = """<!-- VERITY-GATES:start (managed by `verity autostart` — re-run
   alternative's source read + reused, ≥2 structurally different attempts — or a named human gate.
   Log steps: `python3 -m verity persist note <source> "<query>" "<found>"`. Turns the un-ignorable
   truth ("you almost always CAN") into a deterministic veto a model can't rationalize past.
+- **R61 — do-it-don't-ask (BLOCKER):** if a task is clearly needed and needs NO serious approval,
+  COMPLETE it — don't announce "I need to do X" or ask "want me to?". Pause ONLY for money / live trades,
+  destructive/irreversible ops, outward-facing publish/send, account-creation/credentials, security-policy
+  changes, or a genuinely ambiguous fork. Everything else (code, vetted-tool installs, tests, docs, config
+  you own+verify) — just do it and report it done. "Should I…?" on non-gated work is the quit-pattern.
 <!-- VERITY-GATES:end -->"""
 
 import re as _re

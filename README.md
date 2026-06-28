@@ -377,6 +377,23 @@ Regression-tested (`python3 tests/test_persist.py`, 5/5, encoding a real 2026-06
 Full writeup: [docs/PERSISTENCE-GATE.md](docs/PERSISTENCE-GATE.md) · worked example:
 [docs/x-scraper-resilience.md](docs/x-scraper-resilience.md).
 
+### Council-mode — high-stakes eval with blind peer-ranking
+
+For irreversible / high-consequence decisions, one model's answer isn't enough. `verity council`
+(ported from [karpathy/llm-council](https://github.com/karpathy/llm-council), researched from the
+X-bookmark assimilation matrix) runs three stages on VERITY's own sovereign tiers: **(1)** each
+distinct-model tier answers → **(2)** each ranks the *others* with identities **anonymized** (the bias
+fix VERITY's prior panel+judge lacked — a model can't favor its own answer it can't see) → **(3)** the
+chairman synthesizes from the Borda-aggregated consensus. Rank variance becomes a **disagreement score**
+(≥0.5 ⇒ escalate, don't ship).
+
+```bash
+python3 -m verity council "Should we route model X for trading-signal synthesis?"
+```
+
+Regression-tested (`python3 tests/test_council.py`, 4/4 — including a test that asserts **no identity
+leaks into the blind-ranking prompt**). Writeup + provenance: [docs/COUNCIL-MODE.md](docs/COUNCIL-MODE.md).
+
 ## Reading the walled web (X posts & Articles, no API key)
 
 The search-before-concluding gate is only as good as the agent's *reach*. "I can't read that page"

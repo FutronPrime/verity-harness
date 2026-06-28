@@ -552,6 +552,12 @@ def main(argv: list[str]) -> None:
                   file=sys.stderr); sys.exit(2)
         from .tools import fetch_tweet
         print(fetch_tweet(rest[0]))
+    elif cmd in ("council", "panel"):
+        # COUNCIL-MODE eval (researched from karpathy/llm-council): N tiers answer →
+        # anonymized blind cross-ranking → chairman synthesis. Stronger panel+judge.
+        #   verity council [--members N] "<question>"
+        from . import council as _council
+        sys.exit(_council._cli(rest))
     elif cmd in ("persist", "cant-check", "dont-quit"):
         # R60 PERSISTENCE GATE — block a "can't / wait for you" conclusion unless
         # the ledger proves real multi-source research (or a human gate is named).
