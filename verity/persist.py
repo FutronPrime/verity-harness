@@ -140,13 +140,50 @@ def _has(patterns: list, text: str) -> bool:
     return any(re.search(p, text, re.I) for p in patterns)
 
 
+# Trivial tasks that legitimately need no research (don't force retrieval on these).
+TRIVIAL_PATTERNS = [
+    r"^\s*(hi|hey|hello|thanks?|thank you|ok(ay)?|yes|no|done|got it)\b",
+    r"^\s*\d+\s*[-+*/]\s*\d+",          # arithmetic
+    r"\bwhat'?s \d+\s*[-+*/]",
+]
+
+
+def preflight(task: str, *, min_sources: int = 3) -> str:
+    """Fire BEFORE working a task — the proactive forcing function. Returns the
+    mandatory retrieval directive so a model (any size) goes and gets the
+    intelligence/repos/transcripts/human-input FIRST, instead of answering from
+    stale priors. This is the R60 gate run at the START, not just the end."""
+    return (
+        f"PRE-FLIGHT RESEARCH (mandatory before concluding): «{task[:120]}»\n"
+        f"Do NOT answer from memory. First RETRIEVE current ground truth:\n"
+        f"  1. Search ≥{min_sources} of: GitHub (issues/PRs/source), X, Reddit, "
+        f"YouTube/transcripts, Google, HN/StackOverflow — for the CURRENT best "
+        f"approach + the maintained tool that already does this.\n"
+        f"  2. READ that tool's source / the doc / the transcript; REUSE > rebuild.\n"
+        f"  3. If a human alone holds the answer (their preference, a secret, a "
+        f"physical fact), ASK them — that counts as retrieval.\n"
+        f"  4. Log each step:  python3 -m verity persist note <source> \"<q>\" \"<found>\"\n"
+        f"Then produce the answer. `verity persist` will BLOCK the conclusion if "
+        f"this didn't happen.")
+
+
+def _is_trivial(text: str) -> bool:
+    return _has(TRIVIAL_PATTERNS, text) or len(text.strip()) < 12
+
+
 def check(conclusion: str, *, days: int = 1, min_sources: int = 3,
           min_attempts: int = 2, require_found: bool = True,
-          run: str = "") -> Verdict:
+          proactive: bool = False, run: str = "") -> Verdict:
     """Gate a proposed conclusion. Returns a Verdict; logs it to the ledger.
 
-    BLOCK iff the conclusion quits AND (no human gate named) AND the ledger
-    lacks proof of real multi-source research."""
+    Default: BLOCK iff the conclusion quits AND (no human gate) AND the ledger
+    lacks proof of real multi-source research.
+
+    proactive=True (the forcing mode): BLOCK *any* substantive conclusion that
+    lacks research receipts — even with zero quit-language. This is what makes a
+    low-level model go retrieve intel/repos/transcripts/human-input on ANY task
+    instead of answering from stale priors. Trivial tasks (greetings, arithmetic)
+    are exempt."""
     text = conclusion or ""
 
     if _has(HUMAN_GATES, text):
@@ -155,11 +192,16 @@ def check(conclusion: str, *, days: int = 1, min_sources: int = 3,
         _log(v, text, run)
         return v
 
-    if not _has(QUIT_PATTERNS, text):
-        v = Verdict(False, "NO-QUIT",
-                    reasons=["No quit-language detected; nothing to gate."])
-        _log(v, text, run)
-        return v
+    quits = _has(QUIT_PATTERNS, text)
+    if not quits:
+        # Default mode only gates quit-language. Proactive mode also forces
+        # retrieval on substantive (non-trivial) conclusions.
+        if not proactive or _is_trivial(text):
+            v = Verdict(False, "NO-QUIT" if not proactive else "TRIVIAL",
+                        reasons=["Nothing to gate (no quit-language)." if not proactive
+                                 else "Trivial task — research not required."])
+            _log(v, text, run)
+            return v
 
     ev = _gather(days)
     missing = [s for s in SIX if s not in ev["sources"]]
@@ -237,9 +279,19 @@ def _cli(argv: list) -> int:
         r = note(src, query, found)
         print(f"logged research: {r['source']} | {r['verdict']} | {query}")
         return 0
-    # default: gate a conclusion
-    conclusion = " ".join(argv)
-    v = check(conclusion)
+    if argv[0] in ("preflight", "before"):
+        # Proactive forcing: run at the START of a task to get the retrieval directive.
+        print(preflight(" ".join(argv[1:])))
+        return 0
+    # default: gate a conclusion. --proactive forces retrieval on ANY substantive claim.
+    proactive = False
+    rest = []
+    for a in argv:
+        if a in ("--proactive", "-p"):
+            proactive = True
+        else:
+            rest.append(a)
+    v = check(" ".join(rest), proactive=proactive)
     print(v)
     return 2 if v.blocked else 0
 

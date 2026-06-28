@@ -67,6 +67,35 @@ def test_same_path_retried_does_not_count():
     assert v.blocked, v  # one distinct (source,query) + no find ⇒ fails attempts & found
 
 
+def test_proactive_blocks_substantive_answer_without_research():
+    """Forcing mode: a substantive conclusion with NO quit-language is still
+    blocked if the model never researched — makes it go retrieve first."""
+    _fresh_ledger()
+    v = persist.check("The best way to scrape X is to roll your own urllib client.",
+                      proactive=True)
+    assert v.blocked and v.verdict == "BLOCKED", v
+
+
+def test_proactive_allows_after_research():
+    _fresh_ledger()
+    persist.note("github", "x scraping maintained tool", "twscrape is the one")
+    persist.note("google", "x scraping 2026", "confirms twscrape")
+    persist.note("reddit", "x api alternatives", "twscrape recommended")
+    v = persist.check("Use twscrape; it's the maintained tool.", proactive=True)
+    assert not v.blocked and v.verdict == "EARNED", v
+
+
+def test_proactive_exempts_trivial():
+    _fresh_ledger()
+    assert not persist.check("thanks!", proactive=True).blocked
+    assert not persist.check("what's 2+2", proactive=True).blocked
+
+
+def test_preflight_emits_retrieval_directive():
+    d = persist.preflight("build a faster X bookmark scraper")
+    assert "RETRIEVE" in d and "GitHub" in d and "note" in d, d
+
+
 def _run():
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     passed = 0

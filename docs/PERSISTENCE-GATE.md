@@ -105,6 +105,29 @@ TESTS-FROM-FAILURES): the "wait for compact" conclusion on an empty ledger MUST
 block; it passes only once the six-source sweep is logged; and 7 retries of one
 path with no find stays blocked.
 
+## Proactive mode — forcing retrieval at the START, not just blocking quit at the end
+
+Blocking "can't" is reactive. The bigger win is making a model *proactively* go get
+the intel/repos/transcripts/human-input for **any** task before answering from stale
+priors — the thing that separates a model that "feels frontier" from one that doesn't.
+
+```bash
+# Fire BEFORE working — get the mandatory retrieval directive for any task:
+python3 -m verity persist preflight "build a faster X bookmark scraper"
+
+# Gate the answer in forcing mode — blocks ANY substantive conclusion lacking receipts,
+# even with zero quit-language (trivial tasks — greetings, arithmetic — are exempt):
+python3 -m verity persist --proactive "The best way to scrape X is to roll your own client"
+#   → 🛑 BLOCKED: only 0/6 sources searched — go retrieve first.
+```
+
+`preflight(task)` returns the six-source retrieval directive (including "if a human alone
+holds the answer, ASK them — that counts as retrieval"). `check(..., proactive=True)`
+treats a missing research ledger as a block on substantive claims, not just quit-language
+ones. Wire `--proactive` into the stop hook / proxy and a low-level model is *forced* to
+search→retrieve→cite on every non-trivial task — the same discipline that makes a 7B model
+behave like a careful senior, applied from outside the weights.
+
 ## Relationship to the other gates
 
 - Sharpens **RULE 6** (search-before-concluding) and **RULE 7** (never-quit) from

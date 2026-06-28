@@ -373,9 +373,20 @@ source read and reused**, **≥2 structurally different attempts** (re-running o
 *not* count) — **or** a genuine human gate is named (password / 2FA / CAPTCHA / payment / account-
 creation / destructive). Deterministic and model-agnostic, so it gives **any** model — including a small
 open-weight one behind the `:11500` proxy — the persistence that makes frontier models *feel* smart.
-Regression-tested (`python3 tests/test_persist.py`, 5/5, encoding a real 2026-06-28 lapse permanently).
-Full writeup: [docs/PERSISTENCE-GATE.md](docs/PERSISTENCE-GATE.md) · worked example:
-[docs/x-scraper-resilience.md](docs/x-scraper-resilience.md).
+**Proactive mode** turns the veto into a forcing function — `verity persist preflight "<task>"`
+emits the mandatory retrieval directive *before* work starts, and `verity persist --proactive
+"<claim>"` blocks **any** substantive answer that lacks research receipts (trivial tasks exempt).
+That's what makes a low-level model go search→retrieve→cite on every task instead of answering
+from stale priors — the discipline that *feels* like frontier intelligence, applied from outside
+the weights. Regression-tested (`python3 tests/test_persist.py`, 9/9, encoding a real 2026-06-28
+lapse permanently). Full writeup: [docs/PERSISTENCE-GATE.md](docs/PERSISTENCE-GATE.md) · worked
+example: [docs/x-scraper-resilience.md](docs/x-scraper-resilience.md).
+
+**Reach** (optional dependency) — the gate is only as good as the agent's reach, so `verity reach`
+wires the maintained [twscrape](https://github.com/vladkens/twscrape) stack for resilient X
+search/timeline (`pip install -r requirements-reach.txt`; cookies stay local). It survives X's
+queryId/feature/asset rotation by reusing twscrape's real `x-client-transaction-id` generator
+rather than reverse-engineering it. See [docs/x-scraper-resilience.md](docs/x-scraper-resilience.md).
 
 ### Council-mode — high-stakes eval with blind peer-ranking
 

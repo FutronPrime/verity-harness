@@ -1,0 +1,8 @@
+# OPTIONAL — X / Twitter reach for VERITY (search-before-concluding needs reach).
+# The harness CORE is zero-dependency; these enable resilient X retrieval via the
+# maintained twscrape stack (handles queryId/feature rotation + the real
+# x-client-transaction-id against X's current x-web JS bundle). See verity/reach.py
+# and docs/x-scraper-resilience.md.  Install:  pip install -r requirements-reach.txt
+twscrape>=0.17
+curl_cffi>=0.7        # Chrome TLS impersonation (X anti-bot inspects the fingerprint)
+beautifulsoup4>=4.12  # XClIdGen parses x.com/tesla + the x-web asset bundle
