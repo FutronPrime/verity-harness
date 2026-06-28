@@ -74,7 +74,7 @@
   <path d="M44,614 L1160,614 L1160,632 L1160,742 L55,742 L44,731 Z" fill="#0a0f12" stroke="#1f5c54" stroke-width="1.1"/>
   <rect x="44" y="613" width="5" height="36" fill="url(#mg)"/>
   <g class="nar" font-size="16" fill="#bfe9e0">
-    <text x="68" y="650">› Frontier (Gemini) &amp; low-B (qwen2.5:3b) both flipped from "give up" → "investigate" by the gate, live.</text>
+    <text x="68" y="650">› Benchmark: frontier (Gemini) &amp; low-B (qwen2.5:3b) both lapsed 60% naive → harness recovered 2/3, IDENTICAL.</text>
     <text x="68" y="678">› qwen2.5:3b + Gemini produced a frontier-grade migration plan (Strangler Fig, Outbox) — local entry, free.</text>
     <text x="68" y="706">› docling-mcp installed GREEN via safe-wire: backup → audit → health-check → auto-rollback. Zero-key search works.</text>
   </g>
