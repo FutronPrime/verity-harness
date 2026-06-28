@@ -33,6 +33,19 @@ PATTERNS = [
 ]
 COMPILED = [(re.compile(p, re.I), w, l) for p, w, l in PATTERNS]
 
+# Decorative badge / shield / CI-image hosts: a real exfil never uses these (they can't
+# receive data), but their `?style=`/`=` query strings trip the outbound-callback rule and
+# produce HIGH-RISK false-positives on ordinary project READMEs. Suppress ONLY the
+# outbound-callback finding for these hosts; every other heuristic (token/key/webhook/paste,
+# hidden-unicode, covert-action, role-override, …) is untouched.
+_BADGE_HOSTS = ("shields.io", "badgen.net", "forthebadge.com", "badge.fury.io",
+                "circleci.com", "app.codecov.io", "codecov.io", "img.badgesize",
+                "github.com/.*/workflows/", "githubusercontent.com")
+
+def _is_badge(match: str) -> bool:
+    m = match.lower()
+    return any(h in m for h in _BADGE_HOSTS) or m.rstrip(")\"' ").endswith((".svg", ".png"))
+
 def scan_text(text):
     findings = []
     # invisible / zero-width / bidi control chars (hidden payloads)
@@ -41,8 +54,11 @@ def scan_text(text):
         findings.append({"label": "hidden-unicode (zero-width/bidi)", "weight": 4, "sample": invis[:6]})
     for rx, w, label in COMPILED:
         for m in rx.finditer(text):
+            hit = m.group(0)[:80]
+            if label == "outbound-callback" and _is_badge(hit):
+                continue  # decorative badge/image URL — not an exfil channel
             ln = text[:m.start()].count("\n") + 1
-            findings.append({"label": label, "weight": w, "line": ln, "match": m.group(0)[:80]})
+            findings.append({"label": label, "weight": w, "line": ln, "match": hit})
     score = sum(f["weight"] for f in findings)
     verdict = "HIGH-RISK" if score >= 6 else "SUSPICIOUS" if score >= 3 else "CLEAN"
     return {"verdict": verdict, "score": score, "findings": findings}
