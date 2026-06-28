@@ -552,6 +552,11 @@ def main(argv: list[str]) -> None:
                   file=sys.stderr); sys.exit(2)
         from .tools import fetch_tweet
         print(fetch_tweet(rest[0]))
+    elif cmd in ("deliberate", "recurse"):
+        # Recursive deliberation: research(six sources)→reason→adversarial critique→refine→repeat
+        # until the critic says SUFFICIENT, BEFORE committing. `verity deliberate "<goal>" [--rounds N]`.
+        from . import recurse as _rec
+        sys.exit(_rec._cli(rest))
     elif cmd in ("websearch", "search-web", "rag"):
         # Multi-provider FAILOVER web search — the web as a live RAG the model consults first.
         # `verity websearch "<q>" [--all]` | `verity websearch --fetch <url>`.

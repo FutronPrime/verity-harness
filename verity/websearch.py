@@ -200,6 +200,7 @@ def as_context(query: str, n: int = 5) -> str:
 
 # ── six-source scoping (R60): search each canonical source explicitly, not just the open web ──
 _SIX_SITES = {"github": "site:github.com", "reddit": "site:reddit.com",
+              "x": "(site:x.com OR site:twitter.com OR site:nitter.net)",
               "youtube": "site:youtube.com", "stackoverflow": "site:stackoverflow.com",
               "hackernews": "site:news.ycombinator.com"}
 
@@ -218,16 +219,18 @@ def six_source(query: str, n_each: int = 3) -> list:
 
 
 # ── iterative DEEP RESEARCH loop (ported from the agentic-web-search-agent-loop pattern) ──
-def deep_research(query: str, *, ask, rounds: int = 2, n: int = 5) -> dict:
+def deep_research(query: str, *, ask, rounds: int = 2, n: int = 5, sources: bool = True) -> dict:
     """Search → let the model identify the most important GAP → refine the query → search again,
-    until satisfied or `rounds` exhausted. `ask(prompt)->str` is the reasoner (injectable). Returns
-    {context, queries, results} with a deduped, cited result set. This is what makes research
-    THOROUGH instead of single-shot (the key technique from the agentic-search-loop pattern)."""
+    until satisfied or `rounds` exhausted. `ask(prompt)->str` is the reasoner (injectable). When
+    sources=True each round hits the SIX canonical sources explicitly (github/reddit/x/youtube/SO/HN
+    + web), not just the open web. Returns {context, queries, results} — deduped, cited. This is what
+    makes research THOROUGH instead of single-shot (the agentic-search-loop pattern)."""
     queries, results, seen = [], [], set()
     q = query
+    _do = (lambda qq: six_source(qq, max(2, n // 2))) if sources else (lambda qq: search(qq, n))
     for i in range(max(1, rounds)):
         queries.append(q)
-        for r in search(q, n):
+        for r in _do(q):
             if r["url"] and r["url"] not in seen:
                 seen.add(r["url"]); results.append(r)
         if i == rounds - 1:
