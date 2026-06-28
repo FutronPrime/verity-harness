@@ -382,6 +382,22 @@ the weights. Regression-tested (`python3 tests/test_persist.py`, 9/9, encoding a
 lapse permanently). Full writeup: [docs/PERSISTENCE-GATE.md](docs/PERSISTENCE-GATE.md) · worked
 example: [docs/x-scraper-resilience.md](docs/x-scraper-resilience.md).
 
+**Safe-before-apply** — the proactive-research path sends agents to *fetch third-party repos and
+skills*, and a `SKILL.md` / MCP tool-description becomes the agent's own instructions the moment
+it's installed (a documented injection vector). So `verity vet <repo>` scans it first — **surface-
+aware** (instruction files strict; READMEs/docs lenient on doc-noise like badges, install curls,
+and `rm -rf` cleanup, but strict on HARD injection like role-override and hidden-unicode) — and
+returns **SAFE-TO-APPLY / REVIEW / BLOCK** (exit 0/1/2), skipping test-data/vendor dirs.
+
+```bash
+python3 -m verity vet ./some-skill-repo     # → ✅ SAFE-TO-APPLY | 🔎 REVIEW | 🛑 BLOCK
+```
+
+Calibrated against real repos (docling/lingji → REVIEW, Agent-Reach → SAFE, a malicious SKILL.md →
+BLOCK) so it doesn't false-block reputable code — false blocks train an agent to ignore the gate.
+Tests: `test_scan_surface.py` 9/9 · `test_scan_badges.py` 3/3 · `test_vet.py` 5/5. Every upgrade
+here is recorded resource→research→proof in [docs/PROVENANCE.md](docs/PROVENANCE.md).
+
 **Reach** (optional dependency) — the gate is only as good as the agent's reach, so `verity reach`
 wires the maintained [twscrape](https://github.com/vladkens/twscrape) stack for resilient X
 search/timeline (`pip install -r requirements-reach.txt`; cookies stay local). It survives X's

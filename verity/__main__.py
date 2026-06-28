@@ -552,6 +552,11 @@ def main(argv: list[str]) -> None:
                   file=sys.stderr); sys.exit(2)
         from .tools import fetch_tweet
         print(fetch_tweet(rest[0]))
+    elif cmd in ("vet", "vet-repo", "safe-to-apply"):
+        # SAFE-BEFORE-APPLY gate: scan a found repo/skill (surface-calibrated INGEST-SCAN)
+        # → SAFE-TO-APPLY / REVIEW / BLOCK before an agent installs it. exit 2 = BLOCK.
+        from . import vet as _vet
+        sys.exit(_vet._cli(rest))
     elif cmd in ("reach", "x"):
         # OPTIONAL X reach via twscrape (resilient search/timeline). Gives the
         # search-before-concluding gate real reach. `verity reach setup|x-search`.
