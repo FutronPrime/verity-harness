@@ -552,6 +552,11 @@ def main(argv: list[str]) -> None:
                   file=sys.stderr); sys.exit(2)
         from .tools import fetch_tweet
         print(fetch_tweet(rest[0]))
+    elif cmd in ("augment", "conduct"):
+        # WEAK-MODEL-AS-CONDUCTOR: a small/local model frames + synthesizes, the heavy reasoning
+        # escalates to a strong free backend → frontier-grade plans from a sovereign local entry point.
+        from . import augment as _aug
+        sys.exit(_aug._cli(rest))
     elif cmd in ("adjudicate", "decide-install"):
         # INTELLIGENT install decision: deterministic vet+audit pre-filter, then escalate the
         # gray zone to multi-model judgment (council). INSTALL/NEEDS-HUMAN/AVOID. exit 0/1/2.
