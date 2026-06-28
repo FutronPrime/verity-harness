@@ -552,6 +552,11 @@ def main(argv: list[str]) -> None:
                   file=sys.stderr); sys.exit(2)
         from .tools import fetch_tweet
         print(fetch_tweet(rest[0]))
+    elif cmd in ("adjudicate", "decide-install"):
+        # INTELLIGENT install decision: deterministic vet+audit pre-filter, then escalate the
+        # gray zone to multi-model judgment (council). INSTALL/NEEDS-HUMAN/AVOID. exit 0/1/2.
+        from . import adjudicate as _adj
+        sys.exit(_adj._cli(rest))
     elif cmd in ("audit", "audit-code"):
         # Static CODE-safety audit: what does the server actually DO when it runs?
         # Reports caps (net/exec/fs/cred) + flags remote-code/obfusc-exec/exfil combos.

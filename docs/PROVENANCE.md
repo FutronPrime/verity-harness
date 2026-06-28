@@ -93,6 +93,31 @@ the research at runtime; this file is the durable record that it happened.
   don't); all 6 candidates → REVIEW (no runtime backdoor); live safe-wire attempt auto-rolled-back
   a non-responding server with the config left pristine. commit 9a1fb4c + docs/SAFE-MCP-INSTALL.md.
 
+## 6. Intelligent adjudication — the false-alarm fix + the general rule-enforcement engine
+
+- **Resource:** the obstacle from row 5 — the regex auditor either false-alarmed (badges, install
+  curls) or risked missing context-dependent threats. A purely deterministic gate can't tell a TTS
+  client calling its documented provider from a server POSTing your `.env` to a pastebin.
+- **Research:** queried VERITY's OWN evolving base (REUSE-FIRST) — `verity council` (blind
+  multi-model, built this session), `verity router`, `ledger`, `verity evolve` (playbook self-
+  improvement) — instead of building a new judge.
+- **Diagnosis:** this is exactly VERITY's v2.1/v2.2 doctrine (DETERMINISTIC-VERIFIER-FIRST → escalate
+  to PANEL+JUDGE on uncertainty). The cheap regex layer should decide the CLEAR cases; the GRAY zone
+  should escalate to reasoned judgment, not blanket-block.
+- **Upgrade:** `verity/adjudicate.py` (`verity adjudicate`) — vet+audit pre-filter decides clear cases
+  free (backdoor→AVOID, stdlib→INSTALL); the gray zone escalates to `council`, which reads the actual
+  findings and returns INSTALL/AVOID/NEEDS-HUMAN **with a rationale**. Every verdict → `ledger` →
+  `evolve` distills it into the injected playbook (the gate gets smarter each run; it never resets).
+- **Proof:** `tests/test_adjudicate.py` 5/5; **live**, the judge escalated docling and returned a
+  reasoned AVOID ("cred-access + outbound network in one file + role-override ⇒ high exfil risk") —
+  real context-aware judgment, not regex. Graceful: no backend ⇒ NEEDS-HUMAN, never a false INSTALL.
+
+> **General purpose (the Mythos question).** This is the reusable shape of EVERY VERITY gate:
+> `deterministic detector → intelligent adjudication of the gray zone → ledger receipt → playbook
+> evolution`. The persistence gate (R60), stop-guard, vet/audit, and adjudicate are all instances.
+> That is how you make an LLM follow rules "like Mythos": rules stop being ignorable prompt text and
+> become **enforced gates with intelligent, evidence-logged adjudication that compounds over time.**
+
 ---
 
 ### How to add a row
