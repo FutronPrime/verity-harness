@@ -41,6 +41,19 @@ Search the six and **read the maintained alternative's source** — don't reinve
 GitHub (issues/PRs/source) · X · Reddit · YouTube/transcripts · Google · HN/StackOverflow
 ```
 
+The web is a live RAG you consult FIRST — via the multi-provider FAILOVER search (free DuckDuckGo/
+GitHub floor, optional Tavily/Perplexity/Brave/Google/SearXNG; see
+[WEB-RESEARCH-PROVIDERS.md](WEB-RESEARCH-PROVIDERS.md)). It cannot afford to fail, so it never
+single-sources:
+
+```bash
+python3 -m verity websearch "pdf parsing mcp server maintained 2026"   # first provider that answers
+python3 -m verity websearch --all "docling vs unstructured mcp"        # every provider, merged+deduped
+python3 -m verity websearch --fetch https://github.com/docling-project/docling   # read a result in depth
+```
+(`verity augment` calls this automatically — a weak local model's plan is grounded in live web data
+before it escalates the reasoning.)
+
 Log each real step as a receipt (this is what the gate counts later):
 
 ```bash

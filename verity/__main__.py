@@ -552,6 +552,11 @@ def main(argv: list[str]) -> None:
                   file=sys.stderr); sys.exit(2)
         from .tools import fetch_tweet
         print(fetch_tweet(rest[0]))
+    elif cmd in ("websearch", "search-web", "rag"):
+        # Multi-provider FAILOVER web search — the web as a live RAG the model consults first.
+        # `verity websearch "<q>" [--all]` | `verity websearch --fetch <url>`.
+        from . import websearch as _ws
+        sys.exit(_ws._cli(rest))
     elif cmd in ("augment", "conduct"):
         # WEAK-MODEL-AS-CONDUCTOR: a small/local model frames + synthesizes, the heavy reasoning
         # escalates to a strong free backend → frontier-grade plans from a sovereign local entry point.

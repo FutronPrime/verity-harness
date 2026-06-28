@@ -101,7 +101,13 @@ def _cli(argv: list) -> int:
     # driver = local tier if present, else first tier; reasoner = first (strongest) tier.
     driver = _tier_caller(lambda t: t.protocol == "ollama")
     reasoner = _tier_caller(lambda t: t.protocol != "ollama")
-    p = augment_plan(task, driver=driver, reasoner=reasoner)
+    # ground the plan in LIVE web research (multi-provider failover) — the model refers to the web
+    # FIRST, so the plan isn't built from stale priors. Degrades to no-context if search is down.
+    try:
+        from .websearch import as_context as _search
+    except Exception:
+        _search = None
+    p = augment_plan(task, driver=driver, reasoner=reasoner, search=_search)
     print(f"# Augmented plan (trail: {' → '.join(p.trail)})\n")
     print(p.final)
     return 0
