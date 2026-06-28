@@ -60,6 +60,35 @@ DEFER = re.compile(r"""(?ix)
     | (install|download|grab|clone|set\s*up)\s+.{0,30}\byourself\b)
 """)
 
+# R60 CONTEXT-QUIT — deferring the CURRENT task to "a fresh pass / after compact / next session" or
+# because "context is low/degraded". The exact quit-phrasings the classes above miss. "Low/stale
+# context" is NOT a boundary — it's where you push through. (Kept in sync with hooks/stop_guard.py.)
+CONTEXT_QUIT = re.compile(r"""(?ix)
+    ( wait\s+for\s+(the\s+)?(/?compact|a\s+fresh|fresh\s+context|the\s+next\s+(pass|session))
+    | (do|finish|complete|wire|tackle|handle|run)\s+(it|this|that|the\s+rest|them)\s+(in\s+a\s+|on\s+a\s+|with\s+a\s+)?(fresh|next|later|follow[\s-]?up|new|clean)\s*(pass|session|context)
+    | next\s+(bounded\s+)?(pass|action|session)\b | in\s+a\s+(fresh|clean|follow[\s-]?up)\s+(pass|session|context)
+    | (at|in|given|on)\s+(this|the)\s+(degraded|low|tail|stale|poor)\s+(context|fill|budget)
+    | (degraded|low|stale|poor)\s+context\b | tail\s+of\s+(a\s+|this\s+)?long\s+context
+    | i'?ll\s+(do|finish|complete|get\s+to|tackle|wire)\s+(it|this|that|them)\s+(next|later)
+    | let'?s\s+wait\b | come\s+back\s+to\s+(it|this)\s+(next|later|in\s+a) )
+""")
+# A genuine reason that DOES justify deferring (money/destructive/prod/human gate) — naming one earns
+# the stop, so the context-quit flag is suppressed (never force an unsafe rush).
+SAFETY_REASON = re.compile(r"""(?ix)
+    \b(password|2fa|two[\s-]?factor|mfa|otp|captcha|biometric|face\s?id|touch\s?id
+    | payment|credit\s?card|\bbank\b|wire\s+transfer|live[\s-]?trad|real\s+money|move\s+money|funds?\b
+    | destructive|irreversible|delete\s+prod|drop\s+(the\s+)?(database|table)|production\s+config
+    | tcc|privacy\s+prompt|account[\s-]creation)
+""")
+
+QUIT_CORRECTIVE = (
+    "[VERITY GUARD] You're DEFERRING the current task to 'a fresh pass / after compact / next session' "
+    "or because 'context is low/degraded'. That is NOT a boundary — it's exactly where you push through. "
+    "Complete it NOW. The ONLY things that justify stopping are a genuine human gate (password/2FA/"
+    "CAPTCHA/payment/account-creation) or genuinely-unsafe-to-rush work (live-money/destructive/prod "
+    "config) — and if it's the latter you must NAME the specific risk, not cite 'low context'. If you've "
+    "actually done the work, state the result and stop; otherwise continue and finish it.")
+
 CAPABILITY_CORRECTIVE = (
     "[VERITY GUARD] You asserted a CAPABILITY NEGATIVE as fact — 'only weights/training can do this', "
     "'structurally impossible', 'not reachable without X', 'no prompt can'. This is the single costliest "
@@ -99,9 +128,15 @@ def flag(text: str) -> str | None:
         return "capability"
     if DEFER.search(tail):
         return "defer"
+    if CONTEXT_QUIT.search(tail) and not SAFETY_REASON.search(tail):
+        return "context-quit"
     return None
 
 
 def corrective_for(kind: str | None) -> str:
-    """The right re-prompt for the flagged kind (capability negatives get their own search-forcing text)."""
-    return CAPABILITY_CORRECTIVE if kind == "capability" else CORRECTIVE
+    """The right re-prompt for the flagged kind (capability + context-quit get their own text)."""
+    if kind == "capability":
+        return CAPABILITY_CORRECTIVE
+    if kind == "context-quit":
+        return QUIT_CORRECTIVE
+    return CORRECTIVE
