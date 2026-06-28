@@ -57,7 +57,12 @@ DEFER = re.compile(r"""(?ix)
     | you\s+(can|should|just|could|go\s+ahead\s+and|gotta)?\s*(install|download|drag|launch|set\s*up|grab|clone)\b
     | once\s+you'?(ve|re)?\s+(install|download|set\s*up|launch|got|grabbed|cloned)
     | drag\s+.{0,30}\s+to\s+(applications|the\s+dock) | tell\s+me\s+(once|when)\s+(it'?s|you'?ve|you\s+have)
-    | (install|download|grab|clone|set\s*up)\s+.{0,30}\byourself\b)
+    | (install|download|grab|clone|set\s*up)\s+.{0,30}\byourself\b
+    # ── SUPPORT-DEFLECT: punting to "contact support / seek assistance" instead of investigating.
+    #    The SOFTER giveup that low-B models favor (found in multi-model testing: qwen2.5:3b deflected
+    #    "seek assistance from our support team" where a frontier model said "can't be done"). ──
+    | (recommend|suggest|advise|best\s+to|you\s+(should|could|might|may))\s+(seek(ing)?|contact(ing)?|reach(ing)?\s+out\s+to|ask(ing)?)\s+[^.]{0,24}(support|help\s+(team|desk)|assistance|customer\s+service|the\s+(team|vendor|provider))
+    | (contact|email|call)\s+[^.]{0,15}support | seek(ing)?\s+(assistance|help)\s+(from|with) | for\s+further\s+(guidance|assistance|help|support))
 """)
 
 # R60 CONTEXT-QUIT — deferring the CURRENT task to "a fresh pass / after compact / next session" or

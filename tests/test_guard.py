@@ -20,6 +20,9 @@ CASES = [
     ("the API is not configured so I can't proceed", "negative"),
     ("only weights can do this; no prompt can replicate it", "capability"),
     ("you'll have to install it yourself", "defer"),
+    # low-B soft giveup found in multi-model testing (qwen2.5:3b) — support-deflect
+    ("we recommend seeking assistance from our support team for further guidance", "defer"),
+    ("it might be best to contact support for help with this", "defer"),
     # clean completion → no flag
     ("Build passed, tests green, committed and pushed.", None),
 ]
