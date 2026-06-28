@@ -40,8 +40,11 @@ futron-mcp-safe-wire --name <n> --repo <path> --command <cmd> --args ... [--forc
 6. **ROLLBACK** — any failure restores the backup. The config is never left broken or half-wired.
 
 The "untrusted install" boundary is now a **backed-up, gated, health-checked, instantly-reversible
-operation** — proven on a live attempt where a server that didn't respond was auto-rolled-back
-with the config left pristine.
+operation** — proven both ways: a non-responding server was auto-rolled-back with the config left
+pristine, and a real install (IBM's `docling-mcp`) went **GREEN end-to-end** — backup → write our
+own entry → JSON-validate → live MCP `initialize` handshake confirmed → registered. The obstacle
+"it needs a build/install" (R62) is solved by *doing the install*, then wiring the verified entry
+ourselves — never running their installer.
 
 ## Why this is the R62 template
 A boundary with a safe engineerable workaround is a design problem, not a stop. The only true
