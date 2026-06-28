@@ -66,6 +66,29 @@ Write a `_name(query, n) -> [{title,url,snippet,source}]` (raise on no-key/error
 - r/LocalLLaMA best free deep-research — https://www.reddit.com/r/LocalLLaMA/comments/1mfpnxi/
 - Reddit threads: r/AI_Agents best search tool — https://www.reddit.com/r/AI_Agents/comments/1pf9avo/ · r/LangChain internet search — https://www.reddit.com/r/LangChain/comments/1mwkgfc/ · r/hermesagent browser-search — https://www.reddit.com/r/hermesagent/comments/1ucly0g/
 
+## Mined upgrades (researched the provided resources — RULE 8, applied not just saved)
+
+Researched the resource set and ported the highest-leverage techniques:
+
+- **Iterative deepening loop** (from nibzard/awesome-agentic-patterns · ai-web-search-agent-loop):
+  `deep_research(query, ask=, rounds=)` — search → the reasoner names the biggest remaining GAP →
+  refine the query → search again → stop on "DONE" or rounds. Makes research THOROUGH, not single-shot.
+  `verity websearch --deep "<q>"`.
+- **Six-source scoping** (R60 made literal): `six_source(query)` / `verity websearch --six` runs an
+  explicit `site:`-scoped search per canonical source (github/reddit/youtube/stackoverflow/HN + web),
+  so "research the six sources" isn't one open-web query — each source is hit and labeled.
+
+### Backlog (mined, attributed, not yet built)
+- **Readability extraction + CSS-select** (from 1broseidon/ketch): replace `fetch()`'s crude tag-strip
+  with main-content (readability-style) extraction + a `--select <css>` for targeted scrape. Better
+  "read the page" quality.
+- **Parallel multi-angle workers** (agentic-search-loop Stage 3): spawn searches for different
+  angles/domains simultaneously and aggregate (today `--all` is multi-provider, not multi-angle).
+- **Browser tier for JS-heavy/auth-walled** (OmniParser v2 / ketch / futron-claw): a `_browser(url)`
+  escalation when `fetch()` returns thin/blocked content — render via Playwright/CUA. (See FUTRON
+  memory subsystem-verity-websearch-rag TODO.)
+- **Search-decision classifier** (Stage 1): skip search when internal knowledge suffices (cost control).
+
 ## Next: deeper tiers (slots already in place)
 - **NotebookLM / free Gemini-grounded research** as a high-reasoning provider behind `as_context()`.
 - **Browser/CUA tier** (Playwright/OmniParser/ketch) for JS-heavy or auth-walled pages `fetch()` can't read — `verity websearch --fetch` handles static HTML today; the browser tier is the escalation for the rest.

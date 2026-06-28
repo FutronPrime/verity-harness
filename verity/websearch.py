@@ -171,6 +171,55 @@ def as_context(query: str, n: int = 5) -> str:
     return "\n".join(f"- {r['title']} ({r['source']}) {r['url']}\n  {r['snippet']}" for r in rows)
 
 
+# ── six-source scoping (R60): search each canonical source explicitly, not just the open web ──
+_SIX_SITES = {"github": "site:github.com", "reddit": "site:reddit.com",
+              "youtube": "site:youtube.com", "stackoverflow": "site:stackoverflow.com",
+              "hackernews": "site:news.ycombinator.com"}
+
+def six_source(query: str, n_each: int = 3) -> list:
+    """Search the canonical R60 sources explicitly (github/reddit/youtube/SO/HN + open web),
+    so 'research the six sources' is literal — not just a single web query."""
+    out, seen = [], set()
+    for label, op in list(_SIX_SITES.items()) + [("web", "")]:
+        try:
+            for r in search(f"{op} {query}".strip(), n_each):
+                if r["url"] and r["url"] not in seen:
+                    seen.add(r["url"]); r["source"] = f"{label}:{r['source']}"; out.append(r)
+        except Exception:
+            pass
+    return out
+
+
+# ── iterative DEEP RESEARCH loop (ported from the agentic-web-search-agent-loop pattern) ──
+def deep_research(query: str, *, ask, rounds: int = 2, n: int = 5) -> dict:
+    """Search → let the model identify the most important GAP → refine the query → search again,
+    until satisfied or `rounds` exhausted. `ask(prompt)->str` is the reasoner (injectable). Returns
+    {context, queries, results} with a deduped, cited result set. This is what makes research
+    THOROUGH instead of single-shot (the key technique from the agentic-search-loop pattern)."""
+    queries, results, seen = [], [], set()
+    q = query
+    for i in range(max(1, rounds)):
+        queries.append(q)
+        for r in search(q, n):
+            if r["url"] and r["url"] not in seen:
+                seen.add(r["url"]); results.append(r)
+        if i == rounds - 1:
+            break
+        # ask the reasoner what's still missing → next query, or DONE.
+        found = "\n".join(f"- {r['title']} ({r['source']})" for r in results[-n:])
+        try:
+            nxt = ask(f"Research goal: {query}\nResults so far:\n{found}\n\n"
+                      f"What is the single most important follow-up SEARCH QUERY to fill the biggest "
+                      f"remaining gap? Reply with ONLY the query, or exactly DONE if coverage is sufficient.").strip()
+        except Exception:
+            break
+        if not nxt or nxt.upper().startswith("DONE") or nxt.lower() == q.lower():
+            break
+        q = nxt.splitlines()[0][:120]
+    ctx = "\n".join(f"- {r['title']} ({r['source']}) {r['url']}\n  {r['snippet']}" for r in results)
+    return {"context": ctx, "queries": queries, "results": results}
+
+
 def _cli(argv: list) -> int:
     if not argv:
         print('usage: verity websearch "<query>" [--all] | --fetch <url>', file=sys.stderr); return 2
@@ -178,6 +227,16 @@ def _cli(argv: list) -> int:
         print(fetch(argv[1])); return 0
     all_p = "--all" in argv
     q = " ".join(a for a in argv if not a.startswith("--"))
+    if "--six" in argv:                 # search the six canonical R60 sources explicitly
+        rows = six_source(q)
+        for r in rows:
+            print(f"[{r['source']}] {r['title']}\n  {r['url']}".rstrip())
+        return 0 if rows else 1
+    if "--deep" in argv:                # iterative deepening loop (model refines the query)
+        from .router import ask as _ask
+        d = deep_research(q, ask=lambda p: _ask(p).text)
+        print(f"# deep research — queries: {d['queries']}\n")
+        print(d["context"]); return 0 if d["results"] else 1
     rows = search(q, all_providers=all_p)
     if not rows:
         print("(no provider returned results — set TAVILY_API_KEY/BRAVE_API_KEY/SEARX_URL "

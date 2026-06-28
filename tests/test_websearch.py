@@ -47,6 +47,37 @@ def test_github_added_for_repo_queries():
     assert "github" in seen and r and r[0]["source"] == "github", (seen, r)
 
 
+def test_deep_research_iterates_then_stops_on_done():
+    seq = iter([[_row("http://a", "p")], [_row("http://b", "p")]])
+    ws.PROVIDERS[:] = [lambda q, n: next(seq, [])]
+    asked = []
+    def ask(p):
+        asked.append(p)
+        return "DONE"          # model says coverage sufficient after round 1
+    d = ws.deep_research("goal", ask=ask, rounds=3)
+    assert len(asked) == 1 and d["queries"] == ["goal"], d           # stopped early on DONE
+    assert any(r["url"] == "http://a" for r in d["results"])
+
+
+def test_deep_research_refines_query():
+    calls = []
+    def prov(q, n):
+        calls.append(q)
+        return [_row(f"http://{len(calls)}", "p")]
+    ws.PROVIDERS[:] = [prov]
+    d = ws.deep_research("first query", ask=lambda p: "second query", rounds=2)
+    assert d["queries"] == ["first query", "second query"], d        # model's refined query was used
+
+
+def test_six_source_scopes_each_site():
+    seen_q = []
+    ws.PROVIDERS[:] = [lambda q, n: (seen_q.append(q), [_row("http://x"+str(len(seen_q)), "ddg")])[1]]
+    rows = ws.six_source("agent loop")
+    assert any("site:github.com" in q for q in seen_q), seen_q
+    assert any("site:reddit.com" in q for q in seen_q), seen_q
+    assert rows and all(":" in r["source"] for r in rows)            # labeled by source
+
+
 def _run():
     import importlib
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
