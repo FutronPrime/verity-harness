@@ -91,36 +91,51 @@ def adjudicate(repo: str, *, vet_fn=None, audit_fn=None, judge_fn=None,
     if audit_fn is None:
         from .audit_code import audit as audit_fn
 
-    vet_res = vet_fn(repo)
-    audit_res = audit_fn(repo)
-
-    # ── deterministic clear cases (free) ────────────────────────────────────
-    if audit_res.verdict == "BLOCK":
-        d = Decision("AVOID", reason=f"runtime backdoor / obfuscated exec: "
-                     f"{(audit_res.blockers or ['code'])[0]}", evidence={"layer": "audit"})
-        return _log(d, repo, run)
-    if vet_res.verdict == "BLOCK":
-        d = Decision("AVOID", reason="instruction-file injection (vet BLOCK)",
-                     evidence={"layer": "vet"})
-        return _log(d, repo, run)
-    if audit_res.verdict == "SAFE" and vet_res.verdict in ("SAFE", "SAFE-TO-APPLY"):
-        d = Decision("INSTALL", reason="no dangerous capabilities or injection detected")
-        return _log(d, repo, run)
-
-    # ── gray zone → escalate to intelligent judgment ────────────────────────
-    brief = _summarize(vet_res, audit_res)
-    prompt = _JUDGE_PROMPT.format(brief=brief)
-    judge = judge_fn or _default_judge(use_council)
+    # Acquire the repo ONCE — a remote owner/repo is streamed (no clone); a local path is
+    # used as-is. vet_fn/audit_fn then see a local path, so they don't re-stream.
+    from . import repostream
+    local, cleanup, sinfo = repostream.resolve(repo)
     try:
-        answer = judge(prompt)
-    except Exception as e:
-        d = Decision("NEEDS-HUMAN", reason=f"ambiguous + no judge reachable ({e}); "
-                     f"deterministic verdict was REVIEW", evidence={"brief": brief})
+        vet_res = vet_fn(local)
+        audit_res = audit_fn(local)
+        truncated = bool(sinfo.get("truncated"))
+
+        # ── deterministic clear cases (free) ────────────────────────────────────
+        if audit_res.verdict == "BLOCK":
+            d = Decision("AVOID", reason=f"runtime backdoor / obfuscated exec: "
+                         f"{(audit_res.blockers or ['code'])[0]}", evidence={"layer": "audit"})
+            return _log(d, repo, run)
+        if vet_res.verdict == "BLOCK":
+            d = Decision("AVOID", reason="instruction-file injection (vet BLOCK)",
+                         evidence={"layer": "vet"})
+            return _log(d, repo, run)
+        if audit_res.verdict == "SAFE" and vet_res.verdict in ("SAFE", "SAFE-TO-APPLY"):
+            if truncated:
+                # clean so far, but the streamed scan was capped — can't assert SAFE on the
+                # files we never fetched. Honest downgrade (R29/R63), don't claim INSTALL.
+                d = Decision("NEEDS-HUMAN", reason="clean on the streamed sample, but the repo "
+                             "exceeded the stream cap — unscanned files remain; clone+re-audit "
+                             "or inspect manually before installing", evidence={"layer": "stream"})
+                return _log(d, repo, run)
+            d = Decision("INSTALL", reason="no dangerous capabilities or injection detected")
+            return _log(d, repo, run)
+
+        # ── gray zone → escalate to intelligent judgment ────────────────────────
+        brief = _summarize(vet_res, audit_res)
+        prompt = _JUDGE_PROMPT.format(brief=brief)
+        judge = judge_fn or _default_judge(use_council)
+        try:
+            answer = judge(prompt)
+        except Exception as e:
+            d = Decision("NEEDS-HUMAN", reason=f"ambiguous + no judge reachable ({e}); "
+                         f"deterministic verdict was REVIEW", evidence={"brief": brief})
+            return _log(d, repo, run)
+        verdict, rationale = _parse(answer)
+        d = Decision(verdict, reason="gray zone adjudicated by intelligent judge",
+                     escalated=True, rationale=rationale, evidence={"brief": brief})
         return _log(d, repo, run)
-    verdict, rationale = _parse(answer)
-    d = Decision(verdict, reason="gray zone adjudicated by intelligent judge",
-                 escalated=True, rationale=rationale, evidence={"brief": brief})
-    return _log(d, repo, run)
+    finally:
+        cleanup()
 
 
 def _default_judge(use_council: bool):

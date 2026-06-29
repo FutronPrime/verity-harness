@@ -122,6 +122,23 @@ def _iter(p: pathlib.Path):
 
 
 def audit(target: str) -> AuditResult:
+    """Audit a local path OR a remote `owner/repo` (streamed via the GitHub API, no clone)."""
+    from . import repostream
+    local, cleanup, info = repostream.resolve(target)
+    try:
+        res = _audit_local(local)
+        if info.get("remote"):
+            res.target = info.get("slug") or target
+            res.streamed = True
+            res.stream_truncated = bool(info.get("truncated"))
+            if not info.get("files") and info.get("error"):
+                res.verdict = "BLOCK"; res.blockers.append(f"stream-failed: {info['error']}")
+        return res
+    finally:
+        cleanup()
+
+
+def _audit_local(target: str) -> AuditResult:
     p = pathlib.Path(os.path.expanduser(target))
     res = AuditResult(target=str(p))
     if not p.exists():

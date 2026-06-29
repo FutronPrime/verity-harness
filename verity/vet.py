@@ -75,6 +75,24 @@ def _iter_files(p: pathlib.Path):
 
 
 def vet(target: str, *, run: str = "") -> VetResult:
+    """Vet a local path OR a remote `owner/repo` (streamed via the GitHub API, no clone)."""
+    from . import repostream
+    local, cleanup, info = repostream.resolve(target)
+    try:
+        res = _vet_local(local, run=run)
+        if info.get("remote"):
+            res.target = info.get("slug") or target
+            res.streamed = True
+            res.stream_truncated = bool(info.get("truncated"))
+            if not info.get("files") and info.get("error"):
+                res.verdict = "BLOCK"
+                res.blockers.append((res.target, "STREAM-FAILED", 0, info["error"]))
+        return res
+    finally:
+        cleanup()
+
+
+def _vet_local(target: str, *, run: str = "") -> VetResult:
     p = pathlib.Path(os.path.expanduser(target))
     res = VetResult(target=str(p), verdict="SAFE-TO-APPLY")
     if not p.exists():

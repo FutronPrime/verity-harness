@@ -582,6 +582,12 @@ def main(argv: list[str]) -> None:
         # → SAFE-TO-APPLY / REVIEW / BLOCK before an agent installs it. exit 2 = BLOCK.
         from . import vet as _vet
         sys.exit(_vet._cli(rest))
+    elif cmd in ("stream", "repostream"):
+        # Sparse-materialize a remote owner/repo's scan-worthy files via the GitHub API
+        # (no clone). vet/audit/adjudicate accept a remote ref directly and use this under
+        # the hood — `verity stream` exposes it standalone. Low-footprint repo acquisition.
+        from . import repostream as _rs
+        sys.exit(_rs._cli(rest))
     elif cmd in ("reach", "x"):
         # OPTIONAL X reach via twscrape (resilient search/timeline). Gives the
         # search-before-concluding gate real reach. `verity reach setup|x-search`.
