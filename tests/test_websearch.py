@@ -21,6 +21,13 @@ def test_failover_returns_first_that_answers():
     assert r and r[0]["source"] == "live", r
 
 
+def test_fetch_refuses_non_http_schemes():
+    """SECURITY: fetch must refuse file://, ftp://, gopher:// (SSRF / local-file-read sink)."""
+    for bad in ("file:///etc/passwd", "ftp://host/x", "gopher://h/1", "  file://local/y"):
+        out = ws.fetch(bad)
+        assert out.startswith("(refused"), (bad, out)
+
+
 def test_all_merges_and_dedupes():
     def p1(q, n): return [_row("http://a", "p1"), _row("http://b", "p1")]
     def p2(q, n): return [_row("http://a", "p2"), _row("http://c", "p2")]  # http://a dup

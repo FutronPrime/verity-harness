@@ -61,6 +61,37 @@ class _SafeVet:
     blockers: list = []
 
 
+def test_materialize_rejects_path_escape(monkeypatch, tmp_path):
+    """SECURITY: absolute / '..' tree paths from an UNTRUSTED repo must not escape dest."""
+    tree = {"tree": [
+        {"type": "blob", "path": "good.py", "size": 10},
+        {"type": "blob", "path": "../evil.py", "size": 10},
+        {"type": "blob", "path": "/tmp/verity_abs_evil.py", "size": 10},
+    ]}
+
+    def fake_gh_get(url, token, timeout=30):
+        return tree if "trees" in url else {"default_branch": "main"}
+    monkeypatch.setattr(repostream, "_gh_get", fake_gh_get)
+
+    class _Resp:
+        def read(self, n=-1):
+            return b"print('x')"
+        def __enter__(self):
+            return self
+        def __exit__(self, *a):
+            return False
+    monkeypatch.setattr(repostream.urllib.request, "urlopen", lambda *a, **k: _Resp())
+
+    dest = tmp_path / "dest"
+    info = repostream.materialize("o/r", str(dest))
+
+    assert (dest / "good.py").exists()                       # safe file landed
+    assert not (dest.parent / "evil.py").exists()            # '..' escape blocked
+    assert not os.path.exists("/tmp/verity_abs_evil.py")     # absolute escape blocked
+    assert info["files"] == 1                                # only the safe one written
+    assert info["truncated"] is True                         # escapes => scan incomplete (honest)
+
+
 def test_adjudicate_untruncated_clean_is_install(monkeypatch):
     tmp = tempfile.mkdtemp()
     monkeypatch.setattr(repostream, "resolve",
