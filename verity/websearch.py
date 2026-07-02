@@ -185,6 +185,11 @@ def fetch(url: str, max_chars: int = 6000, select: str = "") -> str:
     """Scrape ANY page → readable MAIN-CONTENT text (readability-style, from ketch). Prefers
     <article>/<main>/role=main, strips chrome, preserves nothing but clean prose. `select` = a tag
     name (e.g. 'article','table') to target. Escalates to the browser tier for JS/auth-walled pages."""
+    # SECURITY: only http(s). urllib honors file://, ftp://, gopher:// — and `url` here can come
+    # from search results or a (prompt-injectable) model choice, so an unrestricted fetch is a
+    # local-file-read / SSRF sink (e.g. file:///etc/passwd). Refuse anything but the web.
+    if not re.match(r"^https?://", url.strip(), re.I):
+        return f"(refused: fetch is http(s)-only, got: {url.strip()[:80]})"
     try:
         html = _get(url, timeout=20)
     except Exception as e:
