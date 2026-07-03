@@ -36,7 +36,7 @@ DB_PATH = pathlib.Path(os.environ.get("VERITY_CLOUD_DB", str(pathlib.Path.home()
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 # per-endpoint price (billing units) — reported to Stripe if wired
-PRICE = {"/v1/scan": 1, "/v1/vet": 3, "/v1/reuse-check": 1}
+PRICE = {"/v1/scan": 1, "/v1/vet": 3, "/v1/reuse-check": 1, "/v1/council": 10}
 
 
 def _db() -> sqlite3.Connection:
@@ -110,7 +110,26 @@ def do_reuse_check(body: dict) -> dict:
             "rule": "If a tool matches, USE IT. Rebuilding forks logic and rots the system."}
 
 
-ROUTES = {"/v1/scan": do_scan, "/v1/vet": do_vet, "/v1/reuse-check": do_reuse_check}
+def do_council(body: dict) -> dict:
+    # Premium gate: multi-model blind-deliberation council (karpathy/llm-council, ported).
+    # Runs on VERITY's tiers (providers configured in the deploy env). Degrades to whatever
+    # backends are up. High-stakes verification-as-a-service — priced above the single gates.
+    q = body.get("question", "") or body.get("text", "")
+    if not q:
+        return {"error": "provide {\"question\": \"...\"}"}
+    try:
+        from verity.council import council as _council
+        r = _council(q, n=int(body.get("members", 3)))
+        return {"final": r.final, "consensus": r.consensus,
+                "disagreement": r.disagreement,
+                "verdict": "ESCALATE" if r.disagreement >= 0.5 else "ALIGNED",
+                "members": len(r.responses)}
+    except Exception as e:
+        return {"error": f"council unavailable (configure provider tiers): {e}"}
+
+
+ROUTES = {"/v1/scan": do_scan, "/v1/vet": do_vet, "/v1/reuse-check": do_reuse_check,
+          "/v1/council": do_council}
 
 
 class H(BaseHTTPRequestHandler):
