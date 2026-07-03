@@ -612,6 +612,12 @@ def main(argv: list[str]) -> None:
         # Turns video into queryable knowledge, triage-first so a backlog can't nuke tokens.
         from . import assimilate as _assim
         _assim.cli(rest)
+    elif cmd in ("broker", "capability", "jit"):
+        # JIT capability broker: mount a cataloged repo/skill on demand, vet it, lease it with a
+        # TTL, auto-release + reclaim disk. Reads stream (zero clone). The vet gate means unvetted
+        # instruction-surfaces never become directives. Reachable-not-resident.
+        from . import broker as _broker
+        sys.exit(_broker._cli(rest))
     else:
         print(f"unknown command: {cmd}", file=sys.stderr); sys.exit(2)
 
