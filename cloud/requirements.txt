@@ -1,0 +1,3 @@
+# VERITY Cloud runs on the Python stdlib (http.server) — no deps required to serve.
+# Stripe is optional: install it only when you wire real metered billing.
+stripe>=9.0 ; python_version >= "3.8"

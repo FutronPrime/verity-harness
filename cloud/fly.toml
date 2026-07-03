@@ -1,0 +1,28 @@
+# VERITY Cloud on Fly.io.  Deploy:  fly launch --copy-config --no-deploy  &&  fly deploy
+# Secrets (the DJ-only inputs):  fly secrets set STRIPE_API_KEY=sk_live_...  VERITY_ADMIN_KEY=...
+app = "verity-cloud"
+primary_region = "iad"
+
+[build]
+  dockerfile = "cloud/Dockerfile"
+
+[env]
+  VERITY_CLOUD_PORT = "8787"
+  VERITY_CLOUD_DB = "/data/ledger.db"
+
+[[mounts]]
+  source = "verity_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/health"
+    interval = "30s"
+    timeout = "5s"
