@@ -618,6 +618,11 @@ def main(argv: list[str]) -> None:
         # instruction-surfaces never become directives. Reachable-not-resident.
         from . import broker as _broker
         sys.exit(_broker._cli(rest))
+    elif cmd in ("fixed", "regression", "known-fixed"):
+        # Known-fixed-bugs ledger: record a fix once, then gate any plan/diff against it so the
+        # agent can't silently reintroduce a solved bug (forward companion to the decision ledger).
+        from . import regression_ledger as _rl
+        sys.exit(_rl._cli(rest))
     else:
         print(f"unknown command: {cmd}", file=sys.stderr); sys.exit(2)
 
