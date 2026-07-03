@@ -623,6 +623,11 @@ def main(argv: list[str]) -> None:
         # agent can't silently reintroduce a solved bug (forward companion to the decision ledger).
         from . import regression_ledger as _rl
         sys.exit(_rl._cli(rest))
+    elif cmd in ("skills", "skill-audit"):
+        # Skill audit: measure dead-weight vs lift — token cost + near-dup clusters + real invocation
+        # scan; CUT list = 0-use high-cost skills. --ab runs a task with/without a skill to prove lift.
+        from . import skill_audit as _sa
+        sys.exit(_sa._cli(rest))
     else:
         print(f"unknown command: {cmd}", file=sys.stderr); sys.exit(2)
 
