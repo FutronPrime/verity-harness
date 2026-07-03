@@ -34,6 +34,8 @@ and it can't be revoked.*
 ### The open-source Fable alternative — frontier-grade discipline on models you own.
 
 > **🆕 v2 — Harness Sovereignty Layer:** code executor (`verity-opencode`), new gates (spec-gate, fresh-context verify, tool-veto, durable verdict), reusable `commands/` pipelines, and fully-local keyless routing (Ollama). See **[V2.md](V2.md)** · ![v2 scorecard](assets/scorecard-v2.svg)
+>
+> **🆕 JIT Capability Broker — *reachable, not resident.*** Catalog hundreds of repos & skills without installing any. `verity broker use <name>` mounts one on demand, **gates it through `verity vet`** (unvetted instruction-surfaces never become your agent's directives), leases it with a TTL, and auto-releases it — reclaiming disk — when you're done. Reads stream (zero clone). This is how an agent gets an unbounded tool-shelf without the bloat, credential sprawl, or supply-chain risk of installing it all. See **[docs/BROKER.md](docs/BROKER.md)**.
 
 *(model-agnostic · zero-dependency · local-first — the open-source way to get Fable-grade reliability without Fable.)*
 
@@ -90,6 +92,12 @@ VERITY agents don't just *answer* — they **work**, and they **don't give up**:
 - **Multi-agent swarm** — `verity swarm` fans out research + execution, runs an adversarial critic, and
   synthesizes — every step gated, **every sub-agent the same caliber as the lead and bound by the same
   gates** (can't quit, can't confabulate model facts). ([details below](#multi-agent-swarm-the-mythosfable-shape--self-contained))
+- **JIT capability broker — reachable, not resident.** `verity broker` gives the agent an unbounded
+  tool-shelf without installing it: catalog any repo/skill, then `use <name>` mounts it on demand,
+  **runs it through the vet gate** (a hostile instruction-surface is BLOCKed and the clone deleted —
+  never becomes a directive), leases it with a TTL, and auto-releases + reclaims disk when done. Reads
+  stream (zero clone). Solves *"install everything vs. capability-starved"* without the supply-chain
+  risk of either. ([docs/BROKER.md](docs/BROKER.md))
 - **Self-improving — it learns from its own track record.** Every gate logs to a decision ledger;
   `verity playbook` mines it for the assumptions the harness *caught being wrong*, the tools it *found*,
   and the fixes that *worked*, and distills an injectable playbook that `autostart` re-feeds **every
@@ -116,7 +124,7 @@ VERITY agents don't just *answer* — they **work**, and they **don't give up**:
 
 This isn't a personality prompt asking the model to be diligent; it's enforced on **code conditions**.
 
-**Docs:** [Install & requirements](INSTALL.md) · [Guide — purpose, features & best practices](GUIDE.md) · [Model registry](MODELS.md) · [Benchmarks](BENCHMARK.md) · [VERITY vs Sakana Fugu](docs/FUGU_PARITY.md)
+**Docs:** [Install & requirements](INSTALL.md) · [Guide — purpose, features & best practices](GUIDE.md) · [Model registry](MODELS.md) · [Benchmarks](BENCHMARK.md) · [Capability Broker](docs/BROKER.md) · [VERITY vs Sakana Fugu](docs/FUGU_PARITY.md)
 
 ## Standalone · additive · a supercharger (not a stopgap)
 
