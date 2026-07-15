@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import re
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -37,6 +38,64 @@ _OC_GUARD = os.environ.get("VERITY_OVERCONFIDENCE_GUARD", "on").lower() != "off"
 _IDLE_MIN = float(os.environ.get("VERITY_IDLE_SHUTDOWN_MIN", "15"))
 _LAST_USE = [time.time()]
 PIDFILE = pathlib.Path(os.path.expanduser("~/.verity-harness/proxy.pid"))
+
+_PREFLIGHT_SIGNAL = re.compile(
+    r"\b(goal|obstacle|purpose|functionality|research|investigat|find|fix|debug|repair|"
+    r"build|create|implement|integrat|configur|automat|deploy|migrat|solution|why|how)\w*",
+    re.I,
+)
+
+
+def build_preflight_context(goal: str, run: str = "") -> dict:
+    """Return the deterministic context injected before a Codex turn.
+
+    This is deliberately a separate endpoint from the model proxy. Codex's native
+    Responses transport and structured tools remain untouched, while every goal
+    still crosses VERITY's local enforcement plane before the model sees it.
+    """
+    from . import ledger
+    from .scaffold import _preflight, _should_discover
+
+    goal = (goal or "").strip()
+    researched = bool(goal) and (
+        _should_discover(goal) or bool(_PREFLIGHT_SIGNAL.search(goal))
+    )
+    findings = _preflight(goal, verbose=False) if researched else ""
+    ledger.log(
+        "codex-preflight-route",
+        trigger="UserPromptSubmit routed through VERITY",
+        detail=goal[:400],
+        verdict="FOUND" if findings.strip() else "NONE",
+        evidence=findings[:300],
+        run=run,
+    )
+
+    rules = [
+        "VERITY ROUTE RECEIPT — deterministic UserPromptSubmit gate fired on port 11500.",
+        f"RUN: {run or 'unknown'}",
+        "RULE 0: state a falsifiable done criterion before multi-step work.",
+        "REUSE-FIRST: search installed tools, project history, and maintained OSS before building.",
+        "OBSTACLE ORDER: read logs/status, attempt documented repair, then search the exact error.",
+        "PERSISTENCE: try at least two structurally different approaches before deferring.",
+        "VERIFY: run an objective task-matched check; label conclusions VERIFIED or GUESS.",
+        "NEGATIVE CLAIMS: no impossible/down/missing/only-way conclusion without cited investigation.",
+    ]
+    if findings.strip():
+        rules.extend((
+            "CURRENT BEST APPROACH — live findings; prefer these over stale model memory:",
+            findings[:2500],
+        ))
+    elif researched:
+        rules.append(
+            "LIVE PREFLIGHT RETURNED NO RELIABLE EVIDENCE. Narrow the query or inspect a primary "
+            "source before treating any recalled answer as verified."
+        )
+    return {
+        "goal": goal,
+        "run": run,
+        "researched": researched,
+        "context": "\n".join(rules),
+    }
 
 
 def _idle_watchdog():
@@ -68,7 +127,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path.rstrip("/") in ("/health", "/v1/health"):
             self._send(200, {"ok": True, "service": "verity-harness-proxy",
                              "guardrail_mode": _MODE,
-                             "endpoints": ["/v1/chat/completions", "/v1/swarm"]})
+                             "endpoints": ["/v1/chat/completions", "/v1/swarm", "/v1/preflight"]})
         else:
             self._send(404, {"error": "not found"})
 
@@ -104,6 +163,23 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = self.path.rstrip("/")
+        if path in ("/v1/preflight", "/preflight"):
+            _LAST_USE[0] = time.time()
+            try:
+                n = int(self.headers.get("Content-Length", 0))
+                req = json.loads(self.rfile.read(n) or b"{}")
+            except (ValueError, json.JSONDecodeError):
+                self._send(400, {"error": "bad json"})
+                return
+            goal = (req.get("goal") or req.get("prompt") or "").strip()
+            if not goal:
+                self._send(400, {"error": "missing 'goal'"})
+                return
+            try:
+                self._send(200, build_preflight_context(goal, str(req.get("run") or "")))
+            except Exception as e:  # noqa: BLE001 — report a failed gate; never fake success
+                self._send(500, {"error": f"{type(e).__name__}: {e}"})
+            return
         # n8n / webhook integration: run the multi-agent SWARM over a goal and return the synthesized
         # answer. Reasoning-mode ONLY (no executor) — shell execution is deliberately NOT exposed over
         # HTTP; that stays CLI-side (`verity swarm --exec`) so the daemon can't run host commands.

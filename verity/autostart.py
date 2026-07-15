@@ -43,6 +43,7 @@ REPO = str(pathlib.Path(__file__).resolve().parent.parent)
 SCRIPT = pathlib.Path(os.path.expanduser("~/.verity-harness/autostart.sh"))
 INJECT = pathlib.Path(os.path.expanduser("~/.verity-harness/verity-context-inject.sh"))
 GUARD = pathlib.Path(os.path.expanduser("~/.verity-harness/stop_guard.py"))
+CODEX_PROMPT_GUARD = pathlib.Path(os.path.expanduser("~/.verity-harness/codex_prompt_guard.py"))
 
 _SCRIPT_BODY = f"""#!/usr/bin/env bash
 # VERITY silent background harness — idempotent, fast, NON-BLOCKING (never delays your agent).
@@ -155,6 +156,15 @@ agents talk direct to the API) — so apply these gates MANUALLY, every task. No
  • COUNCIL-MODE (high-stakes eval): `python3 -m verity council "<q>"` — N tiers answer → anonymized blind
    cross-ranking → chairman synthesis (ported from karpathy/llm-council). Removes judge self-preference;
    disagreement score ≥0.5 ⇒ escalate. Use on irreversible/high-consequence decisions over a single shot.
+ ── VERITY v2.3 — SESSION LIFECYCLE + PLANNING (2026-07-15; portability doctrine) ──
+ • PRIME (session start): run the bootstrap read-order (handoff + memory index), restate the goal with
+   ≥1 FALSIFIABLE success criterion (spec-gate), and SEARCH prior work before acting.
+ • PLAN-BEFORE-EXECUTE (tiered): trivial → just do it; multi-step/risky → write an explicit plan first;
+   deep/architectural → deep-plan (options + tradeoffs + chosen path + falsifiable checks) BEFORE code.
+ • WRAP-UP (session end, BLOCKER): write the dated session log, update HANDOFF, `futron-handoff write`
+   any cross-agent baton, store key decisions. A session without a wrap-up is an unfinished session.
+ • PORTABLE-BY-DEFAULT: keep the source of truth in the vault (human-readable) so ANY model/agent can
+   pick up cold; operate without private machine state where possible. (harness sovereignty > model)
 GATES
 # PLAYBOOK: inject the lessons distilled from THIS system's own verified history (assumptions it
 # already caught, tools it already found) — 'make any model think like Fable' applied to your own
@@ -194,6 +204,18 @@ def write_guard_script() -> pathlib.Path:
         GUARD.write_text(src.read_text())
         GUARD.chmod(GUARD.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP)
     return GUARD
+
+
+def write_codex_prompt_guard_script() -> pathlib.Path:
+    """Install the Codex UserPromptSubmit router in stable local state."""
+    CODEX_PROMPT_GUARD.parent.mkdir(parents=True, exist_ok=True)
+    src = pathlib.Path(REPO) / "hooks" / "codex_prompt_guard.py"
+    if src.exists():
+        CODEX_PROMPT_GUARD.write_text(src.read_text())
+        CODEX_PROMPT_GUARD.chmod(
+            CODEX_PROMPT_GUARD.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP
+        )
+    return CODEX_PROMPT_GUARD
 
 
 def wire_claude_code() -> str:
@@ -310,6 +332,12 @@ _GATES_MD = """<!-- VERITY-GATES:start (managed by `verity autostart` — re-run
   destructive/irreversible ops, outward-facing publish/send, account-creation/credentials, security-policy
   changes, or a genuinely ambiguous fork. Everything else (code, vetted-tool installs, tests, docs, config
   you own+verify) — just do it and report it done. "Should I…?" on non-gated work is the quit-pattern.
+- **VERITY v2.3 — session lifecycle + planning (portability doctrine):** PRIME at session start
+  (bootstrap read-order → restate goal with ≥1 falsifiable criterion → search prior work).
+  PLAN-BEFORE-EXECUTE tiered (trivial→do; multi-step→plan; architectural→deep-plan first).
+  WRAP-UP at session end (dated log + HANDOFF + `futron-handoff write` baton + store decisions — a
+  session without a wrap-up is unfinished). PORTABLE-BY-DEFAULT: source of truth stays in the vault
+  (human-readable) so any model/agent can pick up cold. Harness sovereignty > model.
 <!-- VERITY-GATES:end -->"""
 
 import re as _re
@@ -327,12 +355,19 @@ def _ensure_md_block(path: pathlib.Path) -> str:
     path.write_text(text + sep + "\n" + _GATES_MD + "\n"); return f"[wired] {path}"
 
 def wire_codex() -> str:
-    """Codex is its OWN app now (desktop + `codex` CLI), with its own config surfaces. Wire all three
-    that matter: AGENTS.md (always-on rules), hooks.json (real Stop-gate enforcement), and the honest
-    proxy caveat. Verified against developers.openai.com/codex (2026-06)."""
-    write_script(); write_guard_script()
+    """Wire Codex Desktop/CLI through persistent rules plus deterministic prompt/response hooks.
+
+    Native Responses/tool transport remains direct; UserPromptSubmit sends the exact goal through
+    VERITY's preflight endpoint and Stop/SubagentStop mechanically gate the conclusion.
+    """
+    write_script(); write_guard_script(); write_codex_prompt_guard_script()
     out = ["Codex (own app + `codex` CLI):"]
-    # 1) Always-on doctrine → ~/.codex/AGENTS.md (global, every repo; ~/.codex/AGENTS.override.md = hard override).
+    # 1) Persist doctrine in the FUTRON generator source AND its current generated target. Updating only
+    #    AGENTS.md is temporary on systems that regenerate it at each Codex launch.
+    out.append(
+        "  instructions.md: "
+        + _ensure_md_block(pathlib.Path(os.path.expanduser("~/.codex/instructions.md")))
+    )
     out.append("  AGENTS.md: " + _ensure_md_block(pathlib.Path(os.path.expanduser("~/.codex/AGENTS.md"))))
     # 2) REAL enforcement → ~/.codex/hooks.json Stop hook (Codex supports Claude-Code-style hooks; a
     #    Stop handler that emits decision:block forces the turn to continue until verified — same
@@ -346,6 +381,15 @@ def wire_codex() -> str:
     hooks = data.setdefault("hooks", {})
     guard_cmd = f"python3 {GUARD}"
     changed = []
+    prompts = hooks.setdefault("UserPromptSubmit", [])
+    if "codex_prompt_guard.py" not in json.dumps(prompts):
+        prompts.append({"matcher": "", "hooks": [{
+            "type": "command",
+            "command": f"python3 {CODEX_PROMPT_GUARD}",
+            "timeout": 90,
+            "statusMessage": "Applying VERITY deterministic preflight",
+        }]})
+        changed.append("UserPromptSubmit")
     for ev in ("Stop", "SubagentStop"):
         arr = hooks.setdefault(ev, [])
         if "stop_guard.py" not in json.dumps(arr):
@@ -353,15 +397,19 @@ def wire_codex() -> str:
             changed.append(ev)
     if changed:
         hj.parent.mkdir(parents=True, exist_ok=True); hj.write_text(json.dumps(data, indent=2))
-        out.append(f"  hooks.json: [wired] {', '.join(changed)} → overconfidence/anti-giveup guard.")
+        out.append(
+            f"  hooks.json: [wired] {', '.join(changed)} → deterministic preflight + "
+            "overconfidence/anti-giveup guards."
+        )
     else:
-        out.append("  hooks.json: [already wired] Stop guard present.")
-    # 3) HONEST proxy caveat: Codex's model_providers base_url uses wire_api='responses' (/v1/responses),
-    #    NOT /chat/completions — so the :11500 chat-completions proxy does NOT gate Codex via the proxy
-    #    path. On Codex, the rules (AGENTS.md) + the Stop hook ARE the enforcement.
-    out.append("  PROXY NOTE: Codex speaks the Responses API; the :11500 chat/completions proxy will "
-               "NOT discipline Codex — the AGENTS.md rules + Stop hook above do.")
-    out.append("  SKILL: copy skill/verity → ~/.agents/skills/verity/ (Codex reads the same SKILL.md skill standard).")
+        out.append("  hooks.json: [already wired] deterministic preflight + Stop guards present.")
+    # 3) HONEST transport boundary: preserve Codex's native Responses/tool path, but route every goal
+    #    through VERITY's :11500 preflight endpoint before inference. The Stop hook gates the response.
+    out.append(
+        "  ROUTE: every UserPromptSubmit → :11500/v1/preflight; native Responses/tool transport stays "
+        "direct so Codex tools keep working; Stop/SubagentStop mechanically gate conclusions."
+    )
+    out.append("  " + install_skill_everywhere())
     return "\n".join(out)
 
 def wire_gemini() -> str:
@@ -435,17 +483,27 @@ def wire_daemon() -> str:
                 f"  (set -a; . ~/.verity-harness/proxy.env 2>/dev/null; set +a; "
                 f"VERITY_IDLE_SHUTDOWN_MIN=0 nohup python3 -m verity.server &)   # add to systemd/supervisor")
     wrapper = pathlib.Path(os.path.expanduser("~/.verity-harness/proxy-daemon.sh"))
+    wrapper.parent.mkdir(parents=True, exist_ok=True)
     pys = "/opt/homebrew/bin/python3 /usr/local/bin/python3 python3"
     wrapper.write_text(
         "#!/usr/bin/env bash\nset -euo pipefail\n"
         '[ -f "$HOME/.verity-harness/proxy.env" ] && set -a && . "$HOME/.verity-harness/proxy.env" && set +a\n'
         "export VERITY_IDLE_SHUTDOWN_MIN=0 VERITY_OVERCONFIDENCE_GUARD=on\n"
         f'cd "{REPO}"\n'
-        f'for PY in {pys}; do command -v "$PY" >/dev/null 2>&1 && exec "$PY" -m verity.server; done\n'
-        "exec python3 -m verity.server\n")
+        f'for CANDIDATE in {pys}; do\n'
+        '  PY="$(command -v "$CANDIDATE" 2>/dev/null || true)"\n'
+        '  [ -n "$PY" ] || continue\n'
+        '  if "$PY" -c "import verity.guard, verity.server" >/dev/null 2>&1; then\n'
+        '    exec "$PY" -m verity.server\n'
+        '  fi\n'
+        '  echo "VERITY daemon rejected incompatible Python: $PY" >&2\n'
+        'done\n'
+        'echo "VERITY daemon found no compatible Python runtime" >&2\n'
+        'exit 70\n')
     wrapper.chmod(wrapper.stat().st_mode | stat.S_IEXEC)
     label = "io.verity.proxy"
     plist = pathlib.Path(os.path.expanduser(f"~/Library/LaunchAgents/{label}.plist"))
+    plist.parent.mkdir(parents=True, exist_ok=True)
     plist.write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" '
         '"http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0"><dict>\n'
@@ -457,12 +515,45 @@ def wire_daemon() -> str:
         '</dict></plist>\n')
     import subprocess
     uid = os.getuid()
-    subprocess.run(["launchctl", "bootout", f"gui/{uid}/{label}"], capture_output=True)
+    # Migrate the pre-canonical label that shipped on early FUTRON installs. Booting both labels
+    # caused a KeepAlive restart/port-conflict loop, so both must be stopped before one canonical
+    # service is bootstrapped.
+    for old_label in ("ai.futron.verity-proxy", label):
+        subprocess.run(["launchctl", "bootout", f"gui/{uid}/{old_label}"], capture_output=True)
     r = subprocess.run(["launchctl", "bootstrap", f"gui/{uid}", str(plist)], capture_output=True, text=True)
     if r.returncode != 0:
-        subprocess.run(["launchctl", "load", "-w", str(plist)], capture_output=True)
+        fallback = subprocess.run(
+            ["launchctl", "load", "-w", str(plist)], capture_output=True, text=True
+        )
+        if fallback.returncode != 0:
+            raise RuntimeError(
+                "VERITY launchd bootstrap failed: "
+                + (r.stderr or fallback.stderr or "unknown launchctl error")[-600:]
+            )
+    if not _wait_for_proxy_health():
+        log = pathlib.Path(os.path.expanduser("~/.verity-harness/proxy-daemon.log"))
+        tail = log.read_text(errors="replace")[-1200:] if log.exists() else "no daemon log"
+        raise RuntimeError(f"VERITY proxy health check failed after launchd bootstrap. Log tail:\n{tail}")
     return (f"[daemon] installed always-on proxy: {label} (KeepAlive). The gate layer is now persistent "
             f"+ multi-provider (sources proxy.env) + idle-shutdown off — never down, never bypassed.")
+
+
+def _wait_for_proxy_health(timeout_s: float = 12.0, url: str = "http://127.0.0.1:11500/health") -> bool:
+    """Require the live VERITY identity response; an open port alone is not success."""
+    import time
+    import urllib.request
+
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        try:
+            with urllib.request.urlopen(url, timeout=1) as response:
+                body = json.loads(response.read())
+            if response.status == 200 and body.get("service") == "verity-harness-proxy":
+                return True
+        except Exception:
+            pass
+        time.sleep(0.25)
+    return False
 
 
 def main(target: str) -> None:
