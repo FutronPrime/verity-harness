@@ -190,9 +190,11 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
       the Anthropic-format agent that talks direct to the API (bypassing the proxy), it **blocks ending
       the turn** on the same patterns unless the recent tool trail shows logs-read / repair / search /
       an automation attempt. Evidence-aware (earned negatives pass) and loop-safe (per-session cap).
-    - **Codex / Gemini:** the injected gate block carries the same rule as standing context; route
-      them through `:11500` for the daemon-enforced version. (For Claude Code 100%-enforcement, point
-      `ANTHROPIC_BASE_URL` at a VERITY Anthropic-format proxy — on the roadmap.)
+    - **Codex:** `verity autostart --codex` installs a `UserPromptSubmit` hook that routes every goal
+      through `:11500/v1/preflight` for deterministic live/reuse research + a ledger receipt, then the
+      Stop/SubagentStop hook gates the conclusion. Codex's native Responses/tool transport stays direct
+      so structured tools continue to work. **Gemini:** the injected gate block remains standing context;
+      OpenAI-format Gemini clients can use the chat proxy directly.
 - **No single point of failure** — Tier 1 is a CHAIN of models, plus an INDEPENDENT 2nd provider, then
   the local floor: e.g. `gpt-4o-mini → gemini-flash → llama-3.3-70b` (OpenRouter, `LLM_TIER1_MODELS=`)
   `→ Groq` (`LLM_TIER2_URL/KEY` or auto from `GROQ_API_KEY`) `→ local Ollama`. No single model, token,
@@ -261,7 +263,7 @@ The injection mechanism is per-agent because each reads context differently; the
 | Agent | How it gets the gates | Command |
 |---|---|---|
 | Claude Code/Desktop (Anthropic) | SessionStart hook → injects context | `verity autostart --claude-code` |
-| Codex (codex 5.5) | gates block in `~/.codex/AGENTS.md` (re-injected on each bootstrap regen) | `verity autostart --codex` |
+| Codex | `UserPromptSubmit` → `:11500/v1/preflight` + Stop hooks + `~/.codex/AGENTS.md` | `verity autostart --codex` |
 | Gemini CLI | gates block in `~/.gemini/GEMINI.md` | `verity autostart --gemini` |
 | Local / OSS / any OpenAI-API agent | route through the proxy — gates fire NATIVELY, no injection | `export OPENAI_BASE_URL=http://127.0.0.1:11500/v1` |
 | All of the above | — | `verity autostart --all` |

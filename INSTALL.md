@@ -62,11 +62,11 @@ python3 -m verity autostart --daemon         # also keep the :11500 failover pro
 ```
 
 **OpenAI Codex is its own app now (macOS/Windows desktop + a `codex` CLI), so it gets its own wiring.**
-`verity autostart --codex` installs three surfaces: `~/.codex/AGENTS.md` (always-on rules),
-`~/.codex/hooks.json` Stop/SubagentStop hooks (the real anti-giveup gate — Codex supports
-Claude-Code-style hooks), and copies the skill to `~/.agents/skills/`. **Important:** Codex talks the
-OpenAI **Responses API** (`wire_api="responses"`), so the `:11500` chat/completions proxy does **not**
-discipline Codex via the proxy path — on Codex the AGENTS.md rules + the Stop hook are the enforcement.
+`verity autostart --codex` installs four surfaces: `~/.codex/AGENTS.md` (always-on rules), a
+`UserPromptSubmit` hook that routes every goal through `:11500/v1/preflight`, Stop/SubagentStop hooks
+(the anti-giveup gate), and the shared VERITY skill. Codex's native **Responses API** and structured
+tool transport remain direct; the preflight hook gates the prompt and the Stop hooks gate the conclusion.
+This preserves Codex Desktop functionality while making Rule 0/search/reuse/verify deterministic.
 
 For other OpenAI-compatible clients (Cursor, an SDK, Claude Code via base-url) the proxy works directly
 and they inherit failover + the overconfidence guard transparently:
