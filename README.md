@@ -143,8 +143,8 @@ anything over. Point OpenClaw, Hermes, Pi, Paperclip, or your own orchestrator/d
 
 **Future-proof — gates ANY agent, however it ships.** `python3 -m verity autostart --universal` wires
 the gates into the whole known ecosystem at once — Claude Code (rules + Stop hook), Codex (`~/.codex/
-AGENTS.md` + `hooks.json` Stop hook; Codex speaks the Responses API so it's gated by rules+hooks, not
-the proxy), Gemini, Cursor, Windsurf, Aider, Cline/Roo, opencode, Zed — plus a generic `AGENTS.md`
+AGENTS.md` + `UserPromptSubmit` routed through `:11500/v1/preflight` + Stop hooks), Gemini, Cursor,
+Windsurf, Aider, Cline/Roo, opencode, Zed — plus a generic `AGENTS.md`
 fallback (the emerging cross-agent standard) and the **skill installed to every skills dir**
 (`~/.claude/skills`, `~/.agents/skills`, …). A new agent next year that reads `AGENTS.md` or
 `~/.agents/skills` is *already* covered; otherwise it's a one-line add. Three enforcement layers —
@@ -343,6 +343,10 @@ it harder. The catchable lapses have to be **enforced on a code condition.**
 VERITY's enforcement points fire whether the model cooperates or not:
 - **Proxy** (`verity/server.py` + `verity/guard.py`) — inspects every model *response* and re-prompts on a
   premature giveup. Universal for any model through `:11500`.
+- **Codex preflight route** (`hooks/codex_prompt_guard.py`) — sends every `UserPromptSubmit` goal to
+  `:11500/v1/preflight`, which deterministically runs current/reuse research when the goal warrants it,
+  writes a ledger receipt, and injects the verification contract before inference. Codex's native
+  Responses/tool transport remains direct, so structured tools are not degraded.
 - **Stop hook** (`hooks/stop_guard.py`) — **blocks** ending a turn on a lapse when the evidence trail is
   missing. It catches four classes, each only when the justifying step is absent:
   1. **Unverified negative** — "it's down / broken / not authenticated / not configured" without reading

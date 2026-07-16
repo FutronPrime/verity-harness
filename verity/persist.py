@@ -67,6 +67,19 @@ QUIT_PATTERNS = [
     r"\bnothing (?:more )?(?:i|we) can do\b", r"\bdead ?end\b",
     r"\b(?:low|degraded|poor) context\b", r"\bstale context\b",
     r"\bbeyond (?:my|the) (?:scope|ability)\b", r"\bdoesn'?t (?:exist|support)\b",
+    # Auth-excuse family (added 2026-07-03 after the Drive-MCP lapse: agent reported
+    # "needs re-auth / requires additional permissions / blocked on interactive
+    # permission" as a stopping point while the token ALREADY had the drive scope and
+    # the account was signed into Chrome. Auth is a TASK — futron-auto-login + the
+    # pre-authed browser account — never a conclusion. Password/2FA/CAPTCHA remain
+    # legitimate stops via HUMAN_GATES.)
+    r"\bneeds? (?:to )?(?:be )?(?:re-?)?(?:auth|authoriz|authentic|connect)\w*\b",
+    r"\brequires? (?:additional )?permissions?\b",
+    r"\breconnect (?:it|the (?:connector|server|mcp))\b",
+    r"\btoken (?:is )?(?:expired|invalid)\b", r"\binvalid_grant\b",
+    r"\bblocked on (?:an? )?(?:interactive )?(?:permission|auth\w*)\b",
+    r"\b(?:capability|connector|server|mcp) (?:is )?unavailable\b",
+    r"\bnon[- ]interactive\b[^.]{0,60}\b(?:oauth|auth|login)\b",
 ]
 
 # Genuine human gates — the ONLY legitimate reason to stop. Naming one PASSES.
