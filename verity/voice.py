@@ -826,6 +826,29 @@ def listen(ptt: bool = False, vad: bool = False) -> dict:
       vad=True hands-free, voice-activated.
     Say 'goodbye'/'q' or Ctrl-C to stop. Requires sox `rec`, whisper, an LLM at $FUTRON_SHIM_URL.
     Mic via $VERITY_MIC or ~/.verity-harness/mic. Public-repo reproducible."""
+    # Singleton guard (BLOCKER): two live listeners = two mic captures + double TTS — the "voice going
+    # haywire" symptom. The mascot's `listenLaunched` flag is per-Electron-instance, so stacked mascots
+    # (or a manual re-launch) each spawn their own listener that outlives them. Refuse to start a second.
+    try:
+        me = os.getpid()
+        _ps = subprocess.run(["ps", "-axo", "pid=,command="], capture_output=True, text=True).stdout
+        others = []
+        for _line in _ps.splitlines():
+            _line = _line.strip()
+            if "verity voice listen" in _line and "-m verity" in _line:  # the python -m invocation only
+                try:
+                    _pid = int(_line.split(None, 1)[0])
+                except Exception:
+                    continue
+                if _pid != me:
+                    others.append(_pid)
+        if others:
+            msg = (f"a verity voice listener is already running (pid {others[0]}); refusing to start a "
+                   f"second — that causes double mic capture + overlapping TTS.")
+            print(f"[verity] {msg}", flush=True)
+            return {"ready": False, "singleton": True, "reason": msg}
+    except Exception:
+        pass
     c = cfg()
     style = c["style"]
     if not shutil.which("rec"):

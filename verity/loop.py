@@ -117,9 +117,15 @@ class ShellExecutor:
 
 _STEP_SYS = """You are an autonomous task-runner. Work toward the GOAL one step \
 at a time. Respond ONLY with a JSON object, no prose around it:
-{"thought": "<brief reasoning>", "action": "<a single shell command, or empty \
-if done>", "done": <true|false>, "summary": "<final answer, only when done>"}
-Keep actions minimal and safe. Set done=true when the goal is achieved."""
+{"thought": "<brief reasoning>", "action": "<a single shell command, OR \
+'research: <query>' to search Reddit/X/YouTube/GitHub/Google + the open web, \
+or empty if done>", "done": <true|false>, "summary": "<final answer, only when done>"}
+Keep actions minimal and safe. When the GOAL depends on current, external, or \
+unfamiliar facts, prefer 'research: <query>' before acting on assumptions. \
+Set done=true when the goal is achieved."""
+
+# An action the loop resolves via six-source research instead of the shell executor.
+_RESEARCH_ACTION = re.compile(r"^\s*(?:research|websearch|six[- ]?source|search)\s*[:>]\s*(.+)", re.I | re.S)
 
 _JSON_RE = re.compile(r"\{.*\}", re.DOTALL)
 
@@ -191,9 +197,15 @@ def _parse_step(text: str) -> dict:  # back-compat alias
 
 
 def run_goal(goal: str, executor: Executor | None = None, max_steps: int = 8,
-             tiers=None, verbose: bool = True) -> LoopResult:
-    """Drive a goal through a NAIVE think→act loop — NO verification gate. This is
-    the 'optimistic agent loop' baseline: it accepts the first 'done' it's given."""
+             tiers=None, verbose: bool = True, research=None) -> LoopResult:
+    """Drive a goal through a think→act loop on top of the sovereign router.
+
+    When `research(query)->str` is supplied — the six-source VERITY researcher
+    (Reddit / X / YouTube / GitHub / Google + open web) — the loop RESEARCHES the
+    goal first, seeding the transcript with current, cited context, and the model
+    can emit `"action": "research: <query>"` to search again mid-run instead of
+    guessing. Without it, this is the naive optimistic baseline (no research gate,
+    accepts the first 'done' it's given)."""
     ex = executor if executor is not None else PlanOnlyExecutor()
     import os
     _kw = {"tiers": tiers} if tiers else {}
@@ -201,6 +213,20 @@ def run_goal(goal: str, executor: Executor | None = None, max_steps: int = 8,
                   f"(commands run from here; prefer relative paths)\n"
                   f"GOAL: {goal}\n")
     result = LoopResult(goal=goal, done=False, summary="")
+
+    # Seed: research the goal across the six canonical sources before acting.
+    if research is not None:
+        try:
+            ctx = (research(goal) or "").strip()
+            if ctx:
+                transcript += ("\nRESEARCHED CONTEXT (six sources — reddit/x/youtube/"
+                               "github/stackoverflow/hn + web, current & cited):\n"
+                               f"{ctx[:2500]}\n")
+                if verbose:
+                    print(f"[research] seeded goal context ({ctx.count(chr(10)) + 1} lines)")
+        except Exception as e:
+            if verbose:
+                print(f"[research] seed skipped: {e}")
 
     for n in range(1, max_steps + 1):
         reply: Reply = ask(transcript, system=_STEP_SYS, verbose=False, **_kw)
@@ -219,7 +245,18 @@ def run_goal(goal: str, executor: Executor | None = None, max_steps: int = 8,
                 print(f"[done] {result.summary}")
             break
 
-        obs = ex.run(action)
+        m = _RESEARCH_ACTION.match(action)
+        if m:
+            q = m.group(1).strip()[:200]
+            if research is None:
+                obs = "(research is disabled for this run — use a shell command instead)"
+            else:
+                try:
+                    obs = f"[six-source research] {q}\n" + ((research(q) or "(no results)")[:1500])
+                except Exception as e:
+                    obs = f"(research failed: {e})"
+        else:
+            obs = ex.run(action)
         if verbose:
             print(f"[step {n}] act: {action}\n[step {n}] obs: {obs[:300]}")
         result.steps.append(Step(n=n, thought=thought, action=action,
