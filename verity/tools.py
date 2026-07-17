@@ -543,19 +543,19 @@ def read_x(url_or_id: str, user: str = "") -> str:
 def youtube_transcript(url_or_id: str, max_chars: int = 12000) -> str:
     """Pull a YouTube transcript WITHOUT an API key. Prefers yt-dlp if installed
     (most robust); the agent can `pip install yt-dlp` first. Returns the text."""
-    import shutil
-    import subprocess
-    if not shutil.which("yt-dlp"):
-        return ("[yt-dlp not installed — run: pip install yt-dlp   then retry. "
-                "yt-dlp --write-auto-sub --skip-download --sub-format vtt <url>]")
+    from .youtube import run as run_youtube
     try:
         import os
         import tempfile
         d = tempfile.mkdtemp()
-        subprocess.run(["yt-dlp", "--write-auto-sub", "--write-sub", "--sub-lang", "en",
-                        "--skip-download", "--sub-format", "vtt",
-                        "-o", os.path.join(d, "t.%(ext)s"), url_or_id],
-                       capture_output=True, text=True, timeout=90)
+        result = run_youtube(
+            url_or_id,
+            ["--write-auto-sub", "--write-sub", "--sub-lang", "en",
+             "--skip-download", "--sub-format", "vtt",
+             "-o", os.path.join(d, "t.%(ext)s")],
+            allow_browser_cookies=True,
+            timeout=90,
+        )
         vtts = [f for f in os.listdir(d) if f.endswith(".vtt")]
         if not vtts:
             return "[no captions available for this video]"
@@ -569,7 +569,8 @@ def youtube_transcript(url_or_id: str, max_chars: int = 12000) -> str:
             t = _TAG.sub("", ln).strip()
             if t and t not in seen:
                 seen.add(t); out.append(t)
-        return " ".join(out)[:max_chars] or "[empty transcript]"
+        text = " ".join(out)[:max_chars] or "[empty transcript]"
+        return f"[youtube route: {result.route}]\n{text}"
     except Exception as e:  # noqa: BLE001
         return f"[youtube error: {type(e).__name__}]"
 

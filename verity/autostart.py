@@ -127,6 +127,14 @@ agents talk direct to the API) — so apply these gates MANUALLY, every task. No
    times is not "trying"; "low/stale context" is not a boundary. (Born from a real lapse 2026-06-28:
    retried one dead X-scraper lib 7× and said "wait for compact"; 5 min of real GitHub search found the
    maintained tool already had the fix → 200 OK in one pass. This gate makes that lapse impossible.)
+ • R64 — SOURCE PARITY (BLOCKER; deterministic anti-laziness): for substantive external research,
+   troubleshooting, tool selection, or architecture claims, search ALL SIX canonical lanes BEFORE
+   concluding: GitHub source/issues, X, Reddit, YouTube/transcripts, Google/official web docs, and
+   HN/StackOverflow. Log a receipt for each with `verity persist note`. User-provided links are a floor,
+   not the search plan: mine them under Rule 8, then independently discover alternatives on the same
+   sources. `verity persist --proactive` vetoes a conclusion while any lane is missing. Trivial and
+   wholly local deterministic tasks are exempt. This closes the failure where the user had to find the
+   exact downloader repositories the agent should have discovered itself.
  • R61 — DO-IT-DON'T-ASK (BLOCKER; sibling of AUTONOMY): if a task is clearly needed and needs NO
    serious approval, COMPLETE it — do not stop to announce "I need to do X" or ask "want me to?". Saying
    what must be done instead of doing it is the quit-pattern in disguise. The ONLY things that warrant
@@ -322,6 +330,12 @@ _GATES_MD = """<!-- VERITY-GATES:start (managed by `verity autostart` — re-run
   alternative's source read + reused, ≥2 structurally different attempts — or a named human gate.
   Log steps: `python3 -m verity persist note <source> "<query>" "<found>"`. Turns the un-ignorable
   truth ("you almost always CAN") into a deterministic veto a model can't rationalize past.
+- **R64 — source parity (BLOCKER; deterministic anti-laziness):** for substantive external research,
+  troubleshooting, tool selection, or architecture claims, search ALL SIX canonical lanes first:
+  GitHub, X, Reddit, YouTube/transcripts, Google/official web docs, and HN/StackOverflow. Log each lane
+  with `verity persist note`; `verity persist --proactive` vetoes conclusions while any lane is missing.
+  User-provided links are a floor, not the plan: mine them, then independently discover alternatives on
+  the same sources. Trivial and wholly local deterministic tasks are exempt.
 - **R62 — engineer-past-the-obstacle (BLOCKER; deepest anti-quit):** a boundary with a safe
   engineerable workaround is a DESIGN PROBLEM, not a stop sign. Don't stop at "can't safely do X" —
   BUILD the system that makes it safe, then execute. (Built `verity vet`+`verity audit`+a safe-wire

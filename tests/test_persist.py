@@ -81,6 +81,9 @@ def test_proactive_allows_after_research():
     persist.note("github", "x scraping maintained tool", "twscrape is the one")
     persist.note("google", "x scraping 2026", "confirms twscrape")
     persist.note("reddit", "x api alternatives", "twscrape recommended")
+    persist.note("x", "maintained x scraper", "twscrape release discussed")
+    persist.note("youtube", "x scraper walkthrough", "current setup demonstrated")
+    persist.note("hn", "x scraping alternatives", "tradeoffs discussed")
     v = persist.check("Use twscrape; it's the maintained tool.", proactive=True)
     assert not v.blocked and v.verdict == "EARNED", v
 
@@ -93,7 +96,7 @@ def test_proactive_exempts_trivial():
 
 def test_preflight_emits_retrieval_directive():
     d = persist.preflight("build a faster X bookmark scraper")
-    assert "RETRIEVE" in d and "GitHub" in d and "note" in d, d
+    assert "RETRIEVE" in d and "all 6" in d and "GitHub" in d and "note" in d, d
 
 
 def _run():
