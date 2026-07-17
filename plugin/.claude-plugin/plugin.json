@@ -1,0 +1,12 @@
+{
+  "name": "verity-discipline",
+  "version": "1.0.0",
+  "description": "Discipline gates for AI coding agents — reuse-first (never rebuild what exists), search-before-concluding, and safe-install vetting. Stops the three most expensive agent failure modes.",
+  "author": "Futron Prime",
+  "homepage": "https://github.com/FutronPrime/verity-harness",
+  "license": "MIT",
+  "keywords": ["claude-code", "agent", "discipline", "security", "reuse", "guardrails", "hooks"],
+  "hooks": "./hooks/hooks.json",
+  "commands": "./commands",
+  "skills": "./skills"
+}

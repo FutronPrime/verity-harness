@@ -483,6 +483,21 @@ def main(argv: list[str]) -> None:
         goal = " ".join(x for x in toks if x != "--build")
         from .synthesize import synthesize
         synthesize(goal, build=build, gate=gate, deadline=deadline, verbose=True)
+    elif cmd == "promptware":
+        # Compact, portable operating envelope for AVANI/ORION-style agents.
+        # The capability list declares REAL host seams; missing capabilities are
+        # acquired separately through `verity synthesize` and verified gates.
+        import argparse as _argparse
+        p = _argparse.ArgumentParser(prog="verity promptware")
+        p.add_argument("goal")
+        p.add_argument("--identity", default="ORION")
+        p.add_argument("--profile", choices=("lean", "standard"), default="lean")
+        p.add_argument("--capability", action="append", default=[])
+        p.add_argument("--format", choices=("text", "json"), default="text")
+        a = p.parse_args(rest)
+        from .promptware import compile_promptware, render
+        print(render(compile_promptware(a.goal, identity=a.identity, profile=a.profile,
+                                        capabilities=a.capability), a.format))
     elif cmd in ("synth-list", "synthesized"):
         from .synthesize import list_capabilities
         print(list_capabilities())
@@ -537,13 +552,25 @@ def main(argv: list[str]) -> None:
             print(_v.status())
     elif cmd == "loop":
         if not rest:
-            print("usage: loop \"<goal>\" [--exec]   (--exec = allowlisted shell, else plan-only)",
+            print("usage: loop \"<goal>\" [--exec] [--no-web]\n"
+                  "  --exec    = allowlisted shell (else plan-only)\n"
+                  "  --no-web  = skip six-source research (Reddit/X/YouTube/GitHub/Google + web)",
                   file=sys.stderr); sys.exit(2)
         live = "--exec" in rest
-        goal = " ".join(x for x in rest if x != "--exec")
+        no_web = "--no-web" in rest
+        goal = " ".join(x for x in rest if x not in ("--exec", "--no-web"))
         ex = AllowlistShellExecutor() if live else PlanOnlyExecutor()
-        print(f"[loop] executor={'allowlist-shell' if live else 'PLAN-ONLY (safe)'}\n")
-        r = run_goal(goal, executor=ex, verbose=True)
+        research = None
+        if not no_web:
+            # Seed + on-demand research through the six canonical sources, same engine
+            # `verity deliberate` uses: github/reddit/x/youtube/stackoverflow/hn + open web.
+            from .router import ask as _ask
+            from .websearch import deep_research
+            research = lambda q: deep_research(q, ask=lambda p: _ask(p).text,
+                                               rounds=1, sources=True)["context"]
+        print(f"[loop] executor={'allowlist-shell' if live else 'PLAN-ONLY (safe)'}  "
+              f"research={'six-source' if research else 'off'}\n")
+        r = run_goal(goal, executor=ex, verbose=True, research=research)
         print(f"\n=== result ===\ndone={r.done}  steps={len(r.steps)}\n{r.summary}")
     elif cmd in ("x-read", "read-x", "tweet"):
         if not rest:
@@ -612,6 +639,22 @@ def main(argv: list[str]) -> None:
         # Turns video into queryable knowledge, triage-first so a backlog can't nuke tokens.
         from . import assimilate as _assim
         _assim.cli(rest)
+    elif cmd in ("broker", "capability", "jit"):
+        # JIT capability broker: mount a cataloged repo/skill on demand, vet it, lease it with a
+        # TTL, auto-release + reclaim disk. Reads stream (zero clone). The vet gate means unvetted
+        # instruction-surfaces never become directives. Reachable-not-resident.
+        from . import broker as _broker
+        sys.exit(_broker._cli(rest))
+    elif cmd in ("fixed", "regression", "known-fixed"):
+        # Known-fixed-bugs ledger: record a fix once, then gate any plan/diff against it so the
+        # agent can't silently reintroduce a solved bug (forward companion to the decision ledger).
+        from . import regression_ledger as _rl
+        sys.exit(_rl._cli(rest))
+    elif cmd in ("skills", "skill-audit"):
+        # Skill audit: measure dead-weight vs lift — token cost + near-dup clusters + real invocation
+        # scan; CUT list = 0-use high-cost skills. --ab runs a task with/without a skill to prove lift.
+        from . import skill_audit as _sa
+        sys.exit(_sa._cli(rest))
     else:
         print(f"unknown command: {cmd}", file=sys.stderr); sys.exit(2)
 

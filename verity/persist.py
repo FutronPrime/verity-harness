@@ -67,6 +67,19 @@ QUIT_PATTERNS = [
     r"\bnothing (?:more )?(?:i|we) can do\b", r"\bdead ?end\b",
     r"\b(?:low|degraded|poor) context\b", r"\bstale context\b",
     r"\bbeyond (?:my|the) (?:scope|ability)\b", r"\bdoesn'?t (?:exist|support)\b",
+    # Auth-excuse family (added 2026-07-03 after the Drive-MCP lapse: agent reported
+    # "needs re-auth / requires additional permissions / blocked on interactive
+    # permission" as a stopping point while the token ALREADY had the drive scope and
+    # the account was signed into Chrome. Auth is a TASK — futron-auto-login + the
+    # pre-authed browser account — never a conclusion. Password/2FA/CAPTCHA remain
+    # legitimate stops via HUMAN_GATES.)
+    r"\bneeds? (?:to )?(?:be )?(?:re-?)?(?:auth|authoriz|authentic|connect)\w*\b",
+    r"\brequires? (?:additional )?permissions?\b",
+    r"\breconnect (?:it|the (?:connector|server|mcp))\b",
+    r"\btoken (?:is )?(?:expired|invalid)\b", r"\binvalid_grant\b",
+    r"\bblocked on (?:an? )?(?:interactive )?(?:permission|auth\w*)\b",
+    r"\b(?:capability|connector|server|mcp) (?:is )?unavailable\b",
+    r"\bnon[- ]interactive\b[^.]{0,60}\b(?:oauth|auth|login)\b",
 ]
 
 # Genuine human gates — the ONLY legitimate reason to stop. Naming one PASSES.
@@ -148,7 +161,7 @@ TRIVIAL_PATTERNS = [
 ]
 
 
-def preflight(task: str, *, min_sources: int = 3) -> str:
+def preflight(task: str, *, min_sources: int = 6) -> str:
     """Fire BEFORE working a task — the proactive forcing function. Returns the
     mandatory retrieval directive so a model (any size) goes and gets the
     intelligence/repos/transcripts/human-input FIRST, instead of answering from
@@ -156,7 +169,7 @@ def preflight(task: str, *, min_sources: int = 3) -> str:
     return (
         f"PRE-FLIGHT RESEARCH (mandatory before concluding): «{task[:120]}»\n"
         f"Do NOT answer from memory. First RETRIEVE current ground truth:\n"
-        f"  1. Search ≥{min_sources} of: GitHub (issues/PRs/source), X, Reddit, "
+        f"  1. Search all {min_sources} canonical lanes: GitHub (issues/PRs/source), X, Reddit, "
         f"YouTube/transcripts, Google, HN/StackOverflow — for the CURRENT best "
         f"approach + the maintained tool that already does this.\n"
         f"  2. READ that tool's source / the doc / the transcript; REUSE > rebuild.\n"
@@ -171,7 +184,7 @@ def _is_trivial(text: str) -> bool:
     return _has(TRIVIAL_PATTERNS, text) or len(text.strip()) < 12
 
 
-def check(conclusion: str, *, days: int = 1, min_sources: int = 3,
+def check(conclusion: str, *, days: int = 1, min_sources: int = 6,
           min_attempts: int = 2, require_found: bool = True,
           proactive: bool = False, run: str = "") -> Verdict:
     """Gate a proposed conclusion. Returns a Verdict; logs it to the ledger.
@@ -179,11 +192,11 @@ def check(conclusion: str, *, days: int = 1, min_sources: int = 3,
     Default: BLOCK iff the conclusion quits AND (no human gate) AND the ledger
     lacks proof of real multi-source research.
 
-    proactive=True (the forcing mode): BLOCK *any* substantive conclusion that
-    lacks research receipts — even with zero quit-language. This is what makes a
-    low-level model go retrieve intel/repos/transcripts/human-input on ANY task
-    instead of answering from stale priors. Trivial tasks (greetings, arithmetic)
-    are exempt."""
+    proactive=True (the forcing mode / R64 source parity): BLOCK *any*
+    substantive conclusion that lacks receipts from all six canonical lanes —
+    even with zero quit-language. This prevents an agent from waiting for the
+    user to supply the exact GitHub/Reddit/X/YouTube solution it should have
+    discovered itself. Trivial tasks (greetings, arithmetic) are exempt."""
     text = conclusion or ""
 
     if _has(HUMAN_GATES, text):

@@ -178,16 +178,28 @@ def council(question: str, *, members=None, chairman=None,
 # ── CLI ──────────────────────────────────────────────────────────────────────
 def _cli(argv: list) -> int:
     n = 3
+    ensemble = False
     args = []
     i = 0
     while i < len(argv):
         if argv[i] in ("--members", "-n") and i + 1 < len(argv):
             n = int(argv[i + 1]); i += 2; continue
+        if argv[i] == "--ensemble":            # cross-lab CLI legs as members
+            ensemble = True; i += 1; continue
         args.append(argv[i]); i += 1
     if not args:
-        print('usage: verity council [--members N] "<question>"', file=sys.stderr)
+        print('usage: verity council [--members N] [--ensemble] "<question>"', file=sys.stderr)
         return 2
-    res = council(" ".join(args), n=n)
+    if ensemble:
+        from .cli_ensemble import available_legs, cli_ask, status
+        legs = available_legs()
+        if len(legs) < 2:
+            print(f"[council] --ensemble needs >=2 cross-lab CLIs; {status()}", file=sys.stderr)
+            return 2
+        print(f"[council] {status()}", file=sys.stderr)
+        res = council(" ".join(args), members=legs, ask_fn=cli_ask)
+    else:
+        res = council(" ".join(args), n=n)
     print(res.report())
     return 0
 

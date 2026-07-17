@@ -98,6 +98,7 @@ def materialize(slug: str, dest: str, *, token: str | None = None) -> dict:
     """Pull the scan-worthy files of `slug` into `dest`. Returns info dict."""
     token = token if token is not None else _token()
     dst = pathlib.Path(dest)
+    dst_root = dst.resolve()  # SECURITY: anchor for the path-escape check below
     info = {"slug": slug, "path": str(dst), "files": 0, "bytes": 0,
             "truncated": False, "branch": "", "error": ""}
     try:
@@ -127,6 +128,14 @@ def materialize(slug: str, dest: str, *, token: str | None = None) -> dict:
         except Exception:
             continue
         out = dst / p
+        # SECURITY: a crafted/absolute/".." tree path must NOT escape dest — this module
+        # exists to analyze UNTRUSTED repos, so an attacker controls `p`. (pathlib note:
+        # dst / "/abs" == "/abs", silently escaping; resolve+relative_to catches both cases.)
+        try:
+            out.resolve().relative_to(dst_root)
+        except ValueError:
+            info["truncated"] = True  # a file was skipped → scan is incomplete, never assert "safe"
+            continue
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_bytes(data)
         info["files"] += 1

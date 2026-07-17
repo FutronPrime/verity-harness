@@ -34,6 +34,8 @@ and it can't be revoked.*
 ### The open-source Fable alternative — frontier-grade discipline on models you own.
 
 > **🆕 v2 — Harness Sovereignty Layer:** code executor (`verity-opencode`), new gates (spec-gate, fresh-context verify, tool-veto, durable verdict), reusable `commands/` pipelines, and fully-local keyless routing (Ollama). See **[V2.md](V2.md)** · ![v2 scorecard](assets/scorecard-v2.svg)
+>
+> **🆕 JIT Capability Broker — *reachable, not resident.*** Catalog hundreds of repos & skills without installing any. `verity broker use <name>` mounts one on demand, **gates it through `verity vet`** (unvetted instruction-surfaces never become your agent's directives), leases it with a TTL, and auto-releases it — reclaiming disk — when you're done. Reads stream (zero clone). This is how an agent gets an unbounded tool-shelf without the bloat, credential sprawl, or supply-chain risk of installing it all. See **[docs/BROKER.md](docs/BROKER.md)**.
 
 *(model-agnostic · zero-dependency · local-first — the open-source way to get Fable-grade reliability without Fable.)*
 
@@ -90,6 +92,12 @@ VERITY agents don't just *answer* — they **work**, and they **don't give up**:
 - **Multi-agent swarm** — `verity swarm` fans out research + execution, runs an adversarial critic, and
   synthesizes — every step gated, **every sub-agent the same caliber as the lead and bound by the same
   gates** (can't quit, can't confabulate model facts). ([details below](#multi-agent-swarm-the-mythosfable-shape--self-contained))
+- **JIT capability broker — reachable, not resident.** `verity broker` gives the agent an unbounded
+  tool-shelf without installing it: catalog any repo/skill, then `use <name>` mounts it on demand,
+  **runs it through the vet gate** (a hostile instruction-surface is BLOCKed and the clone deleted —
+  never becomes a directive), leases it with a TTL, and auto-releases + reclaims disk when done. Reads
+  stream (zero clone). Solves *"install everything vs. capability-starved"* without the supply-chain
+  risk of either. ([docs/BROKER.md](docs/BROKER.md))
 - **Self-improving — it learns from its own track record.** Every gate logs to a decision ledger;
   `verity playbook` mines it for the assumptions the harness *caught being wrong*, the tools it *found*,
   and the fixes that *worked*, and distills an injectable playbook that `autostart` re-feeds **every
@@ -116,7 +124,7 @@ VERITY agents don't just *answer* — they **work**, and they **don't give up**:
 
 This isn't a personality prompt asking the model to be diligent; it's enforced on **code conditions**.
 
-**Docs:** [Install & requirements](INSTALL.md) · [Guide — purpose, features & best practices](GUIDE.md) · [Model registry](MODELS.md) · [Benchmarks](BENCHMARK.md) · [VERITY vs Sakana Fugu](docs/FUGU_PARITY.md)
+**Docs:** [Install & requirements](INSTALL.md) · [Guide — purpose, features & best practices](GUIDE.md) · [Model registry](MODELS.md) · [Benchmarks](BENCHMARK.md) · [Capability Broker](docs/BROKER.md) · [VERITY vs Sakana Fugu](docs/FUGU_PARITY.md)
 
 ## Standalone · additive · a supercharger (not a stopgap)
 
@@ -135,8 +143,8 @@ anything over. Point OpenClaw, Hermes, Pi, Paperclip, or your own orchestrator/d
 
 **Future-proof — gates ANY agent, however it ships.** `python3 -m verity autostart --universal` wires
 the gates into the whole known ecosystem at once — Claude Code (rules + Stop hook), Codex (`~/.codex/
-AGENTS.md` + `hooks.json` Stop hook; Codex speaks the Responses API so it's gated by rules+hooks, not
-the proxy), Gemini, Cursor, Windsurf, Aider, Cline/Roo, opencode, Zed — plus a generic `AGENTS.md`
+AGENTS.md` + `UserPromptSubmit` routed through `:11500/v1/preflight` + Stop hooks), Gemini, Cursor,
+Windsurf, Aider, Cline/Roo, opencode, Zed — plus a generic `AGENTS.md`
 fallback (the emerging cross-agent standard) and the **skill installed to every skills dir**
 (`~/.claude/skills`, `~/.agents/skills`, …). A new agent next year that reads `AGENTS.md` or
 `~/.agents/skills` is *already* covered; otherwise it's a one-line add. Three enforcement layers —
@@ -335,6 +343,10 @@ it harder. The catchable lapses have to be **enforced on a code condition.**
 VERITY's enforcement points fire whether the model cooperates or not:
 - **Proxy** (`verity/server.py` + `verity/guard.py`) — inspects every model *response* and re-prompts on a
   premature giveup. Universal for any model through `:11500`.
+- **Codex preflight route** (`hooks/codex_prompt_guard.py`) — sends every `UserPromptSubmit` goal to
+  `:11500/v1/preflight`, which deterministically runs current/reuse research when the goal warrants it,
+  writes a ledger receipt, and injects the verification contract before inference. Codex's native
+  Responses/tool transport remains direct, so structured tools are not degraded.
 - **Stop hook** (`hooks/stop_guard.py`) — **blocks** ending a turn on a lapse when the evidence trail is
   missing. It catches four classes, each only when the justifying step is absent:
   1. **Unverified negative** — "it's down / broken / not authenticated / not configured" without reading

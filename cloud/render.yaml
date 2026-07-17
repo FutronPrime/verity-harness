@@ -1,0 +1,23 @@
+# VERITY Cloud on Render.  Connect the repo in the Render dashboard (Blueprint) — it reads this file.
+# Set STRIPE_API_KEY and VERITY_ADMIN_KEY as secret env vars in the dashboard (the DJ-only inputs).
+services:
+  - type: web
+    name: verity-cloud
+    runtime: docker
+    dockerfilePath: ./cloud/Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: VERITY_CLOUD_PORT
+        value: "8787"
+      - key: VERITY_CLOUD_DB
+        value: /data/ledger.db
+      - key: STRIPE_API_KEY
+        sync: false
+      - key: VERITY_ADMIN_KEY
+        sync: false
+    disk:
+      name: verity-data
+      mountPath: /data
+      sizeGB: 1
