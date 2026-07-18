@@ -602,6 +602,22 @@ the gated **`verity evolve`** loop (which adopts a better playbook only if it pa
 that's the self-improvement most "agent" demos hand-wave: **learn → remember → reuse → improve**, all
 local and add-only.
 
+### Portable prompt software without the token bloat
+
+`verity promptware` compiles a compact, model-neutral operating envelope for any LLM or agent host. It
+separates identity and discipline from real capabilities: declare only the CLI/MCP/CUA seams the host
+actually provides, then use `verity synthesize` to discover, build, verify, and register anything missing.
+
+```bash
+python3 -m verity promptware "audit this service" --identity ORION \
+  --capability shell --capability mcp:memory
+python3 -m verity promptware "operate FUTRON" --identity AVANI --profile standard --format json
+```
+
+The emitted lifecycle is the full portable loop: **discover → plan → execute → verify → persist →
+schedule/follow-up**, with explicit handoff and completion contracts. The lean profile stays under a
+small fixed character budget so better behavior does not require repeatedly injecting a giant manual.
+
 ## Invisible, always-on (proxy daemon)
 
 Point any OpenAI-compatible client (Claude Code, Cursor, an SDK) at the proxy and
