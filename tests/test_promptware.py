@@ -6,6 +6,8 @@ def test_lean_promptware_is_bounded_and_model_agnostic():
     assert p.identity == "ORION"
     assert p.capabilities == ("shell", "mcp:memory")
     assert "DISCOVER -> PLAN -> EXECUTE -> VERIFY -> PERSIST -> SCHEDULE/FOLLOW-UP" in p.system_prompt
+    assert "SELF-APPLICATION:" in p.system_prompt
+    assert "quarantine and vet acquired code" in p.system_prompt
     assert "anthropic" not in p.system_prompt.lower()
     assert len(p.system_prompt) < 1800
 

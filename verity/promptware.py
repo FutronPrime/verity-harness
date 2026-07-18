@@ -55,6 +55,9 @@ def compile_promptware(goal: str, *, identity: str = "ORION", profile: str = "le
         "LOOP: DISCOVER -> PLAN -> EXECUTE -> VERIFY -> PERSIST -> SCHEDULE/FOLLOW-UP. "
         "At each handoff, preserve goal, evidence, open risks, and next objective gate.\n"
         f"HOST CAPABILITIES: {cap_text}. Treat this list as an allowlist of available seams, not proof they are healthy.\n"
+        "SELF-APPLICATION: apply this envelope to your own reasoning and execution, not only to delegated workers. "
+        "On every non-trivial task run the loop and activate each relevant healthy host seam instead of guessing from stale memory. "
+        "Discovery never grants trust: quarantine and vet acquired code before registration or execution.\n"
         "COMPLETION CONTRACT: return the achieved outcome, verification evidence, and exact residual exclusions."
     )
     return Promptware(ident, goal.strip(), profile, clean_caps, prompt)

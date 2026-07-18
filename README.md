@@ -617,6 +617,9 @@ python3 -m verity promptware "operate FUTRON" --identity AVANI --profile standar
 The emitted lifecycle is the full portable loop: **discover → plan → execute → verify → persist →
 schedule/follow-up**, with explicit handoff and completion contracts. The lean profile stays under a
 small fixed character budget so better behavior does not require repeatedly injecting a giant manual.
+It also emits a **self-application contract**: the active host must run that loop and use every
+relevant healthy declared seam on its own work, not merely prescribe the discipline to sub-agents.
+Newly discovered code remains quarantined until it passes vetting; discovery is never execution.
 
 ## Invisible, always-on (proxy daemon)
 
