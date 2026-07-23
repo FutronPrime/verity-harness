@@ -60,6 +60,14 @@ def test_preflight_endpoint_returns_deterministic_codex_context(monkeypatch):
     assert "VERITY ROUTE RECEIPT" in body["context"]
 
 
+def test_real_preflight_context_always_injects_gui_escalation(monkeypatch):
+    monkeypatch.setattr(server, "_PREFLIGHT_SIGNAL", server._PREFLIGHT_SIGNAL)
+    context = server.build_preflight_context("summarize this local file", run="turn-gui")["context"]
+    assert "GUI ESCALATION BLOCKER" in context
+    assert "futron-tools-catalog json cua-automation" in context
+    assert "futron-desktop-agent status" in context
+
+
 def test_send_ignores_client_disconnect_after_headers():
     handler = object.__new__(server.Handler)
     handler.send_response = lambda _code: None

@@ -39,6 +39,23 @@ _IDLE_MIN = float(os.environ.get("VERITY_IDLE_SHUTDOWN_MIN", "15"))
 _LAST_USE = [time.time()]
 PIDFILE = pathlib.Path(os.path.expanduser("~/.verity-harness/proxy.pid"))
 
+# ROUTE RECEIPTS: append one JSONL row per completion (ts, tier, model, latency, guard outcome).
+# This is the training table for zero-shot route scoring (TabFM-style ICL over dispatch history) —
+# without it there is no history to learn from. Set VERITY_RECEIPTS=off to disable.
+_RECEIPTS_PATH = os.environ.get(
+    "VERITY_RECEIPTS", os.path.expanduser("~/.verity-harness/receipts.jsonl"))
+_RECEIPTS_LOCK = threading.Lock()
+
+
+def _log_receipt(row: dict) -> None:
+    if _RECEIPTS_PATH.lower() == "off":
+        return
+    try:
+        with _RECEIPTS_LOCK, open(_RECEIPTS_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(row, separators=(",", ":")) + "\n")
+    except OSError:
+        pass  # receipts must never break serving
+
 _PREFLIGHT_SIGNAL = re.compile(
     r"\b(goal|obstacle|purpose|functionality|research|investigat|find|fix|debug|repair|"
     r"build|create|implement|integrat|configur|automat|deploy|migrat|solution|why|how)\w*",
@@ -79,6 +96,11 @@ def build_preflight_context(goal: str, run: str = "") -> dict:
         "PERSISTENCE: try at least two structurally different approaches before deferring.",
         "VERIFY: run an objective task-matched check; label conclusions VERIFIED or GUESS.",
         "NEGATIVE CLAIMS: no impossible/down/missing/only-way conclusion without cited investigation.",
+        "GUI ESCALATION BLOCKER: a missing connector is not a human gate. Before asking the user to "
+        "click/type/export, inventory installed browser/CUA/AX/AppleScript/vision/CLI/extension/API "
+        "routes, attempt at least two structurally different routes, inspect the failing layer, and "
+        "verify the outcome. On FUTRON run `futron-tools-catalog json cua-automation`, "
+        "`futron-tools-catalog json browser-automation`, and `futron-desktop-agent status` first.",
     ]
     if findings.strip():
         rules.extend((
@@ -217,9 +239,14 @@ class Handler(BaseHTTPRequestHandler):
             if not any(m.get("role") == "system" for m in messages):
                 messages = [{"role": "system", "content": directive}] + messages
 
+        _t0 = time.time()
         try:
             reply = chat(messages)
         except AllTiersFailed as e:
+            _log_receipt({"ts": time.time(), "ok": False, "error": "all_tiers_failed",
+                          "n_msgs": len(messages),
+                          "prompt_chars": sum(len(str(m.get("content", ""))) for m in messages),
+                          "latency_ms": int((time.time() - _t0) * 1000)})
             self._send(503, {"error": f"all tiers down: {e}"})
             return
 
@@ -248,6 +275,11 @@ class Handler(BaseHTTPRequestHandler):
         out = _as_openai(reply.text, reply.model, reply.tier)
         if guarded:
             out["x_verity_overconfidence_guard"] = guarded
+        _log_receipt({"ts": time.time(), "ok": True, "model": reply.model, "tier": reply.tier,
+                      "guarded": guarded or None, "n_msgs": len(messages),
+                      "prompt_chars": sum(len(str(m.get("content", ""))) for m in messages),
+                      "reply_chars": len(reply.text or ""),
+                      "latency_ms": int((time.time() - _t0) * 1000)})
         self._send(200, out)
 
 

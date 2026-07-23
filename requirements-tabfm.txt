@@ -1,0 +1,14 @@
+# OPTIONAL: TabFM advisory route-scoring (zero-shot ICL over dispatch receipts).
+# NOT required for the proxy/harness — install only if you want the advisory scorer.
+#
+#   python3.12 -m venv ~/.openclaw/lib/tabfm-venv
+#   git clone https://github.com/google-research/tabfm ~/.openclaw/lib/tabfm
+#   ~/.openclaw/lib/tabfm-venv/bin/pip install -e "~/.openclaw/lib/tabfm[pytorch]" safetensors
+#
+# (safetensors is REQUIRED but missing from tabfm's own pins as of v1.0.0.)
+# Weights: ~6.1GB classification head auto-downloads from HF on first use (google/tabfm-1.0.0-pytorch,
+# NON-COMMERCIAL license — internal advisory use only; commercial path = TabPFN-v2/TabICL via ONNX).
+# Regression head is a SECOND ~6GB download — only load with ample disk.
+# Runner: ~/.openclaw/bin/futron-tabfm-probe (reads ~/.verity-harness/receipts.jsonl written by
+# verity/server.py). Local benchmark 2026-07-19: beat untuned HistGB 3/3 (mean +0.051) zero-shot;
+# CPU ~3s/row -> BATCH ADVISORY ONLY, never per-request. See docs/TABFM-ADVISORY.md.

@@ -153,6 +153,11 @@ agents talk direct to the API) — so apply these gates MANUALLY, every task. No
    sources. `verity persist --proactive` vetoes a conclusion while any lane is missing. Trivial and
    wholly local deterministic tasks are exempt. This closes the failure where the user had to find the
    exact downloader repositories the agent should have discovered itself.
+ • R65 — CAPABILITY-IMPROVEMENT CLOSURE (BLOCKER): proactively scout current tools and primary
+   sources for named capability gaps, but discovery/bookmarking/downloading/installing is NOT an
+   upgrade. Deduplicate, quarantine+scan, run a bounded proof against the original gap, verify
+   independently, persist the result, and close each candidate as INTEGRATED, REJECTED,
+   DEFERRED-WITH-GATE, or SUPERSEDED. Re-test the gap; do not rediscover the same resource forever.
  • R61 — DO-IT-DON'T-ASK (BLOCKER; sibling of AUTONOMY): if a task is clearly needed and needs NO
    serious approval, COMPLETE it — do not stop to announce "I need to do X" or ask "want me to?". Saying
    what must be done instead of doing it is the quit-pattern in disguise. The ONLY things that warrant
@@ -354,6 +359,11 @@ _GATES_MD = """<!-- VERITY-GATES:start (managed by `verity autostart` — re-run
   with `verity persist note`; `verity persist --proactive` vetoes conclusions while any lane is missing.
   User-provided links are a floor, not the plan: mine them, then independently discover alternatives on
   the same sources. Trivial and wholly local deterministic tasks are exempt.
+- **R65 — capability-improvement closure (BLOCKER):** proactively scout maintained tools and primary
+  sources for named capability gaps, but discovery/bookmarking/downloading/installing is not an upgrade.
+  Deduplicate, quarantine and scan, run a bounded proof against the original gap, verify independently,
+  persist the result, and close each candidate as INTEGRATED, REJECTED, DEFERRED-WITH-GATE, or
+  SUPERSEDED. Re-test the gap; do not repeatedly rediscover the same resource.
 - **R62 — engineer-past-the-obstacle (BLOCKER; deepest anti-quit):** a boundary with a safe
   engineerable workaround is a DESIGN PROBLEM, not a stop sign. Don't stop at "can't safely do X" —
   BUILD the system that makes it safe, then execute. (Built `verity vet`+`verity audit`+a safe-wire
