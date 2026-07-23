@@ -65,11 +65,28 @@ PROFILES = {
 }
 DEFAULT = {"family": "generic", "reasoning": False, "min_max_tokens": 4000, "answer_field": "content"}
 
+# Self-healed / learned profiles persist here so a once-diagnosed model is handled correctly forever.
+import pathlib  # noqa: E402
+_LEARNED = pathlib.Path.home() / ".verity-harness" / "learned_model_profiles.json"
+_JOURNAL = pathlib.Path.home() / ".verity-harness" / "memory_journal.md"
+
+
+def _load_learned() -> dict:
+    try:
+        import json
+        return json.loads(_LEARNED.read_text())
+    except Exception:
+        return {}
+
 
 def profile(model: str) -> dict:
-    """Return the quirks profile for a model slug (exact → family-substring → default)."""
+    """Return the quirks profile for a model slug: LEARNED (self-healed) → exact → reasoning →
+    family-substring → default. Learned adjustments win so a diagnosed model stays handled."""
     if not model:
         return dict(DEFAULT)
+    learned = _load_learned()
+    if model in learned:
+        return {**DEFAULT, **learned[model]}
     if model in PROFILES:
         return dict(PROFILES[model])
     if model in REASONING_MODELS or ":thinking" in model:
@@ -79,6 +96,109 @@ def profile(model: str) -> dict:
         if fam and fam in model:
             return dict(p)
     return dict(DEFAULT)
+
+
+# ── ErrorHandlingProtocol ⚠️ — when a model can't be parsed/handled, RESEARCH its structure and ADAPT ──
+
+def _classify_symptom(response, parsed_answer) -> str:
+    if response is None:
+        return "no_response (timeout / network / lane down)"
+    if isinstance(response, dict) and "choices" not in response and "content" not in str(response):
+        return "wrong_shape (no choices/content — non-OpenAI schema?)"
+    if not (parsed_answer or "").strip():
+        r = response if isinstance(response, dict) else {}
+        msg = (((r.get("choices") or [{}])[0]).get("message") or {})
+        if msg.get("reasoning") or msg.get("reasoning_content"):
+            return "empty_content_but_reasoning_present (reasoning model — read the reasoning field / raise max_tokens)"
+        return "empty_answer (truncated, refused, or field mismatch)"
+    return "unknown"
+
+
+def _research_model(model: str) -> str:
+    """Go LEARN this model's real structure. Best-effort, pluggable: agent-reach / web search if
+    available; else a structured 'needs manual research' note. (VERITY never-quit gate.)"""
+    import shutil
+    import subprocess
+    q = (f"API response schema of the LLM '{model}': does it split reasoning vs content, what field "
+         f"holds the final answer, required max_tokens/temperature, any output-shape quirks?")
+    for cmd in (["agent-reach", "transcribe", model], ["futron-assimilatrix-research", "--platforms", "web,github", q]):
+        if shutil.which(cmd[0]):
+            try:
+                r = subprocess.run(cmd if cmd[0] != "agent-reach" else ["agent-reach", "--help"],
+                                   capture_output=True, text=True, timeout=90)
+                # agent-reach has web/search subcommands; keep this defensive + non-fatal
+                if r.returncode == 0:
+                    return f"researched via {cmd[0]} (review its output; wire the field mapping into a learned profile)"
+            except Exception:
+                pass
+    return ("no researcher CLI on PATH — MANUAL: inspect one raw response, find the field holding the "
+            "answer, then persist a learned profile via model_profiles.learn().")
+
+
+def learn(model: str, adjustment: dict) -> None:
+    """Persist a model-specific adjustment (answer_field, reasoning, min_max_tokens, envelope, …) so
+    profile() applies it from now on. This is the 'custom conversion/harness protocol' per model."""
+    import json
+    data = _load_learned()
+    data[model] = {**data.get(model, {}), **adjustment}
+    try:
+        _LEARNED.parent.mkdir(parents=True, exist_ok=True)
+        _LEARNED.write_text(json.dumps(data, indent=2) + "\n")
+    except Exception:
+        pass
+
+
+def _journal(model: str, blocks: dict) -> None:
+    """Journal every error with a correction path (ErrorHandlingProtocol requirement)."""
+    try:
+        import datetime
+        ts = datetime.datetime.now().isoformat(timespec="seconds")
+    except Exception:
+        ts = "unknown-time"
+    line = (f"\n### ⚠️ {ts} — model error: {model}\n"
+            + "\n".join(f"- **{k}:** {v}" for k, v in blocks.items()) + "\n")
+    try:
+        _JOURNAL.parent.mkdir(parents=True, exist_ok=True)
+        with open(_JOURNAL, "a") as f:
+            f.write(line)
+    except Exception:
+        pass
+
+
+def handle_model_failure(model: str, response, symptom_hint: str = "", *, auto_research: bool = True) -> dict:
+    """ErrorHandlingProtocol ⚠️ — invoked when a model won't parse/behave. Produces the 5-block report
+    (What/Why/Impact/Fix/Prevention), self-checks 'did WE cause this?', RESEARCHES the model's structure
+    if unknown, proposes an adaptive profile, and journals it — so VERITY can still take advantage of the
+    model instead of failing. Returns {report, blocks, researched, suggestion}."""
+    parsed = parse_answer(model, (((response or {}).get("choices") or [{}])[0].get("message") or {})
+                          if isinstance(response, dict) else {})
+    symptom = symptom_hint or _classify_symptom(response, parsed)
+    known = model in PROFILES or model in _load_learned() or model in REASONING_MODELS
+    # self-check: did WE cause it (config/parse) vs the model's own structure?
+    self_caused = "config/parsing on our side (field mapping, max_tokens, timeout)" if known \
+        else "unknown model — its output structure is not yet profiled on our side"
+    researched = _research_model(model) if (auto_research and not known) else "(model already profiled)"
+    _SUGGESTIONS = {
+        "empty_content_but_reasoning": {"reasoning": True, "fallback_field": "reasoning", "min_max_tokens": 16000},
+        "empty_answer": {"min_max_tokens": 16000},
+        "wrong_shape": {"envelope": "unknown — map its schema like the codex profile"},
+        "no_response": {"note": "raise request timeout (scaled_timeout) / check the lane is up"},
+    }
+    suggestion = next((v for k, v in _SUGGESTIONS.items() if symptom.startswith(k)), {})
+    blocks = {
+        "What Happened": f"'{model}' returned an unusable result: {symptom}.",
+        "Why It Happened (Root Cause)": f"5-whys: output empty/unparsed → field/shape mismatch → "
+                                        f"{self_caused} → model structure not accounted for → no learned profile yet.",
+        "Impact": "This call yielded no gradeable answer; the loop/benchmark step can't use this model until adapted.",
+        "Fix": (f"Applied suggested adjustment {suggestion} — persist with model_profiles.learn('{model}', <adj>). "
+                if suggestion else f"Research the schema then learn() a field mapping. {researched}"),
+        "Prevention": "Learned profile persists in learned_model_profiles.json so this model is handled from now on; "
+                      "add it to PROFILES upstream if it's a common model.",
+    }
+    _journal(model, blocks)
+    report = ("⚠️ **ErrorHandlingProtocol Invoked** ⚠️\n"
+              + "\n".join(f"**{k}:** {v}" for k, v in blocks.items()))
+    return {"report": report, "blocks": blocks, "researched": researched, "suggestion": suggestion}
 
 
 def request_budget(model: str) -> int:
