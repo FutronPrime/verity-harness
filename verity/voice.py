@@ -31,6 +31,7 @@ import time
 # Pronunciation respellings for proper nouns TTS engines mangle. Extend per deployment.
 _PRON = [
     (re.compile(r"\bJ\.?A\.?R\.?V\.?I\.?S\.?", re.I), "Jarvis"),   # J.A.R.V.I.S. -> "Jarvis", not spelled out
+    (re.compile(r"\borion\b", re.I), "Oh-Ree-on"),   # public build default persona (evolves with the user)
     (re.compile(r"\bavani\b", re.I), "Ah-Voh-nee"),
     (re.compile(r"\baisha\b", re.I), "Eye-EE-sha"),
     (re.compile(r"\blcars\b", re.I), "El Cars"),
@@ -318,6 +319,40 @@ def _say_futron(text: str) -> bool:
         return False
 
 
+def _say_juniper(text: str, style: str) -> bool:
+    """FREE, UNLIMITED, natural voice: an EXPRESSIVE edge-tts neural base re-timbred by an RVC v2
+    overlay (AVANI's Juniper model), served at VERITY_RVC_URL (default the FUTRON proxy :9104).
+    This is the preferred free path — the key insight is that RVC changes TIMBRE not PROSODY, so
+    overlaying it on expressive edge-tts (not robotic `say`) yields natural pacing in the target
+    voice. Portable: any user can point VERITY_RVC_URL at their own edge+RVC service. Falls through
+    if the endpoint is down."""
+    import urllib.request
+    url = os.getenv("VERITY_RVC_URL", "http://127.0.0.1:9104/edge-and-translate-bytes")
+    rate = os.getenv("VERITY_RVC_RATE", "+8%")
+    try:
+        body = json.dumps({"text": text[:5000], "output_path": "/tmp/verity-rvc.wav",
+                           "rate": rate}).encode()
+        req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=int(os.getenv("VERITY_RVC_TIMEOUT", "45"))) as r:
+            if r.status != 200:
+                return False
+            audio = r.read()
+        if len(audio) < 1000:
+            return False
+        out = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
+        with open(out, "wb") as f:
+            f.write(audio)
+        player = shutil.which("afplay") or shutil.which("play") or shutil.which("aplay")
+        ok = bool(player) and subprocess.run([player, out], capture_output=True).returncode == 0
+        try:
+            os.unlink(out)
+        except Exception:
+            pass
+        return ok
+    except Exception:
+        return False
+
+
 def _voice_ref(style: str):
     p = _VOICES / f"{style}.wav"
     return str(p) if p.exists() else None
@@ -550,6 +585,12 @@ def say(text: str, verbose: bool = False, force: bool = False, realtime: bool = 
     # it IS that personality's voice, regardless of the configured engine.
     if _say_piper(spoken, style):
         used = "piper:" + style
+    # FREE natural AVANI voice — expressive edge-tts + Juniper RVC overlay (VERITY_RVC_URL). Preferred
+    # over Kokoro for the AVANI/standard styles because it carries real prosody, not robotic pacing.
+    # Character styles (aisha→ElevenLabs, jarvis/lcars→piper) skip it — the Juniper model is AVANI's timbre.
+    if not used and eng != "elevenlabs" and c["style"] in ("standard", "avani", "default") \
+            and _say_juniper(spoken, c["style"]):
+        used = "juniper (edge+RVC AVANI)"
     # Per-style Kokoro preset voice (e.g. standard = af_heart) — local neural, fast.
     if not used and _say_kokoro(spoken, style):
         used = "kokoro:" + style

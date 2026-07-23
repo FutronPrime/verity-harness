@@ -91,3 +91,47 @@ def resolve_media_url(url: str, *, allow_browser_cookies: bool = False) -> dict:
         "route": result.route,
         "attempts": list(result.attempts),
     }
+
+
+def fetch_transcript(url: str, *, allow_browser_cookies: bool = False,
+                     timeout: int = 300) -> str:
+    """Return the FULL transcript text for a video, robustly. yt-dlp auto-subs first (fast, free);
+    if they 429 / are absent, fall back to `futron-gemini-transcribe` (multimodal, full stdout).
+    Returns complete text — never a truncated preview. Empty string only if every route genuinely
+    fails. Portable: the Gemini fallback is used only when the CLI is on PATH."""
+    import re as _re
+    import tempfile as _tf
+    from pathlib import Path as _P
+    # 1) yt-dlp auto/uploaded subtitles → plain text
+    try:
+        with _tf.TemporaryDirectory() as td:
+            res = run(url, ["--skip-download", "--write-auto-sub", "--write-sub",
+                            "--sub-lang", "en", "--sub-format", "vtt",
+                            "-o", f"{td}/%(id)s.%(ext)s"],
+                      allow_browser_cookies=allow_browser_cookies, timeout=timeout)
+            vtts = list(_P(td).glob("*.vtt"))
+            if vtts:
+                raw = vtts[0].read_text(errors="ignore")
+                lines, seen = [], set()
+                for ln in raw.splitlines():
+                    ln = ln.strip()
+                    if not ln or "-->" in ln or ln.isdigit() or ln.startswith(("WEBVTT", "Kind:", "Language:")):
+                        continue
+                    ln = _re.sub(r"<[^>]+>", "", ln)
+                    if ln and ln not in seen:
+                        seen.add(ln); lines.append(ln)
+                text = "\n".join(lines).strip()
+                if len(text) > 200:
+                    return text
+    except Exception:
+        pass
+    # 2) Gemini fallback — full transcript on STDOUT (the CLI prints the complete text when piped)
+    if shutil.which("futron-gemini-transcribe"):
+        try:
+            proc = subprocess.run(["futron-gemini-transcribe", url],
+                                  capture_output=True, text=True, timeout=timeout)
+            if proc.returncode == 0 and len(proc.stdout.strip()) > 200:
+                return proc.stdout.strip()
+        except Exception:
+            pass
+    return ""
