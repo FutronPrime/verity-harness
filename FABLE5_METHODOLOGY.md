@@ -53,3 +53,16 @@ Sources: leaked `claude-fable-5.md` (asgeirtj/system_prompts_leaks) · KinetiNod
 system-prompt-clean · UnpaidAttention/fable5-methodology. Verified in production 2026-07-23:
 `futron-fable-brain --plan-only` produced assumption-flagged, dependency-ordered, verification-
 bound plans — a night-and-day gain over generic decomposition.
+
+## 🧠 FABLE-5 PLANNER — MiniCPM distilled ORCHESTRATOR (wired 2026-07-25)
+Local llama.cpp server, OpenAI-compatible, always on (`com.futron.fable5-planner`).
+- **Endpoint:** `http://127.0.0.1:11501/v1/chat/completions` · health `/health`
+- **Model:** `MiniCPM5-1B-Claude-Opus-Fable5-Thinking` (Q4_K_M GGUF), fine-tuned on Fable-5 traces
+- **Role:** PLANNER only — goal → verifiable dependency graph. Never an executor.
+- **MUST** pass `response_format: json_schema` — llama.cpp GBNF makes malformed JSON impossible
+- **MUST** pass `chat_template_kwargs: {"enable_thinking": false}` — else the whole budget goes
+  to `reasoning_content` and content comes back EMPTY (measured: 900/900 tokens, finish=length)
+- ~2.3s with thinking off vs ~50s on; the schema carries the structure either way
+- `-ngl 0` MANDATORY (Metal ban)
+- Canonical prompt: `~/.openclaw/config/fable5-planner-prompt.md`
+- Topology: MiniCPM plans → Kimi K3/Opus executes → cheap READ-ONLY verifier → frontier reviewer audits seams
