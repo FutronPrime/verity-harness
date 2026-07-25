@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 520" width="860" height="520" font-family="ui-monospace,SFMono-Regular,Menlo,monospace">
+  <style>
+    .bg{fill:#0d1117}
+    .card{fill:#161b22;stroke:#30363d;stroke-width:1;rx:6}
+    .t{fill:#e6edf3}.d{fill:#8b949e}.acc{fill:#7ee787}.warn{fill:#f0883e}.hos{fill:#58a6ff}
+    .h1{font-size:19px;font-weight:700}.h2{font-size:12px}.lbl{font-size:11px}.num{font-size:12px;font-weight:700}
+    .tiny{font-size:10px}
+    @media (prefers-color-scheme: light){
+      .bg{fill:#ffffff}.card{fill:#f6f8fa;stroke:#d0d7de}
+      .t{fill:#1f2328}.d{fill:#59636e}.acc{fill:#1a7f37}.hos{fill:#0969da}.warn{fill:#bc4c00}
+    }
+  </style>
+  <rect class="bg" width="860" height="520"/>
+
+  <text class="t h1" x="28" y="38">Fable-5 Planner — does the 1B distill actually help?</text>
+  <text class="d h2" x="28" y="58">MiniCPM5-1B-Fable5-Thinking (Q4_K_M, llama.cpp + GBNF) vs hosted gemma-4-31b:free · 6 planning tasks · 2026-07-25</text>
+
+  <!-- THE FINDING -->
+  <rect class="card" x="28" y="76" width="804" height="58" rx="6"/>
+  <text class="t num" x="44" y="98">THE FINDING: bounding the output schema did more for plan quality than any prompt change.</text>
+  <text class="d lbl" x="44" y="118">Unbounded, the 1B model padded to 32.3 steps and 1.8% checkable. Adding minItems:3 / maxItems:8 to the GBNF grammar</text>
+  <text class="d lbl" x="44" y="132">took it to 8.0 steps and 27.1% checkable — past the hosted model. Constraining the output space beat instructing the model.</text>
+
+  <!-- BEFORE / AFTER -->
+  <text class="t h2" x="28" y="168">LOCAL PLANNER — before vs after bounding the steps array</text>
+
+  <g transform="translate(28,182)">
+    <!-- valid json -->
+    <text class="d lbl" x="0" y="20">valid JSON rate</text>
+    <rect x="150" y="9" width="250" height="13" fill="#30363d" rx="2"/>
+    <rect x="150" y="9" width="208" height="13" class="warn" rx="2"/>
+    <text class="warn num" x="410" y="20">0.833</text>
+    <rect x="470" y="9" width="250" height="13" fill="#30363d" rx="2"/>
+    <rect x="470" y="9" width="250" height="13" class="acc" rx="2"/>
+    <text class="acc num" x="730" y="20">1.00</text>
+
+    <!-- checkable -->
+    <text class="d lbl" x="0" y="52">checkable steps</text>
+    <rect x="150" y="41" width="250" height="13" fill="#30363d" rx="2"/>
+    <rect x="150" y="41" width="5" height="13" class="warn" rx="2"/>
+    <text class="warn num" x="410" y="52">0.018</text>
+    <rect x="470" y="41" width="250" height="13" fill="#30363d" rx="2"/>
+    <rect x="470" y="41" width="68" height="13" class="acc" rx="2"/>
+    <text class="acc num" x="730" y="52">0.271</text>
+
+    <!-- check tier -->
+    <text class="d lbl" x="0" y="84">mean check tier</text>
+    <rect x="150" y="73" width="250" height="13" fill="#30363d" rx="2"/>
+    <rect x="150" y="73" width="38" height="13" class="warn" rx="2"/>
+    <text class="warn num" x="410" y="84">0.91</text>
+    <rect x="470" y="73" width="250" height="13" fill="#30363d" rx="2"/>
+    <rect x="470" y="73" width="75" height="13" class="acc" rx="2"/>
+    <text class="acc num" x="730" y="84">1.81</text>
+
+    <!-- steps -->
+    <text class="d lbl" x="0" y="116">steps per plan</text>
+    <rect x="150" y="105" width="250" height="13" fill="#30363d" rx="2"/>
+    <rect x="150" y="105" width="250" height="13" class="warn" rx="2"/>
+    <text class="warn num" x="410" y="116">32.3</text>
+    <rect x="470" y="105" width="250" height="13" fill="#30363d" rx="2"/>
+    <rect x="470" y="105" width="62" height="13" class="acc" rx="2"/>
+    <text class="acc num" x="730" y="116">8.0</text>
+
+    <text class="d tiny" x="150" y="138">UNBOUNDED</text>
+    <text class="d tiny" x="470" y="138">minItems:3 · maxItems:8</text>
+  </g>
+
+  <!-- HEAD TO HEAD -->
+  <text class="t h2" x="28" y="352">Bounded local vs hosted</text>
+  <rect class="card" x="28" y="362" width="804" height="96" rx="6"/>
+  <text class="d lbl" x="44" y="384">metric</text>
+  <text class="acc lbl" x="330" y="384">local (MiniCPM + GBNF)</text>
+  <text class="hos lbl" x="560" y="384">hosted (gemma-4-31b free)</text>
+  <text class="d lbl" x="760" y="384">winner</text>
+
+  <text class="d lbl" x="44" y="406">valid JSON</text>
+  <text class="acc num" x="330" y="406">1.00</text><text class="hos num" x="560" y="406">1.00</text><text class="d lbl" x="760" y="406">tie</text>
+
+  <text class="d lbl" x="44" y="424">checkable steps</text>
+  <text class="acc num" x="330" y="424">0.271</text><text class="hos num" x="560" y="424">0.208</text><text class="acc lbl" x="760" y="424">local</text>
+
+  <text class="d lbl" x="44" y="442">mean check tier</text>
+  <text class="acc num" x="330" y="442">1.81</text><text class="hos num" x="560" y="442">1.88</text><text class="hos lbl" x="760" y="442">hosted</text>
+
+  <!-- CAVEAT -->
+  <rect class="card" x="28" y="470" width="804" height="36" rx="6"/>
+  <text class="d lbl" x="44" y="486">CAVEAT — this scores STRUCTURE, not insight. A 1B model can emit a well-formed, fully-checkable plan that is shallow.</text>
+  <text class="d lbl" x="44" y="500">Both planners sit near check tier 1.9 (narrative/observable), which is why the verifier-first gate still rejects most steps.</text>
+</svg>
