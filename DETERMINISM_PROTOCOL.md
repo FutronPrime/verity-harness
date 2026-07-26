@@ -124,6 +124,29 @@ printing a heuristic score as a judgment.
    threshold to silence an FA hides the reading error that caused it and lowers real coverage
    at the same time. Fix the column.
 
+
+10. **A LINTER THAT MISSES ITS OWN FIXTURE CERTIFIES THE CODE IT CANNOT READ.** Every
+    check here ships with three fixtures: a known-bad that must be caught, a
+    reference-correct file that must be clean, and *the linter itself*, which must not
+    flag its own documentation. Talking about a pattern is not committing it.
+
+    > **Measured 2026-07-26.** `futron-rule11-lint` cleared the real, historical
+    > `futron-sets-review` — the file whose failure the rule was written from — because
+    > its "honest degrade branch" pattern accepted `if used_fallback: print("⚠ …")`.
+    > That is a warning line above an otherwise-identical verdict: **the linter accepted
+    > the exact thing R11 forbids.** Fixed by requiring the branch to actually suppress
+    > or replace the verdict (early return / exit 2 / UNAVAILABLE), not merely print.
+    > Regression fixture is now the pre-fix backup itself: catch the historical bug,
+    > clear the fixed version.
+
+11. **DO NOT TUNE A LINTER TO ZERO.** Tuning to silence is the same error as reading a
+    silent detector as healthy. The honest end state is *precise on the patterns it
+    claims, explicit about its limits* — so these tools print "these checks found
+    nothing **they can see**", never "all clear". First R11 sweep: 198 findings, ~90% of
+    them the token `timeout=` in a kwarg. A linter that is 90% noise is one nobody runs,
+    so each false alarm was fixed as a detector defect until the signal was real —
+    198 → 26 → 14, with the fixtures re-run at every step.
+
 ## Sources
 
 - Thinking Machines Lab, *Defeating Nondeterminism in LLM Inference* — batch invariance.
