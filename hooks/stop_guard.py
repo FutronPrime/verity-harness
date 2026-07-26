@@ -115,6 +115,84 @@ CONTEXT_QUIT = re.compile(r"""(?ix)
     | i'?ll\s+(do|finish|complete|get\s+to|tackle|wire)\s+(it|this|that|them)\s+(next|later)
     | let'?s\s+wait\b | come\s+back\s+to\s+(it|this)\s+(next|later|in\s+a) )
 """)
+# ── FOUND-AND-DEFERRED (added 2026-07-25 at DJ's direction) ───────────────────────────
+# The evasion the other classes all miss: the agent FINDS a specific, fixable problem, states
+# it clearly, and then hands it back instead of fixing it. It reads as diligence — a crisp
+# diagnosis plus a ready-made one-liner — which is exactly why it slips past. DJ, verbatim:
+#   "any issues and obstacles or suggestions you find FIX THEM don't just note or suggest it
+#    should be done! how do i force you to actually be proactive... instead of just telling me
+#    or asking me when you know i'm going to say do it"
+# Real instances from this session: "I did NOT fix it… the fix is one line, for you to run",
+# "Say the word and I'll apply it", and "those are pre-existing, not regressions" (used to
+# excuse 8 flagged tools). Each was a fix the agent could have shipped in the same turn.
+# EARNED ONLY by naming a genuine boundary (SAFETY_REASON) — e.g. it needs a password, it
+# modifies a safety gate, it moves money. "It's out of scope" and "it pre-dates me" are not
+# boundaries; they are choices to leave the work undone.
+FOUND_DEFER = re.compile(r"""(?ix)
+    ( (say|just\s+say)\s+the\s+word
+    | want\s+me\s+to\s+(fix|apply|do|patch|handle|build|wire|run|change|update)
+    | (shall|should)\s+i\s+(fix|apply|patch|go\s+ahead)
+    | for\s+you\s+to\s+(run|apply|do|decide)\b
+    | i'?m\s+not\s+(going\s+to\s+|gonna\s+)?(patch|fix|change|touch|modify)(ing)?\s+(it|this|that)\b
+    | i\s+(did\s+)?not\s+fix\b | i\s+didn'?t\s+fix\b | left\s+(it\s+)?(as[\s-]is|alone|unfixed)
+    | (that|this|these|those|it)\s+(is|are|'?s|'?re)\s+pre[\s-]?existing
+    | not\s+(a\s+)?regressions?\b
+    | (worth|would\s+be\s+worth)\s+(doing|fixing|auditing|adding|building|checking)\b
+    | (someone|somebody|you)\s+should\s+(fix|do|run|apply|handle)
+    | (recommend|suggest)\s+(fixing|doing|running|applying|adding)
+    | (leaving|leave)\s+(that|it|those|them)\s+(to\s+you|for\s+you|as[\s-]is|alone)
+    | (out\s+of|beyond)\s+scope\s+(for|of)\s+(this|now)
+    | (your|the\s+user'?s)\s+call\b
+    | i'?ll\s+leave\s+(that|it|this)\s+(to|with)\s+you )
+""")
+
+# ── R12 FALSE ALL-CLEAR (added 2026-07-26) ────────────────────────────────────────────
+# The inverse of every class above. Those catch acts of COMMISSION — a claim the agent had
+# not earned. This catches the OMISSION that ends a turn looking perfect: "no issues found",
+# "all clear", "everything looks good". It is the single most common way a Missed-Needed
+# leaves no trace, because a clean report and a blind report are textually identical.
+#
+# The honest form states the LIMIT of what was checked: "these checks found nothing THEY CAN
+# SEE", "X was not verified", "that domain is UNMONITORED". So the gate is EARNED by any
+# scope qualifier — a real all-clear on a genuinely-checked surface passes untouched. What
+# it blocks is the unqualified one, which claims coverage nobody established.
+#
+# Evidence for the class, measured 2026-07-26: a brand-screening gate had been failing OPEN
+# for an unknown period, printing confident scores it never computed. Nothing reported it,
+# because a gate that is quietly wrong emits exactly what a working gate emits.
+FALSE_ALL_CLEAR = re.compile(r"""(?ix)
+    ( no\s+(issues?|problems?|errors?|failures?|concerns?)\s+(were\s+)?(found|detected|present)
+    | (found|detected)\s+no\s+(issues?|problems?|errors?|failures?)
+    | \ball\s+clear\b | \ball\s+good\b | \bnothing\s+to\s+report\b
+    | everything\s+(looks|is|seems|checks\s+out)\s*(good|fine|healthy|ok|okay|correct)?\b
+    | clean\s+bill\s+of\s+health
+    | (system|everything|it|things)\s+(is|are|looks?)\s+healthy\b
+    | no\s+(other\s+)?(remaining\s+)?(issues?|problems?)\b )
+""")
+# Naming the LIMIT of the check earns the all-clear — this is the honest phrasing.
+# A "publish" whose only target is an ARTIFACT is not outward-facing: artifacts are private
+# by default and mint a link only the owner can open. Demanding a brand screen for one is
+# friction with no safety value — and a gate that cries wolf on a safe action is exactly how
+# a REAL publish warning gets skimmed past. Any genuine outward target overrides this.
+ARTIFACT_ONLY = re.compile(r"""(?ix)
+    \bartifacts?\b
+""")
+OUTWARD_TARGET = re.compile(r"""(?ix)
+    ( \b(to|on)\s+(x|twitter|reddit|instagram|facebook|linkedin|threads|bluesky|mastodon)\b
+    | social-publish\s+post | \btweet | \bpublic(ly)?\b | \bsubreddit\b | \bfollowers\b )
+""")
+SCOPE_QUALIFIED = re.compile(r"""(?ix)
+    ( they\s+can\s+see | \bUNMONITORED\b | (was|were|could)\s+not\s+(be\s+)?(check|verif|test|scan)
+    | (did|do)\s+not\s+(check|verify|cover|test|scan) | not\s+(checked|verified|covered|tested|scanned)
+    | within\s+(the\s+)?scope | these\s+(checks?|detectors?|tests?) | limits?\s+of\s+(this|the)
+    | \bMN[\s-]?risk\b | held\s+below | \bunverified\b | i\s+could\s+not\s+(check|confirm|verify)
+    | (blind|unmeasured)\b | no\s+verdict
+    # meta/quoting: talking ABOUT the phrase is not claiming it. A gate that fires on its
+    # own documentation makes the rule unwritable — caught by the adversarial suite, 2026-07-26.
+    | ["\u2018\u2019\u201c\u201d'].{0,40}(no\s+issues|all\s+clear|nothing\s+to\s+report)
+    | \b(R12|rule|guard|gate|protocol|says|instead\s+of|never\s+say|don'?t\s+say)\b )
+""")
+
 # A genuine reason that DOES justify deferring/stopping (money/destructive/prod/human gate) — naming
 # one earns the stop, so the context-quit block is suppressed.
 SAFETY_REASON = re.compile(r"""(?ix)
@@ -181,10 +259,17 @@ def main():
     capability = bool(CAPABILITY.search(tail_text))
     defer = bool(DEFER.search(tail_text))
     publish = bool(PUBLISH.search(tail_text)) or bool(PUBLISH.search(actions))
+    # private artifact, no outward target named -> not an outward publish
+    if publish and ARTIFACT_ONLY.search(tail_text) and not OUTWARD_TARGET.search(
+            tail_text + ' ' + actions):
+        publish = False
     # R60 context-quit: deferring the task to a fresh pass / low context — but NOT if a genuine
     # safety reason (money/destructive/human gate) is named (that earns the stop).
     quit_ctx = bool(CONTEXT_QUIT.search(tail_text)) and not bool(SAFETY_REASON.search(tail_text))
-    if not (neg or capability or defer or publish or quit_ctx):
+    found_defer = bool(FOUND_DEFER.search(tail_text)) and not bool(SAFETY_REASON.search(tail_text))
+    # R12: an unqualified all-clear. Earned by naming what was NOT checked.
+    false_clear = bool(FALSE_ALL_CLEAR.search(tail_text)) and not bool(SCOPE_QUALIFIED.search(tail_text))
+    if not (neg or capability or defer or publish or quit_ctx or found_defer or false_clear):
         sys.exit(0)
 
     investigated = bool(INVESTIGATED.search(actions))
@@ -236,6 +321,27 @@ def main():
                   "CAPTCHA/payment/account-creation) or genuinely-unsafe-to-rush work (live-money/"
                   "destructive/prod config) — and if it's the latter you must NAME the specific risk, "
                   "not cite 'low context'. If you've actually done the work, state the result and stop.")
+    if not reason and found_defer:
+        reason = ("VERITY stop-guard: you FOUND a concrete, fixable issue and are HANDING IT BACK "
+                  "instead of fixing it ('want me to…', 'say the word', 'the fix is one line for you "
+                  "to run', 'worth doing', 'pre-existing / not a regression', 'your call'). DJ has "
+                  "standing instruction: FIX what you find, in the same turn — do not report it and "
+                  "wait for a yes he has already given. Go do it now, then verify it. Deferring is "
+                  "earned ONLY by naming a genuine boundary: a password/2FA/CAPTCHA/biometric gate, "
+                  "payment or live money, account creation, or a change to a safety gate that needs "
+                  "his itemized approval. 'Out of scope', 'pre-existing', and 'someone should' are "
+                  "NOT boundaries — they are decisions to leave the work undone. If you genuinely "
+                  "already fixed it, say what you changed and how you verified it.")
+    if not reason and false_clear:
+        reason = ("VERITY stop-guard (R12): you are ending on an UNQUALIFIED ALL-CLEAR — "
+                  "'no issues found' / 'all clear' / 'everything looks good'. A clean report and "
+                  "a BLIND report are textually identical, which is why this is the single most "
+                  "common way a Missed-Needed leaves no trace. State the LIMIT instead: which "
+                  "checks actually ran, what they CANNOT see, and which domains are UNMONITORED "
+                  "because a check could not run. Say 'these checks found nothing they can see', "
+                  "not 'no issues found'. Also surface anything you noticed and did NOT act on. "
+                  "If you genuinely verified a bounded surface, name that surface and the "
+                  "all-clear stands.")
     if not reason:
         sys.exit(0)
 
