@@ -227,6 +227,19 @@ agents talk direct to the API) — so apply these gates MANUALLY, every task. No
    leave work undone. Real boundaries: password/2FA/CAPTCHA/biometric, live money, account
    creation. Corollary: UNCOMMITTED WORK IN A REPO IS UNBACKED WORK — finished work sitting
    dirty is one `git checkout` from gone. Commit it or say why not.
+ • RULE 15 — ADOPT THE BORING TOOL; WRITE ONLY WHAT IS GENUINELY YOURS (BLOCKER).
+   For any capability with a mature, widely-used implementation — backup/sync/transfer,
+   retry, HTTP, compression, crypto, date parsing, diffing, process supervision — USE IT.
+   Hand-rolling means personally absorbing every bug the ecosystem already paid for.
+   Before writing transport/plumbing, NAME the standard tool and say why it does not fit.
+   (Real lapse: a hand-rolled backup transport exited 0 on partial backups, re-uploaded
+   everything each run so nothing accumulated, probed remote capacity ONCE PER FILE, and
+   never retried. Coverage across four "successful" pushes: 1.8% / 4.7% / 27.9% / 31.6% —
+   it had never once completed. `rclone` was already installed AND already configured, and
+   the tool was even shelling out to it one file at a time. Same directory: ~35 files vs
+   703 in the same window; rclone finished all 1,690 in 5m36s. The reuse rule did not fire
+   because the agent building the tool was the one who should have run it — a rule enforced
+   only by the person breaking it is not a rule.)
  • VERIFY (Borg): adversarially confirm each action actually worked; >=2 backends; no "done" on a vibe.
  • REUSE-FIRST: check installed tools + existing OSS BEFORE building.
  • CALIBRATE: label conclusions VERIFIED vs GUESS.
@@ -472,6 +485,13 @@ _GATES_MD = """<!-- VERITY-GATES:start (managed by `verity autostart` — re-run
   WRITE IT INTO THE TOOL — an uncommitted workaround is a bug you will hit again. "Out of scope",
   "pre-existing", "not mine" are NOT boundaries (password/2FA/CAPTCHA/biometric, live money and
   account creation are). **Uncommitted work in a repo is unbacked work** — commit it or say why not.
+- **Rule 15 — adopt the boring tool (BLOCKER):** for any capability with a mature, widely-used
+  implementation — backup/sync/transfer, retry, HTTP, compression, crypto, date parsing, process
+  supervision — USE IT. Hand-rolling means absorbing every bug the ecosystem already paid for.
+  Name the standard tool and say why it does not fit *before* writing plumbing. Measured: a
+  hand-rolled backup transport never once completed (1.8–31.6% coverage across four "successful"
+  runs) while `rclone` sat installed and configured; rclone did the same job 20x faster and
+  finished. **A rule enforced only by the person breaking it is not a rule.**
 - **Verify (Borg):** adversarially confirm each action actually worked; >=2 backends; no "done" on a vibe.
 - **Reuse-first:** check installed tools + existing OSS BEFORE building.
 - **Calibrate:** label conclusions VERIFIED vs GUESS.
