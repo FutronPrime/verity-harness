@@ -1,5 +1,12 @@
 # PROACTIVITY PROTOCOL — measure the misses, not the interruptions
 
+> **"You're not supposed to prompt Claude. You're supposed to build a system that prompts
+> itself."** — Daisy Hollman, Anthropic
+
+That is the target. This protocol is the part everyone skips on the way there: **a system that
+prompts itself needs a way to be wrong about when to speak, and a way to find out.** Without
+one you have not built a teammate, you have built a cron job with opinions.
+
 Adopt alongside `FABLE5_METHODOLOGY.md` (how you think), `FINN_LOOP.md` (how you ship) and
 `OVS_PROTOCOL.md` (how work gets graded). This one governs when you speak **without being
 asked**. Tool: `futron-proactive` (FUTRON) — the protocol below is portable to any harness.
@@ -115,3 +122,8 @@ futron-proactive routines       # ready-to-paste /schedule prompts
   validation criteria; 0.37 → 0.84 mean score, pass rate 33.6% → 88.0%.
 - **ACE / agentic-context-engine** — Agent → Reflector → SkillManager over a persistent
   Skillbook; store validated strategies, not raw traces, to avoid context collapse.
+- Daisy Hollman (Anthropic) — *"build a system that prompts itself."* The four failure modes
+  she names for self-prompting loops map onto this protocol directly: **no memory file** (every
+  loop restarts from zero → the ledger), **no sub-agent split** (one agent doing everything →
+  decomposition, `DETERMINISM_PROTOCOL.md` §2), **no stop condition** (→ the threshold), and
+  token bloat (→ store strategies, not transcripts).
