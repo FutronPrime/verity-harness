@@ -32,7 +32,7 @@ Available only where the named layer sits between the model and the output.
 | Grammar-bounded generation | validate tokens against a grammar in real time | LMQL, GBNF | structural validity |
 | Structure/content separation | framework emits the JSON skeleton; model fills only leaves | Jsonformer | 100% syntactic JSON |
 | Fixed seed + deterministic kernels | `torch.manual_seed`, `use_deterministic_algorithms(True)`, CUDA controls | local models only | run-to-run identity at fixed batch |
-| Batch-invariant inference | batch-invariant RMSNorm / matmul / attention | self-hosted only | identical across batch sizes |
+| Batch-invariant inference | batch-invariant RMSNorm / matmul / attention | **vLLM** ([`batch_invariance`](https://docs.vllm.ai/en/latest/features/batch_invariance)) · **SGLang** ([deterministic inference](https://docs.sglang.io/advanced_features/deterministic_inference.html)) — self-hosted only | identical across batch sizes |
 | Formal verification | discharge the claim to a solver | Z3, Lean 4 | proof, not sampling |
 
 FUTRON note: local lanes go through the HTTP API with **GBNF grammars** — never by parsing
@@ -100,6 +100,29 @@ printing a heuristic score as a judgment.
 7. **VERIFY BY OPENING THE ARTIFACT.** The count of rows written is not the page rendering. A
    structural check on the output object is worth more than any assertion about the process
    that produced it.
+
+8. **NEVER READ HISTORY AS STATE.** The most common form of rule 5 in practice, and the one
+   that keeps getting rebuilt. Before treating a value as *current*, ask what it is a record
+   **of**:
+
+   | proxy | what it actually is | correct reading |
+   |---|---|---|
+   | `launchctl` STATUS column | **last exit** | require `pid != "-"`; a running service is healthy whatever its last exit was |
+   | a cached snapshot file | the world at write time | re-observe by default; make `--cached` explicit *and* print its age |
+   | "last N lines of a log" | position, not time | gate on `st_mtime` — a crash loop is by definition still writing |
+   | rows written | the process | open the artifact |
+
+   > **Measured 2026-07-26.** Four instances in one session, **three of them inside the module
+   > written to catch exactly this class.** It reported a healthy daemon as failing (last-exit
+   > column), then kept reporting the fault 30 seconds after it was fixed (cached snapshot),
+   > then flagged a crash loop from a log that had stopped being written 14 hours earlier
+   > (line position). Writing the protocol did not prevent the protocol's own implementation
+   > from committing the error three times — which is the argument for the deterministic test,
+   > not the doctrine.
+
+9. **A FALSE ALARM IS A BUG REPORT AGAINST THE DETECTOR, NOT NOISE TO TUNE OUT.** Raising a
+   threshold to silence an FA hides the reading error that caused it and lowers real coverage
+   at the same time. Fix the column.
 
 ## Sources
 

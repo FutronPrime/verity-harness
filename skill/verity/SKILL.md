@@ -109,9 +109,62 @@ r = run_verified("find and fix the off-by-one bug in utils.py", executor=ShellEx
   you don't know, then hire the right resource to fill the gap.")
 - **🔎 SEARCH-BEFORE-CONCLUDING (rule 6, the core)** — a NEGATIVE claim ("there's no X", "not
   possible", "no free option", "only way is Y") is the most expensive assumption. The harness
-  forces a proactive search where solutions live (GitHub / Google / Reddit / X / YouTube / SO)
-  **before** any such claim stands. Someone has almost certainly open-sourced or documented it.
-  *Don't assume scarcity — go look.* (This is what turns "no free X API" into "twikit posts free".)
+  forces a proactive search where solutions live (GitHub / Google / Reddit / X / YouTube / TikTok /
+  Pinterest / Instagram / StackOverflow / HuggingFace / npm-PyPI / **the Chrome Web Store**) **before** any such claim stands. Someone has almost certainly
+  open-sourced or documented it. *Don't assume scarcity — go look.* (This is what turns "no free
+  X API" into "twikit posts free".)
+  **Treat the Chrome Web Store as a solution registry, not a store.** An extension is a signed
+  zip of ordinary page JS; its CRX downloads without installing, and its content scripts run
+  through CDP (`Page.addScriptToEvaluateOnNewDocument` / `Runtime.evaluate`) with a small
+  `chrome.*` shim. So "an extension does X" means **you can do X** — as a callable function, no
+  extension runtime and no browser-profile coupling. Grade convertibility first: page-enhancement
+  extensions convert; ones whose value IS a browser-internal API (request blocking, new-tab
+  override, devtools panels, native messaging) do not, and must be reimplemented host-side.
+- **🖼️ OPEN-THE-MEDIA (rule −1, PRIMARY DIRECTIVE)** — the ACTUAL asset (image, audio, video,
+  LUT, design file, document) is ALWAYS the primary object of review. Filenames, tags, titles,
+  alt-text, collection names and DB rows are **annotation, not the asset**. Look at / listen to /
+  read the real file before describing, scoring, categorising or generating from it.
+  - **A statistic is not a semantic.** "More true-black pixels" is not "dark cyberpunk
+    aesthetic". Narrating a measurement into an aesthetic is the failure mode; use a vision
+    model to actually read images.
+  - **Attach the reference media downstream.** Never pass a text summary where the source file
+    can be passed — descriptions of visual/audio work lose exactly what matters.
+  - **Never merge distinct categories** into one profile. A corpus is a sampler of several
+    tastes; separate first, then analyse each against its own media.
+  - Cost when ignored, measured: a 438-image corpus graded from pixel stats + collection names
+    without opening one image produced a profile built from **3.6%** of the data that described
+    the *anti*-corpus. Same data: hand-rolled metrics **0.815** → CLIP k-NN **0.985**.
+- **🗂️ RESOLVE-MEMORY-BEFORE-DECLARING-IT-MISSING (rule 10)** — knowledge files often live across
+  SEVERAL roots. Never conclude a referenced doc is missing from one lookup: resolve across every
+  root, then fall back to a central mirror. Keep the mirror as a **copy with hash provenance**
+  (never a move — originals stay authoritative and existing references keep working), verify drift
+  rather than silently serving stale copies, and back it up offsite.
+  Measured: **21 of 34 index pointers read as "dead"; all 21 existed in another root.** So documented
+  laws bound nothing. **A pointer that resolves to nothing is worse than no pointer — it reads as
+  coverage.**
+- **🔁 SEARCH-FOR-AN-EXISTING-SKILL-BEFORE-BUILDING (rule 9)** — reuse-first, made mechanical.
+  Authoring a new skill/tool is the *last* option, not the first. Walk a ladder before writing
+  anything: **local installed skills → local CLIs → the agent-skill registries → open web (vetted)**,
+  and end with an explicit **REUSE / INSTALL / BUILD** verdict. BUILD is justified only when the
+  ladder says so. **Altering an existing skill or repo to fit the need beats writing a new one.**
+  - Registries expose **install counts** — use them. Prefer 1K+ installs / 100+ stars / known
+    authors. Deciding on the first result instead of on the counts is how you adopt abandonware.
+  - **VET before installing**: static malware scan (curl|bash pipes, `rm -rf ~`, base64→sh, eval of
+    remote code, credential exfiltration, reverse shells) → repo reputation → skill audit →
+    quarantine. Candidate code is NEVER auto-executed.
+  - Beware the *false reuse*: a two-word overlap is not a match. Require the candidate to cover a
+    real fraction of the request's terms, or you will adapt an irrelevant skill — worse than
+    building. (Measured 2026-07-25: "blender geometry nodes procedural modeling" matched a
+    *Three.js* skill on 2 of 5 terms and was nearly accepted as a strong hit.)
+- **🔑 CAPABILITY-BEFORE-DENIAL (rule 8)** — three capabilities get denied over and over because
+  ONE tier failed and the agent generalised from it. Check the toolchain before the claim:
+  **(a) logins** — most are OAuth click-through against an already-authenticated browser session
+  ("Sign in with Google" → pick account → Continue). Zero secrets. Defer ONLY for a real password
+  field / 2FA code / CAPTCHA / biometrics, and *name which one*.
+  **(b) Reddit** — has multiple independent read paths (API wrapper, `www` JSON, `old.reddit`
+  JSON, RSS, and a real browser). A 403 on one path is not "Reddit is blocked".
+  **(c) Chrome extensions** — see above; searchable, downloadable, convertible.
+  A single failed attempt is evidence about *that attempt*, never about the capability.
 - **Anti-Dunning-Kruger — BOTH methods, in the same loop** (the lever against "confidently wrong + quit"):
   inside `run_verified`, the deterministic **anti-giveup gate** (`guard.flag`, a code condition — NO model)
   fires *alongside* the model-based verify/evidence/calibration gates. If a conclusion is a premature

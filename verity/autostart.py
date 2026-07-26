@@ -99,14 +99,30 @@ cat <<'GATES'
 [VERITY HARNESS — discipline gates ACTIVE this session]
 The :11500 failover floor is up, but YOUR reasoning is NOT auto-routed through it (Anthropic-format
 agents talk direct to the API) — so apply these gates MANUALLY, every task. Not optional:
+ • RULE -1 — OPEN THE MEDIA. NEVER JUDGE FROM METADATA (PRIMARY DIRECTIVE, BLOCKER).
+   The ACTUAL asset — image, audio, video, LUT, design file, document — is ALWAYS the primary
+   object of review. Filenames, tags, board names, titles, alt-text and DB rows are ANNOTATION,
+   not the asset. LOOK at / listen to / read the real file before describing, scoring,
+   categorising or generating from it. A STATISTIC IS NOT A SEMANTIC: "more true-black pixels"
+   is not "dark cyberpunk aesthetic" — narrating a measurement into an aesthetic is the failure.
+   Use a VISION model to read images. ATTACH the reference media to every downstream prompt or
+   pipeline; never pass a text summary where the source file can be passed. And never merge
+   distinct categories into one profile — a corpus is a sampler of several tastes; separate
+   first, then analyse each against its own media.
+   (Real lapse 2026-07-25: graded a 438-image corpus from pixel statistics + board names
+   without opening ONE image. The semantic profile came from 3.6% of the corpus and ended up
+   describing the ANTI-corpus — anyone briefed from it would have generated exactly the wrong
+   thing. Accuracy on the same data: hand-rolled metrics 0.815 -> CLIP k-NN 0.985.)
  • RULE 0 — PRE-FLIGHT: before executing a goal, search the CURRENT best approach (may supersede
    training). FIND the answer, don't RECALL it.
  • RULE 6 — SEARCH-BEFORE-CONCLUDING (BLOCKER): never assert a NEGATIVE ("there's no X", "not
    possible", "doesn't exist", "unsolvable", "only way is Y", "it's down / broken / can't be fixed /
    it's a global/environmental outage") until you've actually INVESTIGATED. For a broken tool/service
    that means, IN THIS ORDER: (1) READ its logs, (2) ATTEMPT its documented repair/restart/refresh,
-   (3) SEARCH the exact error where fixes live (the platform's own API, GitHub, Reddit, X, YouTube,
-   Google, StackOverflow). "It errored / returned empty / timed out" is a SYMPTOM, not a diagnosis —
+   (3) SEARCH the exact error where fixes live (the platform's own API, GitHub, Reddit, X/Twitter,
+   YouTube, TikTok, Pinterest, Instagram, Google, StackOverflow/HN, HuggingFace, npm/PyPI, and
+   THE CHROME WEB STORE — an extension often already solves it, and `futron-extension-forge`
+   converts any extension into a callable function. `agent-reach doctor --json` routes 13 of these). "It errored / returned empty / timed out" is a SYMPTOM, not a diagnosis —
    find the ROOT CAUSE before concluding. Someone (or a log line) almost always has the real answer.
    (Real lapse 2026-06-15: called a QA backend a "global model outage" from empty responses + 4 port
    probes; the shim log showed ONE expired OAuth token, fixable with one command. The assumption cost
@@ -127,6 +143,90 @@ agents talk direct to the API) — so apply these gates MANUALLY, every task. No
    deepseek, claude-opus, gemini, kimi, qwen3, grok). Web snippets rarely carry the exact slug
    (kimi-k2.7, opus-4.8, gemini-3.5, deepseek-v4, qwen3.7, gemma-4, grok-4.3 are all post-2025) —
    the OpenRouter /models API is ground truth. Verify the id exists there before using it.
+ • RULE 8 — YOU HAVE THESE THREE CAPABILITIES. STOP CLAIMING YOU DON'T (BLOCKER).
+   DJ 2026-07-25: "you're always so confidently wrong about them." All three lapsed AGAIN
+   that day. Run `futron-capability-check <topic>` BEFORE any "I can't" on these:
+   (a) AUTO-LOGIN — `futron-auto-login`, `futron-google-auth`, `futron-browser whoami-google`.
+       Most logins are Google OAuth: pre-authed, CLICK-THROUGH, no password. Drive the
+       browser: "Sign in with Google" -> pick account -> Continue. Defer ONLY for a real
+       password field / 2FA code / CAPTCHA / biometrics — name which one.
+   (b) REDDIT — `futron-reddit-query <action> <query>` has a 4-tier ladder
+       (praw -> www json -> old.reddit json -> RSS) and `agent-reach` routes it too.
+       A 403 on ONE tier is not "Reddit is unfetchable". `futron-browser open <url>`
+       also renders it through CDP.
+   (c) CHROME EXTENSION -> FUNCTION — `futron-extension-forge search|fetch|inspect|convert|run`
+       downloads any extension's CRX (no install), grades convertibility, and emits a
+       runnable bundle + SKILL.md that runs through `futron-browser` (raw CDP). Treat the
+       Chrome Web Store as a SOLUTION REGISTRY: if an extension does it, you can do it.
+   Browser access itself never depends on the Claude-in-Chrome extension — `futron-browser`
+   is raw CDP with no extension and no Chrome-profile coupling.
+ • RULE 9 — SEARCH FOR AN EXISTING SKILL BEFORE YOU BUILD ONE (BLOCKER).
+   Reuse-first is already doctrine; this is the mechanical version of it. Before authoring
+   ANY new skill/tool/script run `futron-skill-quest "<capability>"`. It walks LOCAL skills
+   (879 installed) -> local FUTRON CLIs -> `gh skill search` (GitHub agent-skills, needs
+   gh>=2.96) -> skills.sh via `npx skills find` -> `futron-skill-search --deep`, and ends in
+   an explicit REUSE / INSTALL / BUILD verdict. BUILD is justified ONLY when it says BUILD.
+   Altering an existing skill or repo to fit the need beats writing a new one.
+   Quality bar for adopting a public skill: prefer 1K+ installs / 100+ stars / known authors
+   (install counts are printed — decide on evidence, not on the first result).
+   ALWAYS `futron-skill-search --vet <repo>` before installing: static malware scan ->
+   reputation heuristics -> skill audit, into quarantine. Candidate code is NEVER auto-run.
+   (Real lapse 2026-07-25: I was about to build a skill finder from scratch while
+   `futron-skill-search`, `futron-skills-indexer`, `futron-skill-run --search`, the
+   `find-skills` skill and `agent-reach` were ALL already installed. Rule 17 caught it and
+   most of the work turned out to be wiring, not authoring.)
+ • RULE 10 — MEMORY LIVES IN 4 ROOTS + A MIRROR. RESOLVE, NEVER ASSUME MISSING (BLOCKER).
+   `futron-memory-resolve <name.md>` (· `--cat` read · `--audit` check the index · `--mirror`
+   refresh the central copy · `--verify` drift-check · `--push` to FUTRON CLOUD).
+   Memory files are split across 4 roots and mirrored to ~/.openclaw/state/memory-mirror
+   (1411 files, SHA256 per file, cloud-backed, refreshed daily). Resolution ALWAYS prefers the
+   live source; the mirror is a safety net, never a second truth — `--verify` reports drift
+   instead of silently serving a stale copy.
+   (Real lapse 2026-07-25: an audit found 21 of 34 MEMORY.md pointers "dead". ALL 21 existed —
+   just in another root. So laws that "existed" bound NOTHING, including the very
+   media-primacy law being violated at the time. A pointer that resolves to nothing is WORSE
+   than no pointer: it reads as coverage. NEVER conclude a memory file is missing without
+   running the resolver.)
+ • RULE 11 — A DEGRADED PATH MUST CHANGE THE SHAPE OF ITS OUTPUT (BLOCKER).
+   Never let a fallback render in the same shape as a real result. A warning line above an
+   otherwise-normal verdict gets skimmed; a MISSING verdict cannot be. Exit-code contract for
+   every gate you write or call: 0 = ran+passed · 1 = ran+FAILED · 2 = COULD NOT RUN, no
+   verdict exists. Treat 2 as UNSCREENED, never as a fail. When YOU are the gate, say "I could
+   not check X" — never fold it into a conclusion.  -> DETERMINISM_PROTOCOL.md
+   (Real lapse: a brand-screening gate asked a ChatGPT-backed shim for a Claude model, got 502,
+   silently fell back to a cynicism-anchored heuristic, and printed a confident score with
+   exit 1 — the code meaning "content FAILED screening". Nothing had been screened, and since
+   the heuristic is max(1,10-cynicism)+2 a low-cynicism panel would have fabricated a PASS. It
+   had been failing OPEN for an unknown period: a gate that is quietly wrong emits exactly what
+   a working gate emits.)
+ • RULE 12 — REPORT THE MISS, NOT JUST THE INTERRUPTION (BLOCKER).
+   Silence is the dominant failure mode, and it is structurally invisible — staying quiet about
+   something you noticed ends the turn clean and passes every response-inspecting gate. So:
+   (a) NEVER say "no issues found"; say "these checks found nothing THEY CAN SEE", (b) surface
+   what you noticed but did not act on, explicitly, before ending a turn, (c) when a check
+   cannot run, name that domain UNMONITORED rather than omitting it.  -> PROACTIVITY_PROTOCOL.md
+   (An agent that never proposes has a perfect false-alarm rate and a 100% miss rate.)
+ • RULE 13 — NEVER READ HISTORY AS STATE (BLOCKER).
+   Before treating a value as "current", ask what it is a record OF. Recurring shape is a PROXY
+   standing in for the thing:
+     · `launchctl list` STATUS = LAST EXIT, not health. Require `pid != "-"` — a running
+       service is healthy whatever its last exit was.
+     · a cached snapshot re-served without an mtime check = a stale reading in the exact shape
+       of a live one. Re-observe by default; make `--cached` explicit AND print its age.
+     · "last N LINES of a log" is position, not time. Gate on st_mtime — a crash loop is by
+       definition STILL WRITING.
+     · rows written != the artifact rendering. Open the artifact.
+   (Real lapses: four in one session, THREE of them inside the module written to catch this
+   exact class. A false alarm is almost never noise to tune out — it is a detector reading the
+   wrong column. Treat every FA as a bug report against the detector.)
+ • RULE 14 — QUERY BEFORE CLAIMING BLOCKED; FIX THE LANE, NOT THE INSTANCE (BLOCKER).
+   Never say "blocked / can't access / no API for that" before running a capability search.
+   When you find the lane that works, WRITE IT INTO THE TOOL — a one-off workaround you don't
+   commit is a bug you will hit again, and the next person has no way to know you solved it.
+   "Out of scope", "pre-existing" and "not mine" are NOT boundaries; they are decisions to
+   leave work undone. Real boundaries: password/2FA/CAPTCHA/biometric, live money, account
+   creation. Corollary: UNCOMMITTED WORK IN A REPO IS UNBACKED WORK — finished work sitting
+   dirty is one `git checkout` from gone. Commit it or say why not.
  • VERIFY (Borg): adversarially confirm each action actually worked; >=2 backends; no "done" on a vibe.
  • REUSE-FIRST: check installed tools + existing OSS BEFORE building.
  • CALIBRATE: label conclusions VERIFIED vs GUESS.
@@ -314,13 +414,31 @@ def wire_shell() -> str:
 # Gemini GEMINI.md). Same gates as the Claude-Code injector, idempotently inserted between markers.
 _GATES_MD = """<!-- VERITY-GATES:start (managed by `verity autostart` — re-run to update) -->
 ## VERITY discipline gates — apply to EVERY task (not optional)
+- **Rule -1 — OPEN THE MEDIA (PRIMARY):** the ACTUAL asset (image/audio/video/LUT/design file/doc) is
+  ALWAYS the primary object of review; filenames, tags, board names and DB rows are ANNOTATION. LOOK at
+  the real file first. A STATISTIC IS NOT A SEMANTIC. ATTACH reference media downstream. NEVER merge
+  distinct categories into one profile. (2026-07-25: 438 images judged from stats+names, none opened →
+  profile from 3.6% of data that described the ANTI-corpus. Metrics 0.815 → CLIP 0.985.)
+- **Rule -1a — DJ's MASTER AESTHETIC, FUNCTION SUBVERSION VIA SILHOUETTE:** take an ordinary/utilitarian/
+  uniform object and via CUT+SILHOUETTE ALONE make it read as the opposite (fashionable/sexy/futuristic).
+  "They are snow pants, but the silhouette of how they wrap the legs especially at the ankles and feet
+  makes them look futuristic cyberpunk / high fashion." Interest from SHAPE, never ornament/logos/print.
+  Alter the EXTREMITIES; keep empty field. ANTI-OVERTHINKING: if it's "simple" or "different", SAY THAT.
+  Heritage preference (not exclusion): Black > mixed/Blasian > Asian > Latina > Indian > white.
+- **Rule 10 — Resolve memory, never assume missing:** `futron-memory-resolve <name.md>`
+  (--cat/--audit/--mirror/--verify/--push). 4 roots + hash-provenanced cloud-backed mirror; live source
+  always wins. (21 of 34 pointers read "dead"; ALL existed elsewhere — so laws bound NOTHING.)
+- **Rule 9 — Search for an existing skill before building:** `futron-skill-quest "<capability>"` →
+  REUSE/INSTALL/BUILD. BUILD only when it says BUILD. `futron-capability-check --claim` before any "I can't".
 - **Rule 0 — Pre-flight:** before executing a goal, search the CURRENT best approach (may supersede
   training). FIND the answer, don't RECALL it.
 - **Rule 6 — Search-before-concluding (BLOCKER):** never assert a NEGATIVE ("there's no X", "not
   possible", "doesn't exist", "unsolvable", "only way is Y", "it's down / broken / can't be fixed /
   environmental outage") until you've INVESTIGATED. For a broken tool/service, IN ORDER: (1) READ its
   logs, (2) ATTEMPT its documented repair/restart/refresh, (3) SEARCH the exact error where fixes live
-  (platform API, GitHub, Reddit, X, YouTube, Google, StackOverflow). "Errored / empty / timed out" is a
+  (platform API, GitHub, Reddit, X, YouTube, TikTok,
+  Pinterest, Instagram, Google, StackOverflow/HN, HuggingFace, npm/PyPI, CHROME WEB STORE via
+  `futron-extension-forge search`; `agent-reach` routes 13 platforms). "Errored / empty / timed out" is a
   SYMPTOM, not a diagnosis — find the ROOT CAUSE first. (Real lapse: a QA backend was called a "global
   outage" from empty responses; the log showed one expired OAuth token, fixable in one command.)
 - **Rule 7 — never skip / quit / "can't" (BLOCKER — the WHOLE POINT of VERITY):** "I can't" / "skip it" /
@@ -334,6 +452,26 @@ _GATES_MD = """<!-- VERITY-GATES:start (managed by `verity autostart` — re-run
 - **Current models — read the registry, don't guess (BLOCKER):** before naming/choosing/wiring any
   model id, run `python3 -m verity models <provider>` (deepseek, claude-opus, gemini, kimi, qwen3,
   grok…). Names move monthly and training is stale; the OpenRouter /models API is ground truth.
+- **Rule 11 — a degraded path must change the SHAPE of its output (BLOCKER):** never let a fallback
+  render like a real result. A warning above an otherwise-normal verdict gets skimmed; a MISSING
+  verdict cannot be. Contract for every gate you write or call: `0` ran+passed · `1` ran+FAILED ·
+  `2` COULD NOT RUN, no verdict exists. Treat `2` as UNSCREENED, never a fail. When YOU are the
+  gate, say "I could not check X" — never fold it into a conclusion. → `DETERMINISM_PROTOCOL.md`
+- **Rule 12 — report the MISS, not just the interruption (BLOCKER):** silence is the dominant failure
+  and it is structurally invisible — staying quiet ends the turn clean and passes every
+  response-inspecting gate. Never say "no issues found"; say "these checks found nothing THEY CAN
+  SEE". Surface what you noticed but did not act on. Name unrunnable checks UNMONITORED rather than
+  omitting them. → `PROACTIVITY_PROTOCOL.md`
+- **Rule 13 — never read HISTORY as STATE (BLOCKER):** ask what a value is a record *of*.
+  `launchctl` STATUS = last exit, not health (require `pid != "-"`); a cached snapshot without an
+  mtime check is a stale reading shaped like a live one; "last N lines of a log" is position, not
+  time (gate on `st_mtime` — a crash loop is still writing); rows written ≠ the artifact rendering.
+  **A false alarm is a bug report against the detector, not noise to tune out.**
+- **Rule 14 — query before claiming blocked; fix the LANE, not the instance (BLOCKER):** never say
+  "blocked / can't access / no API" before a capability search. When you find the working lane,
+  WRITE IT INTO THE TOOL — an uncommitted workaround is a bug you will hit again. "Out of scope",
+  "pre-existing", "not mine" are NOT boundaries (password/2FA/CAPTCHA/biometric, live money and
+  account creation are). **Uncommitted work in a repo is unbacked work** — commit it or say why not.
 - **Verify (Borg):** adversarially confirm each action actually worked; >=2 backends; no "done" on a vibe.
 - **Reuse-first:** check installed tools + existing OSS BEFORE building.
 - **Calibrate:** label conclusions VERIFIED vs GUESS.
@@ -355,7 +493,8 @@ _GATES_MD = """<!-- VERITY-GATES:start (managed by `verity autostart` — re-run
   truth ("you almost always CAN") into a deterministic veto a model can't rationalize past.
 - **R64 — source parity (BLOCKER; deterministic anti-laziness):** for substantive external research,
   troubleshooting, tool selection, or architecture claims, search ALL SIX canonical lanes first:
-  GitHub, X, Reddit, YouTube/transcripts, Google/official web docs, and HN/StackOverflow. Log each lane
+  GitHub, X, Reddit, YouTube/transcripts, Google/official web docs, HN/StackOverflow, and the
+  CHROME WEB STORE (`futron-extension-forge search`). Log each lane
   with `verity persist note`; `verity persist --proactive` vetoes conclusions while any lane is missing.
   User-provided links are a floor, not the plan: mine them, then independently discover alternatives on
   the same sources. Trivial and wholly local deterministic tasks are exempt.

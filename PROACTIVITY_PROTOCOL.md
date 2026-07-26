@@ -80,6 +80,36 @@ failure is structural, not incidental.
    before a human sees it. Inherited straight from FINN-LOOP's standing gate — *the builder
    never grades itself* — and it is what makes an out-of-the-loop human safe.
 
+9. **A FALSE ALARM IS USUALLY A DETECTOR READING THE WRONG COLUMN.** Treat every FA as a bug
+   report against the detector, not as noise to tune out by raising the bar. The recurring
+   shape is a *proxy standing in for the thing*.
+
+   > **Measured 2026-07-26, on this module's own first run.** It reported a daemon as failing.
+   > The daemon was healthy. Chasing it exposed three bugs, all the same bug — reading history
+   > as state: `launchctl`'s STATUS column is *last exit*, not current health, so any service
+   > that ever restarted reads as broken forever; `gate()` re-served a cached snapshot as a
+   > live reading and kept reporting a fault 30 seconds after it was fixed; and the crash-loop
+   > detector counted errors in the last 120 *lines* of a log that had stopped being written
+   > 14 hours earlier. Fixes: require *no pid* as well as non-zero exit; always re-observe and
+   > make `--cached` explicit *and* print the snapshot's age; gate the log scan on **mtime**,
+   > because a crash loop is by definition still writing.
+
+10. **QUERY BEFORE YOU CLAIM BLOCKED, THEN FIX THE LANE — NOT THE INSTANCE.** "Blocked by
+    policy", "no API for that", "can't access it" are claims about your own capability, and
+    they are the cheapest possible Missed-Needed: the work simply does not happen and nothing
+    records that it didn't. Run the capability search first. Then, when you find the lane that
+    works, **write it into the tool.** A one-off workaround you don't commit is a bug you will
+    hit again, and the second person to hit it has no way to know you already solved it.
+
+    > **Measured 2026-07-26.** Two Reddit threads were declared unreachable after
+    > `www`/`old` `.json` returned 403 and a scraper failed. Untried: the local capability
+    > search, which names a purpose-built `futron-reddit-query` in one line; and the
+    > already-logged-in browser on CDP `:9222`, which read both threads in seconds.
+    > Credentials in the vault were stale (401) and the IP-level 403 made the session cookie
+    > irrelevant — but *none of that had been checked* when the claim was made. Fixed at the
+    > lane, not the instance: `futron-reddit-query thread <url|id>`, CDP as tier 0, with the
+    > four dead paths documented in the function so the next agent does not re-derive them.
+
 ## The standing gates (never turn off)
 
 - **Report the miss rate or report nothing.** A dashboard showing a low false-alarm rate and no
@@ -122,6 +152,9 @@ futron-proactive routines       # ready-to-paste /schedule prompts
   validation criteria; 0.37 → 0.84 mean score, pass rate 33.6% → 88.0%.
 - **ACE / agentic-context-engine** — Agent → Reflector → SkillManager over a persistent
   Skillbook; store validated strategies, not raw traces, to avoid context collapse.
+- **ai-care** — independently arrives at the same split this protocol uses: **sensors** (perceive
+  the environment and initiate) and **detectors** (the logic that decides a trigger fires),
+  rather than one undifferentiated "proactive agent."
 - Daisy Hollman (Anthropic) — *"build a system that prompts itself."* The four failure modes
   she names for self-prompting loops map onto this protocol directly: **no memory file** (every
   loop restarts from zero → the ledger), **no sub-agent split** (one agent doing everything →
