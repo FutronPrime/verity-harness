@@ -373,6 +373,45 @@ probabilistic — but the moment a judgment-lapse becomes a *pattern*, it gets p
 > finds becomes a gate that can't reopen. The system got more reliable by being **adversarial with itself**,
 > not by trying harder.
 
+### The lapse the stop hook structurally cannot catch — and the gate for it
+
+Read the four classes above again. Every one is an act of **commission**: the agent *said*
+something it had not earned. That is what a hook can see, because the claim is right there in
+the output stream.
+
+The inverse error emits nothing at all. The agent notices something and stays quiet; the run
+ends clean; every gate passes. **Silence is indistinguishable from correctness**, so no
+response-inspecting hook will ever fire on it.
+
+> **Measured 2026-07-26.** The brand-screening gate `futron-sets-review` requested model
+> `claude-opus-4-8` from an endpoint that only ever served `gpt-5.5`, got 502, fell back to a
+> cynicism-anchored heuristic, and printed a confident score with **exit 1** — the code meaning
+> *"content failed screening."* Nothing had been screened. Because the heuristic is
+> `max(1, 10 - cynicism) + 2`, a low-cynicism panel would have fabricated a **PASS**. It had
+> been failing open for an unknown period. Nothing in the system could notice, because a gate
+> that is quietly wrong emits exactly what a working gate emits.
+
+Two protocols close it, and they are the same idea from opposite ends:
+
+- **[`PROACTIVITY_PROTOCOL.md`](PROACTIVITY_PROTOCOL.md)** — grade on **Missed-Needed**, not on
+  interruptions. Everyone optimises false alarms because they are visible; an agent that never
+  proposes scores a perfect false-alarm rate with a 100% miss rate. Detectors are deterministic
+  code (a model may write the proposal, never *be* the gate); a detector that cannot decide
+  emits `unclear`, never an empty list; and every suppressed signal is logged as `mn_risk` so
+  the invisible error becomes a countable one. `verity proactive gate | calibrate | miss`.
+- **[`DETERMINISM_PROTOCOL.md`](DETERMINISM_PROTOCOL.md)** — `temperature=0` is **not**
+  deterministic (1,000 samples at temp 0 → 80 distinct outputs, diverging at token 103; the
+  cause is missing batch invariance in the kernels, fixable only if you own the server). So
+  dependability is architectural: constrained decoding and grammars where you can reach them,
+  judges and bounded voting where you cannot, and the two never reported in one number.
+
+Both land on one rule, and it is the sharpest thing in this repo:
+
+> **A fallback must change the SHAPE of its output, not add a warning line above an otherwise
+> identical verdict.** A warning gets skimmed. A missing score cannot be. Hence the three-state
+> contract — `0` ran/passed · `1` ran/failed · `2` **could not run, no verdict exists** — and
+> callers must honour `2` as *unscreened*, never as a fail.
+
 ### R60 — the persistence gate (the *quit* failure-mode, made un-rationalizable)
 
 The deepest version of "the model can do it but stops anyway." Capability is rarely the bottleneck in

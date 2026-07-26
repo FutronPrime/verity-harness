@@ -115,6 +115,28 @@ def main(argv: list[str]) -> None:
     elif cmd == "capabilities":
         from .tools import capabilities_guide
         print(capabilities_guide())
+    elif cmd == "proactive":
+        # PROACTIVITY_PROTOCOL.md — the gate for speaking unbidden. Detectors are
+        # host-registered; this CLI drives the ledger, the bar, and the miss report.
+        from . import proactive as _pro
+        sub = rest[0] if rest else "gate"
+        if sub == "gate":
+            print(_pro.report())
+        elif sub == "calibrate":
+            print(json.dumps(_pro.calibrate(), indent=1))
+        elif sub == "miss":
+            if len(rest) < 2:
+                print('usage: proactive miss "<what I should have surfaced>"',
+                      file=sys.stderr); sys.exit(2)
+            print(f"threshold now {_pro.miss(' '.join(rest[1:]))}")
+        elif sub in ("accept", "reject", "ignore"):
+            if len(rest) < 2:
+                print(f'usage: proactive {sub} "<proposal title>"',
+                      file=sys.stderr); sys.exit(2)
+            print(f"threshold now {_pro.record(sub, ' '.join(rest[1:]))}")
+        else:
+            print("usage: proactive [gate|calibrate|miss|accept|reject|ignore]",
+                  file=sys.stderr); sys.exit(2)
     elif cmd == "resources":
         # REUSE-FIRST resource library — curated awesome-lists + frameworks the agents consult
         # before reinventing. `resources <query>` searches; `resources --fetch <name>` opens a list live.
