@@ -11,9 +11,13 @@ import json, os, subprocess, tempfile, sys, time
 HOOK = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "hooks", "stop_guard.py")
 
 
-def run(text, actions, sid):
-    lines = [json.dumps({"type": "assistant", "message": {"role": "assistant",
+def run(text, actions, sid, user_goal=""):
+    lines = []
+    if user_goal:
+        lines.append(json.dumps({"type": "user", "message": {"role": "user", "content": user_goal}}))
+    lines.extend([json.dumps({"type": "assistant", "message": {"role": "assistant",
              "content": [{"type": "tool_use", "name": a, "input": {}}]}}) for a in actions]
+    )
     lines.append(json.dumps({"type": "assistant", "message": {"role": "assistant",
                  "content": [{"type": "text", "text": text}]}}))
     p = tempfile.mktemp(suffix=".jsonl")
@@ -117,6 +121,19 @@ CASES = [
      "upstream shim, so treat it as blind.", NO_INV, "ALLOW"),
     # ── R12 false-positive guards: ordinary prose must NOT trip it ────────────────────────────
     ("plain completion", "Rebuilt the deck and republished the artifact.", NO_INV, "ALLOW"),
+    # ── Prompt-time discovery contract → mechanical completion proof ─────────────────────────
+    ("source request without source receipt", "Research is complete and the planner is fixed.", NO_INV,
+     "BLOCK", "Read these links: https://example.com and https://example.org"),
+    ("memory request without receipt", "The repair is complete.", NO_INV, "BLOCK",
+     "Query the previous Claude Code session memory and fix the planner"),
+    ("tool request without catalog receipt", "Implemented the tool improvement.", NO_INV, "BLOCK",
+     "Use the existing skills and system tools to improve this"),
+    ("source receipt earns completion", "Research is complete and the planner is fixed.",
+     ["Bash agent-reach research example"], "ALLOW", "Read this https://example.com link"),
+    ("memory receipt earns completion", "The repair is complete.",
+     ["Bash futron-claude-transcript-sync --status"], "ALLOW", "Query prior session memory"),
+    ("catalog receipt earns completion", "Implemented the tool improvement.",
+     ["Bash futron-skill-quest proactive hook"], "ALLOW", "Use existing skills and tools"),
     ("quotes the rule", "R12 says never say 'no issues found' without naming the limit.", NO_INV, "ALLOW"),
     # ── PUBLISH scope: a PRIVATE artifact is not an outward publish (fixed 2026-07-26) ───────
     # A gate that cries wolf on a safe action is how a real publish warning gets skimmed past.
@@ -132,8 +149,9 @@ CASES = [
 def main():
     uniq = str(int(time.time()))
     fails = []
-    for i, (name, text, acts, exp) in enumerate(CASES):
-        got = run(text, acts, f"t{uniq}_{i}")
+    for i, case in enumerate(CASES):
+        name, text, acts, exp, *rest = case
+        got = run(text, acts, f"t{uniq}_{i}", rest[0] if rest else "")
         ok = got == exp
         if not ok:
             fails.append((name, got, exp))

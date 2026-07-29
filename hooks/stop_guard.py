@@ -83,6 +83,28 @@ INVESTIGATED = re.compile(r"""(?ix)
     | \baccounts\b|\bhealth\b|\bstatus\b|--list|--query|--help|print-disabled|defaults\s+read
     | futron-system-directory|command\s+-v|which\s+\w|grep[^\n]{0,40}(cred|token|account|auth))
 """)
+# Proof classes for the prompt-time Proactive Discovery Contract.  The contract
+# is useful only if a completion cannot quietly omit the corresponding lookup.
+# These patterns intentionally look at tool activity rather than prose citations.
+SOURCE_EVIDENCE = re.compile(
+    r"""(?ix)(agent-reach|futron-scrape|futron-browser|web(?:__run|_search)?|curl\s+.*https?://
+    |yt-dlp|youtube-transcript|github\s+(search|api)|reddit|x-read|fetch_tweet)"""
+)
+MEMORY_EVIDENCE = re.compile(
+    r"""(?ix)(futron-memory|futron-handoff|futron-claude-transcript-sync|futron-mem-sync
+    |futron-system-directory|sqlite3\s+.*futron-brain|\brg\b.*(memory|handoff|session)
+    |\bgrep\b.*(memory|handoff|session))"""
+)
+CATALOG_EVIDENCE = re.compile(
+    r"""(?ix)(futron-skill-(quest|search|run)|futron-tools-catalog|futron-system-directory
+    |futron-discover|futron-capability-check)"""
+)
+SOURCE_REQUEST = re.compile(r"(?i)(https?://|\b(?:reddit|youtube|github|x\.com|article|links?)\b)")
+MEMORY_REQUEST = re.compile(r"(?i)\b(memory|handoff|previous|prior|history|session|claude\s*code|codex\s*chat|notes?)\b")
+CATALOG_REQUEST = re.compile(r"(?i)\b(skill|tool|automation|capabilit|mcp|system|repo|repository|existing)\w*")
+COMPLETION_CLAIM = re.compile(
+    r"(?i)\b(done|complete(?:d)?|finished|fixed|implemented|updated|published|verified|resolved)\b"
+)
 # evidence an automation attempt was made before deferring — incl. real INSTALL/SETUP actions
 # (mounting a DMG, copying an app, npm/pip/brew/git, dequarantine, launching) so a hand-off is only
 # allowed AFTER the agent actually tried to do it itself.
@@ -212,8 +234,8 @@ def _tail(path, n=240):
 
 
 def _parse(lines):
-    """Return (last_assistant_text, recent_actions_blob)."""
-    last_text, actions = "", []
+    """Return (last assistant text, recent actions, latest user request)."""
+    last_text, actions, last_user = "", [], ""
     for ln in lines:
         try:
             o = json.loads(ln)
@@ -233,9 +255,17 @@ def _parse(lines):
                                    json.dumps(b.get("input", {}))[:600])
                 if b.get("type") == "tool_result":
                     actions.append(json.dumps(b.get("content", ""))[:300])
-        elif isinstance(content, str) and role == "assistant":
-            last_text = content or last_text
-    return last_text, "\n".join(actions[-30:])
+        elif isinstance(content, str):
+            if role == "assistant":
+                last_text = content or last_text
+            elif role == "user":
+                last_user = content or last_user
+        if role == "user" and isinstance(content, list):
+            text_blocks = [str(b.get("text", "")) for b in content
+                           if isinstance(b, dict) and b.get("type") == "text"]
+            if text_blocks:
+                last_user = "\n".join(text_blocks)
+    return last_text, "\n".join(actions[-30:]), last_user
 
 
 def main():
@@ -250,7 +280,7 @@ def main():
     if not tpath or not os.path.exists(tpath):
         sys.exit(0)
 
-    text, actions = _parse(_tail(tpath))
+    text, actions, user_goal = _parse(_tail(tpath))
     if not text:
         sys.exit(0)
     tail_text = text[-1600:]  # the conclusion the agent is stopping on
@@ -269,7 +299,15 @@ def main():
     found_defer = bool(FOUND_DEFER.search(tail_text)) and not bool(SAFETY_REASON.search(tail_text))
     # R12: an unqualified all-clear. Earned by naming what was NOT checked.
     false_clear = bool(FALSE_ALL_CLEAR.search(tail_text)) and not bool(SCOPE_QUALIFIED.search(tail_text))
-    if not (neg or capability or defer or publish or quit_ctx or found_defer or false_clear):
+    # Do not demand a receipt merely because the user mentioned a capability in
+    # passing.  It becomes a hard stop only when the assistant claims a concrete
+    # result for a request that triggered one of the discovery contracts.
+    completion = bool(COMPLETION_CLAIM.search(tail_text))
+    missing_source = completion and bool(SOURCE_REQUEST.search(user_goal)) and not bool(SOURCE_EVIDENCE.search(actions))
+    missing_memory = completion and bool(MEMORY_REQUEST.search(user_goal)) and not bool(MEMORY_EVIDENCE.search(actions))
+    missing_catalog = completion and bool(CATALOG_REQUEST.search(user_goal)) and not bool(CATALOG_EVIDENCE.search(actions))
+    if not (neg or capability or defer or publish or quit_ctx or found_defer or false_clear
+            or missing_source or missing_memory or missing_catalog):
         sys.exit(0)
 
     investigated = bool(INVESTIGATED.search(actions))
@@ -321,6 +359,17 @@ def main():
                   "CAPTCHA/payment/account-creation) or genuinely-unsafe-to-rush work (live-money/"
                   "destructive/prod config) — and if it's the latter you must NAME the specific risk, "
                   "not cite 'low context'. If you've actually done the work, state the result and stop.")
+    elif missing_source:
+        reason = ("VERITY stop-guard: this request included supplied sources, but the completion claim has "
+                  "no source-acquisition receipt. Fetch and synthesize the supplied links using the "
+                  "appropriate documented route, then report the evidence and any explicit access limit.")
+    elif missing_memory:
+        reason = ("VERITY stop-guard: this request asked for prior context, but the completion claim has no "
+                  "memory, handoff, or session-history receipt. Query those records before concluding.")
+    elif missing_catalog:
+        reason = ("VERITY stop-guard: this request named a tool, skill, system, or repository, but the "
+                  "completion claim has no capability-discovery receipt. Query the system directory and "
+                  "installed catalogs before concluding.")
     if not reason and found_defer:
         reason = ("VERITY stop-guard: you FOUND a concrete, fixable issue and are HANDING IT BACK "
                   "instead of fixing it ('want me to…', 'say the word', 'the fix is one line for you "
