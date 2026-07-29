@@ -68,6 +68,19 @@ def test_real_preflight_context_always_injects_gui_escalation(monkeypatch):
     assert "futron-desktop-agent status" in context
 
 
+def test_preflight_turns_links_memory_and_tools_into_concrete_discovery_obligations():
+    context = server.build_preflight_context(
+        "Research these https://example.com links, query prior Claude Code session memory, "
+        "and find the installed skills/tools before changing the planner.",
+        run="turn-proactive",
+    )["context"]
+
+    assert "PROACTIVE DISCOVERY CONTRACT" in context
+    assert "USER-PROVIDED SOURCES" in context
+    assert "PRIOR CONTEXT" in context
+    assert "CAPABILITY DISCOVERY" in context
+
+
 def test_send_ignores_client_disconnect_after_headers():
     handler = object.__new__(server.Handler)
     handler.send_response = lambda _code: None
@@ -182,9 +195,9 @@ def test_wire_daemon_migrates_legacy_label_and_refuses_false_success(tmp_path, m
         autostart.wire_daemon()
 
     joined = [" ".join(call) for call in calls]
-    assert any("bootout" in call and "ai.futron.verity-proxy" in call for call in joined)
     assert any("bootout" in call and "io.verity.proxy" in call for call in joined)
-    assert any("bootstrap" in call and "io.verity.proxy.plist" in call for call in joined)
+    assert any("bootout" in call and "ai.futron.verity-proxy" in call for call in joined)
+    assert any("bootstrap" in call and "ai.futron.verity-proxy.plist" in call for call in joined)
     wrapper = (tmp_path / ".verity-harness" / "proxy-daemon.sh").read_text()
     assert "import verity.guard, verity.server" in wrapper
     assert "rejected incompatible Python" in wrapper

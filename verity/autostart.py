@@ -702,7 +702,10 @@ def wire_daemon() -> str:
         'echo "VERITY daemon found no compatible Python runtime" >&2\n'
         'exit 70\n')
     wrapper.chmod(wrapper.stat().st_mode | stat.S_IEXEC)
-    label = "io.verity.proxy"
+    # This is the only supported label.  Older installers accidentally treated
+    # the canonical label as legacy, then recreated the old service on every
+    # repair.  That split ownership of the same port across two KeepAlive jobs.
+    label = "ai.futron.verity-proxy"
     plist = pathlib.Path(os.path.expanduser(f"~/Library/LaunchAgents/{label}.plist"))
     plist.parent.mkdir(parents=True, exist_ok=True)
     plist.write_text(
@@ -719,7 +722,7 @@ def wire_daemon() -> str:
     # Migrate the pre-canonical label that shipped on early FUTRON installs. Booting both labels
     # caused a KeepAlive restart/port-conflict loop, so both must be stopped before one canonical
     # service is bootstrapped.
-    for old_label in ("ai.futron.verity-proxy", label):
+    for old_label in ("io.verity.proxy", label):
         subprocess.run(["launchctl", "bootout", f"gui/{uid}/{old_label}"], capture_output=True)
     r = subprocess.run(["launchctl", "bootstrap", f"gui/{uid}", str(plist)], capture_output=True, text=True)
     if r.returncode != 0:

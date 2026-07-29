@@ -62,6 +62,57 @@ _PREFLIGHT_SIGNAL = re.compile(
     re.I,
 )
 
+# Proactivity is a workflow property, not a model personality trait.  A capable
+# model can still read past a rule that says "search first", especially when a
+# task mixes supplied sources, old project knowledge, and an existing toolchain.
+# Classify those obligations deterministically at prompt time so the agent gets a
+# concrete discovery contract rather than another large generic prompt.
+_URL_SIGNAL = re.compile(r"(?:https?://|www\.)", re.I)
+_MEMORY_SIGNAL = re.compile(
+    r"\b(memory|handoff|previous|prior|history|session|claude\s*code|codex\s*chat|notes?)\b",
+    re.I,
+)
+_CATALOG_SIGNAL = re.compile(
+    r"\b(skill|tool|automation|capabilit|mcp|system|repo|repository|existing)\w*",
+    re.I,
+)
+_RESEARCH_SIGNAL = re.compile(
+    r"\b(research|investigat|query|look\s*up|find|compare|source|article|video|reddit|youtube|github|x\.com)\w*",
+    re.I,
+)
+
+
+def proactive_discovery_contract(goal: str) -> list[str]:
+    """Return task-specific evidence obligations before an agent can conclude.
+
+    This function intentionally performs no LLM call and makes no claim about a
+    source.  It makes the *next required evidence-gathering action* explicit,
+    so the request cannot quietly collapse into recalled-answer mode.
+    """
+    obligations = []
+    if _URL_SIGNAL.search(goal):
+        obligations.append(
+            "USER-PROVIDED SOURCES: fetch and synthesize every supplied link before recommending "
+            "a design. Use the platform-appropriate route; record inaccessible sources and try an "
+            "alternate documented route before deferring."
+        )
+    if _MEMORY_SIGNAL.search(goal):
+        obligations.append(
+            "PRIOR CONTEXT: query the project handoff, indexed memory, and matching session history "
+            "before proposing a replacement. Distinguish current runtime proof from old notes."
+        )
+    if _CATALOG_SIGNAL.search(goal):
+        obligations.append(
+            "CAPABILITY DISCOVERY: query the system directory and installed skill/tool catalog before "
+            "building or declaring a capability absent. Reuse a verified fit where one exists."
+        )
+    if _RESEARCH_SIGNAL.search(goal) and not _URL_SIGNAL.search(goal):
+        obligations.append(
+            "RESEARCH PARITY: search primary/official material plus the relevant implementation and "
+            "practitioner lanes; label secondary commentary as secondary."
+        )
+    return obligations
+
 
 def build_preflight_context(goal: str, run: str = "") -> dict:
     """Return the deterministic context injected before a Codex turn.
@@ -102,6 +153,10 @@ def build_preflight_context(goal: str, run: str = "") -> dict:
         "verify the outcome. On FUTRON run `futron-tools-catalog json cua-automation`, "
         "`futron-tools-catalog json browser-automation`, and `futron-desktop-agent status` first.",
     ]
+    obligations = proactive_discovery_contract(goal)
+    if obligations:
+        rules.append("PROACTIVE DISCOVERY CONTRACT — complete the applicable evidence work before a conclusion:")
+        rules.extend(f"- {item}" for item in obligations)
     if findings.strip():
         rules.extend((
             "CURRENT BEST APPROACH — live findings; prefer these over stale model memory:",
