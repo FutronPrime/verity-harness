@@ -367,7 +367,9 @@ def wire_claude_code() -> str:
     write_script()
     write_inject_script()
     write_guard_script()
+    write_codex_prompt_guard_script()
     cfg = pathlib.Path(os.path.expanduser("~/.claude/settings.json"))
+    cfg.parent.mkdir(parents=True, exist_ok=True)
     data = {}
     if cfg.exists():
         try:
@@ -376,6 +378,19 @@ def wire_claude_code() -> str:
             return f"[refused] {cfg} is not valid JSON — fix it first, then re-run."
     hooks = data.setdefault("hooks", {})
     changed = []
+    # UserPromptSubmit → same deterministic, task-specific preflight used by
+    # Codex. Claude's native Anthropic transport bypasses the OpenAI proxy, so
+    # this hook is the durable point where its prompt receives the discovery
+    # contract (supplied sources, prior memory, and installed capabilities).
+    prompts = hooks.setdefault("UserPromptSubmit", [])
+    if "codex_prompt_guard.py" not in json.dumps(prompts):
+        prompts.append({"matcher": "", "hooks": [{
+            "type": "command",
+            "command": f"python3 {CODEX_PROMPT_GUARD}",
+            "timeout": 90,
+            "statusMessage": "Applying VERITY deterministic preflight",
+        }]})
+        changed.append("UserPromptSubmit→preflight")
     # SessionStart → sync + start the proxy floor (silent).
     starts = hooks.setdefault("SessionStart", [])
     if str(SCRIPT) not in json.dumps(starts):
@@ -402,7 +417,7 @@ def wire_claude_code() -> str:
             arr.append({"matcher": "", "hooks": [{"type": "command", "command": guard_cmd, "timeout": 10}]})
             changed.append(f"{ev}→overconfidence-guard")
     if not changed:
-        return "[already wired] Claude Code SessionStart→start + SessionEnd→stop."
+        return "[already wired] Claude Code UserPromptSubmit→preflight + completion guards."
     cfg.write_text(json.dumps(data, indent=2))
     return (f"[wired] Claude Code: {', '.join(changed)}.\nVERITY now starts silently on session "
             "start and STOPS on session end — it closes when you do, no lingering process. "

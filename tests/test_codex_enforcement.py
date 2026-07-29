@@ -179,6 +179,24 @@ def test_wire_codex_installs_prompt_route_and_stop_guards(tmp_path, monkeypatch)
     assert "deterministic preflight" in report.lower()
 
 
+def test_wire_claude_installs_same_prompt_route_and_completion_guards(tmp_path, monkeypatch):
+    state = tmp_path / ".verity-harness"
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setattr(autostart, "SCRIPT", state / "autostart.sh")
+    monkeypatch.setattr(autostart, "INJECT", state / "verity-context-inject.sh")
+    monkeypatch.setattr(autostart, "GUARD", state / "stop_guard.py")
+    monkeypatch.setattr(autostart, "CODEX_PROMPT_GUARD", state / "codex_prompt_guard.py", raising=False)
+
+    report = autostart.wire_claude_code()
+
+    hooks = json.loads((tmp_path / ".claude" / "settings.json").read_text())["hooks"]
+    assert "codex_prompt_guard.py" in json.dumps(hooks["UserPromptSubmit"])
+    assert "stop_guard.py" in json.dumps(hooks["Stop"])
+    assert "stop_guard.py" in json.dumps(hooks["SubagentStop"])
+    assert (state / "codex_prompt_guard.py").is_file()
+    assert "preflight" in report.lower()
+
+
 def test_wire_daemon_migrates_legacy_label_and_refuses_false_success(tmp_path, monkeypatch):
     calls = []
 
