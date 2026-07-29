@@ -1,5 +1,11 @@
 # BENCHMARK — Fable-5 Planner (MiniCPM 1B distill) as an orchestrator
 
+> **Historical record.** On 2026-07-29 the MiniCPM planner was retired from autonomous
+> planning and validation. JSON validity and bounded-plan scores are insufficient proof that
+> a plan's checks are real, task-matched, or executable. VERITY's deterministic evidence
+> contracts and independent verification now have authority; enterprise planning is explicit
+> and budget-gated for hard tasks only.
+
 **Run 2026-07-25.** Reproduce: `futron-planner-benchmark`
 Raw: `~/.openclaw/state/fable5-planner/benchmark.json`
 

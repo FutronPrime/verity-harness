@@ -1,5 +1,21 @@
 # FABLE-5 METHODOLOGY — universal reasoning discipline (adopt before any non-trivial task)
 
+## Runtime status — MiniCPM planner retired (2026-07-29)
+
+The Fable-style *methodology* remains part of VERITY. The 1B MiniCPM distill does not.
+It was removed from autonomous planning and validation after task-matched evaluations found
+that syntactically valid plans could still contain vague or invented verification checks.
+
+VERITY now uses this control plane instead:
+
+1. deterministic preflight retrieves relevant context, existing tools, constraints, and required evidence;
+2. a capable enterprise model may be selected explicitly for difficult planning or seam review;
+3. the executor acts only within those constraints;
+4. independent read-only and task-matched checks decide whether the result passes.
+
+No model confidence, including the planner's, is an acceptance signal. Enterprise routing is
+opt-in and budget-gated; the deterministic gates continue to operate without it.
+
 > **This is a SHARED discipline layer.** Every FUTRON system — VERITY (local + public GitHub),
 > the Fable-5 orchestrator, AVANI OS, Codex, Hermes, and any LLM wired into the network — adopts
 > this. It's what DJ was building VERITY toward: not just "don't fabricate," but a repeatable
@@ -54,15 +70,9 @@ system-prompt-clean · UnpaidAttention/fable5-methodology. Verified in productio
 `futron-fable-brain --plan-only` produced assumption-flagged, dependency-ordered, verification-
 bound plans — a night-and-day gain over generic decomposition.
 
-## 🧠 FABLE-5 PLANNER — MiniCPM distilled ORCHESTRATOR (wired 2026-07-25)
-Local llama.cpp server, OpenAI-compatible, always on (`com.futron.fable5-planner`).
-- **Endpoint:** `http://127.0.0.1:11501/v1/chat/completions` · health `/health`
-- **Model:** `MiniCPM5-1B-Claude-Opus-Fable5-Thinking` (Q4_K_M GGUF), fine-tuned on Fable-5 traces
-- **Role:** PLANNER only — goal → verifiable dependency graph. Never an executor.
-- **MUST** pass `response_format: json_schema` — llama.cpp GBNF makes malformed JSON impossible
-- **MUST** pass `chat_template_kwargs: {"enable_thinking": false}` — else the whole budget goes
-  to `reasoning_content` and content comes back EMPTY (measured: 900/900 tokens, finish=length)
-- ~2.3s with thinking off vs ~50s on; the schema carries the structure either way
-- `-ngl 0` MANDATORY (Metal ban)
-- Canonical prompt: `~/.openclaw/config/fable5-planner-prompt.md`
-- Topology: MiniCPM plans → Kimi K3/Opus executes → cheap READ-ONLY verifier → frontier reviewer audits seams
+## 🧠 Planning topology
+
+The historical MiniCPM configuration is retained only in the benchmark record below. The
+active topology is deterministic VERITY preflight → opt-in enterprise planner for hard tasks →
+executor → read-only verifier → independent seam review. This preserves the useful Fable-style
+discipline while avoiding a small distill being treated as a reasoning authority.
