@@ -146,6 +146,12 @@ def build_preflight_context(goal: str, run: str = "") -> dict:
         "OBSTACLE ORDER: read logs/status, attempt documented repair, then search the exact error.",
         "PERSISTENCE: try at least two structurally different approaches before deferring.",
         "VERIFY: run an objective task-matched check; label conclusions VERIFIED or GUESS.",
+        "REGISTRATION IS NOT OPERATION: a hook/flag/lane that is installed, configured or "
+        "unit-tested is NOT proven to run. Prove OPERATION — exercise it end-to-end and assert an "
+        "observable effect. For anything that GATES, prove it can say NO: feed it a payload it "
+        "must refuse, because a clean exit on a benign probe is what a working gate and a DEAD "
+        "gate both return. Check the invocation path too — an exec'd script without +x, or a "
+        "flag that loads no content, reports success while binding nothing.",
         "NEGATIVE CLAIMS: no impossible/down/missing/only-way conclusion without cited investigation.",
         "GUI ESCALATION BLOCKER: a missing connector is not a human gate. Before asking the user to "
         "click/type/export, inventory installed browser/CUA/AX/AppleScript/vision/CLI/extension/API "
